@@ -1,5 +1,5 @@
 <script>
-	let { submission } = $props();
+	let { submission, compact = false } = $props();
 	const tags = $derived((submission.tags ?? []).slice(0, 3));
 	const image = $derived(submission.preview_image || '/og.png');
 
@@ -8,10 +8,12 @@
 	}
 </script>
 
-<a class="card card-hover sub" href={`/writing/${submission.id}`}>
-	<div class="preview" aria-hidden="true">
-		<img src={image} alt="" loading="lazy" decoding="async" onerror={useFallbackImage} />
-	</div>
+<a class="card card-hover sub" class:compact href={`/writing/${submission.id}`}>
+	{#if !compact}
+		<div class="preview" aria-hidden="true">
+			<img src={image} alt="" loading="lazy" decoding="async" onerror={useFallbackImage} />
+		</div>
+	{/if}
 	<div class="top">
 		<span class="chip chip-accent">{submission.content_type_label ?? submission.content_type}</span>
 		{#if submission.status === 'featured'}
@@ -48,6 +50,18 @@
 	}
 	.sub:hover {
 		text-decoration: none;
+	}
+	/* Compact: no preview banner, tighter spacing so many pieces fit per row. */
+	.sub.compact {
+		gap: 0.5rem;
+		padding: 1.1rem 1.2rem;
+	}
+	.sub.compact h3 {
+		font-size: 1.1rem;
+	}
+	.sub.compact .summary {
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
 	}
 	.preview {
 		aspect-ratio: 1200 / 630;

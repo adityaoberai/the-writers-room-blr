@@ -32,13 +32,16 @@
 	const enhanceVerify = () => {
 		verifySubmitting = true;
 		return async ({ result }) => {
-			if (result.type === 'redirect') {
-				window.location.replace(result.location || '/');
-				return;
-			}
+			try {
+				if (result.type === 'redirect') {
+					window.location.replace(result.location || '/');
+					return;
+				}
 
-			await applyAction(result);
-			verifySubmitting = false;
+				await applyAction(result);
+			} finally {
+				verifySubmitting = false;
+			}
 		};
 	};
 
@@ -46,9 +49,12 @@
 	const enhanceRequest = () => {
 		requestSubmitting = true;
 		return async ({ result, update }) => {
-			await update();
-			requestSubmitting = false;
-			verifySubmitting = false;
+			try {
+				await update();
+			} finally {
+				requestSubmitting = false;
+				verifySubmitting = false;
+			}
 			if (result?.type === 'success') startCooldown();
 		};
 	};

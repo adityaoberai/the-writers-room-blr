@@ -10,13 +10,18 @@
 	let { form } = $props();
 
 	// Toast on each *new* action result (object identity changes per submission).
-	let seen = $state(null);
+	// `seen` is a plain, non-reactive guard on purpose: if it were `$state`, the
+	// assignment below would wrap the result in a state proxy, so the next run's
+	// `f === seen` (raw object vs. proxy) would never match — the effect would
+	// re-toast and re-trigger itself until `effect_update_depth_exceeded`.
+	let seen = null;
 	$effect(() => {
 		const f = form;
 		if (!f || f === seen) return;
 		seen = f;
 		if (f.error) toast.error(f.error);
-		else if (f.success) toast.success(f.success);
+		else if (f.success)
+			toast.success(f.success, { duration: f.success === 'Profile saved.' ? 3000 : undefined });
 	});
 </script>
 

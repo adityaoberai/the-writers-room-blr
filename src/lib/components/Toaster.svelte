@@ -61,7 +61,7 @@
 		pointer-events: none;
 	}
 	.toast {
-		pointer-events: auto;
+		pointer-events: none;
 		display: flex;
 		align-items: flex-start;
 		gap: 0.65rem;
@@ -113,6 +113,7 @@
 		color: var(--accent-strong);
 	}
 	.t-close {
+		pointer-events: auto;
 		flex-shrink: 0;
 		background: none;
 		border: none;

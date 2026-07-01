@@ -88,6 +88,17 @@ export async function awardPoints({ userId, actionKey, sourceType, sourceId, not
 	return { awarded: rule.points };
 }
 
+export async function awardProfileCompletion(userId, profile) {
+	if (!profile?.$id || !isProfileComplete(profile)) return { awarded: 0 };
+	return awardPoints({
+		userId,
+		actionKey: 'profile_completion',
+		sourceType: 'profile',
+		sourceId: profile.$id,
+		notes: 'Completed profile'
+	});
+}
+
 /** Re-evaluate badge milestones for a user and grant any newly earned badges. */
 export async function recomputeBadges(userId) {
 	const [badges, earned, logs, submissionCount, profile] = await Promise.all([

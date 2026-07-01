@@ -8,10 +8,13 @@
 
 	const onSubmit = () => {
 		uploading = true;
-		return async ({ update }) => {
-			await update({ reset: false });
-			uploading = false;
-			fileName = '';
+		return async ({ result, update }) => {
+			try {
+				await update({ reset: result.type === 'success' });
+				if (result.type === 'success') fileName = '';
+			} finally {
+				uploading = false;
+			}
 		};
 	};
 </script>
@@ -24,18 +27,19 @@
 		enctype="multipart/form-data"
 		use:enhance={onSubmit}
 		class="photo-form"
+		aria-busy={uploading}
 	>
 		<label class="file-btn">
 			<input
 				type="file"
 				name="photo"
-				accept="image/png,image/jpeg,image/webp,image/gif"
+				accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
 				onchange={(e) => (fileName = e.currentTarget.files?.[0]?.name ?? '')}
 				required
 			/>
 			<span>{fileName || 'Choose a photo'}</span>
 		</label>
-		<button class="btn btn-secondary btn-sm" type="submit" disabled={uploading}>
+		<button class="btn btn-secondary btn-sm" type="submit" disabled={uploading || !fileName}>
 			{uploading ? 'Uploading…' : 'Upload'}
 		</button>
 	</form>

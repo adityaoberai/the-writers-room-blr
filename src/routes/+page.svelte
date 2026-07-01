@@ -23,19 +23,6 @@
 		'research.',
 		'your next draft.'
 	];
-	const marqueeGenres = [
-		'Fiction',
-		'Essays',
-		'Poetry',
-		'Memoir',
-		'Newsletters',
-		'Long-form nonfiction',
-		'Journalism',
-		'Screenwriting',
-		'Speculative fiction',
-		'Travel writing'
-	];
-	const marqueeLane = [...marqueeGenres, ...marqueeGenres];
 </script>
 
 <Seo
@@ -47,7 +34,6 @@
 <section class="hero">
 	<div class="container hero-inner">
 		<div class="hero-copy">
-			<p class="eyebrow">Bengaluru · Writing Community</p>
 			<h1>{hero.title}</h1>
 			<p class="typed-line">A focused room for <Typewriter words={typedWords} /></p>
 			<p class="lead">{hero.subtitle}</p>
@@ -55,7 +41,6 @@
 				<a class="btn btn-primary" href={user ? '/submit' : '/signin'}>
 					{user ? 'Submit writing' : 'Join the room'}
 				</a>
-				<a class="btn btn-secondary" href="#events">See the calendar</a>
 			</div>
 			{#if stats.pieces > 0}
 				<p class="social-proof">
@@ -86,19 +71,6 @@
 		</div>
 	</div>
 </section>
-
-<!-- Genre marquee -->
-<div class="marquee" aria-hidden="true">
-	<div class="marquee-track">
-		{#each [0, 1] as lane (lane)}
-			<div class="marquee-group">
-				{#each marqueeLane as g, i (`${lane}-${i}-${g}`)}
-					<span class="marquee-item">{g}</span>
-				{/each}
-			</div>
-		{/each}
-	</div>
-</div>
 
 <!-- Moments from past meetups (auto-populates from static/events-gallery) -->
 <Gallery photos={data.galleryPhotos} />
@@ -269,7 +241,7 @@
 		margin-bottom: 0.4rem;
 	}
 	.typed-line {
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: clamp(1.3rem, 2.6vw, 1.9rem);
 		color: var(--navy);
 		margin: 0 0 0.9rem;
@@ -299,7 +271,7 @@
 		margin: 0;
 	}
 	.stats dt {
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 1.5rem;
 		color: var(--navy);
 		font-weight: 700;
@@ -321,23 +293,11 @@
 		border: 1px solid var(--border);
 		box-shadow: var(--shadow-lg);
 		background: var(--surface);
-		transform: rotate(-2deg);
-		animation: hero-float 7s ease-in-out infinite;
 	}
 	.art-frame img {
 		width: 100%;
 		height: auto;
 		display: block;
-	}
-	@keyframes hero-float {
-		50% {
-			transform: rotate(-2deg) translateY(-12px);
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.art-frame {
-			animation: none;
-		}
 	}
 
 	.mission .lead {
@@ -364,7 +324,7 @@
 		gap: 0.2rem;
 	}
 	.fmt-num {
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 1.9rem;
 		font-weight: 700;
 		color: var(--accent-strong);

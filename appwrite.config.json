@@ -49,7 +49,7 @@
         {
             "$id": "6a441487000c7bae0684",
             "name": "the-writers-room-blr",
-            "path": "sites/the-writers-room-blr",
+            "path": "./",
             "framework": "sveltekit",
             "logging": true,
             "timeout": 30,
@@ -883,14 +883,7 @@
             "name": "Profile Photos",
             "enabled": true,
             "maximumFileSize": 100000000,
-            "allowedFileExtensions": [
-                "jpg",
-                "png",
-                "jpeg",
-                "webp",
-                "avif",
-                "gif"
-            ],
+            "allowedFileExtensions": [],
             "compression": "none",
             "encryption": true,
             "antivirus": true

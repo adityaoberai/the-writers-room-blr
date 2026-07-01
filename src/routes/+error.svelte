@@ -27,7 +27,7 @@
 		padding-block: 4rem;
 	}
 	.code {
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 4rem;
 		font-weight: 700;
 		color: var(--accent-2);

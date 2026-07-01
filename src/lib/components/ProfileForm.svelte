@@ -85,13 +85,16 @@
 	const onSubmit = () => {
 		saving = true;
 		return async ({ update }) => {
-			await update({ reset: false });
-			saving = false;
+			try {
+				await update({ reset: false, invalidateAll: false });
+			} finally {
+				saving = false;
+			}
 		};
 	};
 </script>
 
-<form method="POST" {action} use:enhance={onSubmit} class="profile-form">
+<form method="POST" {action} use:enhance={onSubmit} class="profile-form" aria-busy={saving}>
 	<div class="field">
 		<label for="display_name">Display name</label>
 		<input

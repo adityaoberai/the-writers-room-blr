@@ -421,7 +421,7 @@
 	}
 	.m-num {
 		display: block;
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 1.8rem;
 		font-weight: 700;
 		color: var(--navy);

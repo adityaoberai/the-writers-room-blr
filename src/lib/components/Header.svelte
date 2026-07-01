@@ -146,8 +146,7 @@
 				</div>
 			{:else}
 				<div class="auth-actions">
-					<a class="btn btn-secondary btn-sm" href="/signin">Sign in</a>
-					<a class="btn btn-primary btn-sm" href="/signin">Join</a>
+					<a class="btn btn-primary btn-sm" href="/signin">Sign in</a>
 				</div>
 			{/if}
 		</div>
@@ -176,7 +175,7 @@
 		gap: 0.6rem;
 		min-width: 0;
 		color: var(--navy);
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 1.15rem;
 		text-decoration: none;
 		white-space: nowrap;
@@ -345,9 +344,6 @@
 			display: none;
 		}
 		.account-name {
-			display: none;
-		}
-		.auth-actions .btn:first-child {
 			display: none;
 		}
 	}

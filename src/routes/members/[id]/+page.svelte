@@ -139,7 +139,7 @@
 	}
 	.pts {
 		display: block;
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 2rem;
 		font-weight: 700;
 		color: var(--accent-strong);
@@ -162,7 +162,6 @@
 		font-family: var(--font-sans);
 		font-size: 0.95rem;
 		text-transform: uppercase;
-		letter-spacing: 0.06em;
 		color: var(--muted);
 		margin: 0 0 0.8rem;
 	}

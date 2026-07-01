@@ -54,7 +54,7 @@
 		align-items: center;
 		gap: 0.55rem;
 		color: #f8fafc;
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 1.1rem;
 		text-decoration: none;
 	}
@@ -71,7 +71,6 @@
 		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		text-transform: uppercase;
-		letter-spacing: 0.1em;
 		margin: 0 0 0.8rem;
 	}
 	ul {

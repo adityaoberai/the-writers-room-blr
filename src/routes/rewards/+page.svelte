@@ -103,7 +103,7 @@
 	}
 	.big-num {
 		display: block;
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-size: 2.6rem;
 		font-weight: 700;
 		color: var(--accent-strong);
@@ -126,7 +126,7 @@
 		gap: 0.8rem;
 	}
 	.rule .pts {
-		font-family: var(--font-serif);
+		font-family: var(--font-sans);
 		font-weight: 700;
 		font-size: 1.4rem;
 		color: var(--highlight);

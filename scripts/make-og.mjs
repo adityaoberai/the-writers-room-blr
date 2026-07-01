@@ -66,10 +66,8 @@ function ogSvg() {
   <rect x="0" y="0" width="14" height="630" fill="${STEEL}"/>
   <circle cx="1050" cy="150" r="230" fill="${STEEL}" opacity="0.16"/>
   <circle cx="1120" cy="540" r="150" fill="${STEEL_2}" opacity="0.12"/>
-  <text x="90" y="212" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="26"
-    letter-spacing="6" fill="${STEEL_2}" font-weight="600">BENGALURU · WRITING COMMUNITY</text>
-  <text x="86" y="332" font-family="Playfair Display, Georgia, serif" font-size="74"
-    font-weight="700" fill="#F8FAFC">The Writers&#39; Room BLR</text>
+  <text x="86" y="332" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="74"
+    font-weight="800" fill="#F8FAFC">The Writers&#39; Room BLR</text>
   <text x="90" y="432" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="38"
     fill="#CBD5E1">${subTspans}</text>
   <rect x="90" y="550" width="170" height="6" rx="3" fill="${AMBER}"/>

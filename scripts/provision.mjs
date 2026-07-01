@@ -336,8 +336,7 @@ async function provisionBucket() {
 			permissions: [Permission.read(Role.any())],
 			fileSecurity: false,
 			enabled: true,
-			maximumFileSize: 5 * 1024 * 1024,
-			allowedFileExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif']
+			maximumFileSize: 100 * 1024 * 1024
 		})
 	);
 }

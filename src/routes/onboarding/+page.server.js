@@ -1,15 +1,13 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { requireUser } from '$lib/server/guards.js';
 import {
-	getProfileByUserId,
 	ensureProfile,
 	parseLinks,
 	saveProfileFromFormData,
-	setProfilePhoto,
-	isProfileComplete
+	setProfilePhoto
 } from '$lib/server/profiles.js';
 import { uploadProfilePhoto } from '$lib/server/storage.js';
-import { awardPoints } from '$lib/server/rewards.js';
+import { awardProfileCompletion } from '$lib/server/rewards.js';
 
 function formProfile(p) {
 	return {
@@ -34,21 +32,15 @@ export const actions = {
 	save: async ({ request, locals }) => {
 		requireUser(locals);
 		const fd = await request.formData();
+		let updated;
 		try {
-			await saveProfileFromFormData(locals.user.$id, fd);
+			updated = await saveProfileFromFormData(locals.user.$id, fd);
 		} catch (err) {
 			return fail(400, { error: err.message || 'Could not save profile.' });
 		}
-		const updated = await getProfileByUserId(locals.user.$id);
-		if (isProfileComplete(updated)) {
-			await awardPoints({
-				userId: locals.user.$id,
-				actionKey: 'profile_completion',
-				sourceType: 'profile',
-				sourceId: updated.$id,
-				notes: 'Completed profile'
-			});
-		}
+		void awardProfileCompletion(locals.user.$id, updated).catch((err) => {
+			console.error('Could not award profile completion points.', err);
+		});
 		throw redirect(303, '/me');
 	},
 
@@ -58,7 +50,7 @@ export const actions = {
 		try {
 			const { url } = await uploadProfilePhoto(fd.get('photo'));
 			await setProfilePhoto(locals.user.$id, url);
-			return { success: 'Photo updated.' };
+			return { success: 'Photo updated.', photo_url: url };
 		} catch (err) {
 			return fail(400, { error: err.message || 'Could not upload photo.' });
 		}
