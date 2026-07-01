@@ -14,6 +14,24 @@
 		rejected: 'pill-red',
 		pending: 'pill-gray'
 	};
+
+	let showChecklist = $state(false);
+
+	// What makes a profile "complete". Derived from the saved profile so the
+	// checklist reflects the last save.
+	const criteria = $derived([
+		{ label: 'Add a display name', met: !!(data.profile.display_name ?? '').trim() },
+		{ label: 'Write a bio', met: (data.profile.bio ?? '').trim().length > 0 },
+		{ label: 'Add at least one writing genre', met: (data.profile.genres?.length ?? 0) >= 1 }
+	]);
+
+	function closeChecklist() {
+		showChecklist = false;
+	}
+
+	function onKeydown(event) {
+		if (event.key === 'Escape') closeChecklist();
+	}
 </script>
 
 <Seo
@@ -21,6 +39,8 @@
 	description="Manage your Writers' Room BLR profile and submissions."
 	noindex={true}
 />
+
+<svelte:window onkeydown={onKeydown} />
 
 <section class="section">
 	<div class="container">
@@ -46,10 +66,6 @@
 				<span class="num">{data.submissions.length}</span>
 				<span class="muted">submissions</span>
 			</div>
-			<div class="stat card">
-				<span class="num">{data.complete ? 'Complete' : 'Incomplete'}</span>
-				<span class="muted">profile</span>
-			</div>
 			<a class="stat card link" href="/rewards">
 				<span class="num">★</span>
 				<span class="muted">View rewards →</span>
@@ -57,16 +73,23 @@
 		</div>
 
 		{#if !data.complete}
-			<Flash
-				type="info"
-				message="Add a bio (40+ characters) and at least one genre to complete your profile and join the directory."
-			/>
+			<Flash type="info">
+				Finish your profile to earn points.
+				<button type="button" class="linklike" onclick={() => (showChecklist = true)}>
+					See what's needed →
+				</button>
+			</Flash>
 		{/if}
 		<FormFeedback {form} />
 
 		<div class="layout">
 			<div class="edit">
-				<h2>Edit details</h2>
+				<div class="edit-head">
+					<h2>Edit details</h2>
+					<button type="button" class="linklike" onclick={() => (showChecklist = true)}>
+						Profile checklist
+					</button>
+				</div>
 				<div class="photo-block">
 					<PhotoUpload photoUrl={data.profile.photo_url} name={data.profile.display_name} />
 				</div>
@@ -96,6 +119,34 @@
 		</div>
 	</div>
 </section>
+
+{#if showChecklist}
+	<div class="modal-backdrop" role="presentation">
+		<div class="modal card" role="dialog" aria-modal="true" aria-labelledby="checklist-title">
+			<div class="modal-head">
+				<h3 id="checklist-title">Profile checklist</h3>
+				<button type="button" class="modal-close" aria-label="Close" onclick={closeChecklist}>
+					×
+				</button>
+			</div>
+			<p class="muted">
+				A complete profile helps other writers get to know you and earns you points.
+			</p>
+			<ul class="checklist">
+				{#each criteria as c (c.label)}
+					<li class:met={c.met}>
+						<span class="mark" aria-hidden="true">{c.met ? '✓' : '○'}</span>
+						<span>{c.label}</span>
+					</li>
+				{/each}
+			</ul>
+			{#if data.complete}
+				<p class="done">Your profile is complete. 🎉</p>
+			{/if}
+			<button class="btn btn-secondary btn-sm" type="button" onclick={closeChecklist}>Close</button>
+		</div>
+	</div>
+{/if}
 
 <style>
 	.page-head {
@@ -181,5 +232,85 @@
 		.layout {
 			grid-template-columns: 1fr;
 		}
+	}
+	.edit-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.linklike {
+		background: none;
+		border: none;
+		color: var(--accent-strong);
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+		padding: 0;
+		text-decoration: underline;
+	}
+	.modal-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(15, 30, 50, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		z-index: 100;
+	}
+	.modal {
+		width: 100%;
+		max-width: 420px;
+	}
+	.modal-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.modal-head h3 {
+		margin: 0;
+		font-size: 1.2rem;
+	}
+	.modal-close {
+		background: none;
+		border: none;
+		font-size: 1.6rem;
+		line-height: 1;
+		color: var(--muted);
+		cursor: pointer;
+		padding: 0 0.2rem;
+	}
+	.modal-close:hover {
+		color: var(--navy);
+	}
+	.checklist {
+		list-style: none;
+		margin: 1rem 0;
+		padding: 0;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.checklist li {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		color: var(--muted);
+	}
+	.checklist li.met {
+		color: var(--navy);
+	}
+	.checklist .mark {
+		font-weight: 700;
+		color: var(--border);
+	}
+	.checklist li.met .mark {
+		color: var(--accent-strong);
+	}
+	.done {
+		font-weight: 600;
+		color: var(--accent-strong);
+		margin: 0 0 1rem;
 	}
 </style>

@@ -8,7 +8,7 @@
  *
  * Run with:  node --env-file=.env scripts/provision.mjs
  */
-import { Client, TablesDB, Storage, Permission, Role } from 'node-appwrite';
+import { Client, TablesDB, Storage, Permission, Role, Query } from 'node-appwrite';
 import {
 	DATABASE_ID,
 	PHOTO_BUCKET_ID,
@@ -86,7 +86,8 @@ const SCHEMA = [
 			{ key: 'links', type: 'text' },
 			{ key: 'location', type: 'varchar', size: 128, default: 'Bengaluru' },
 			{ key: 'is_public', type: 'boolean', default: true },
-			{ key: 'is_featured', type: 'boolean', default: false }
+			{ key: 'is_featured', type: 'boolean', default: false },
+			{ key: 'listed', type: 'boolean', default: true }
 		],
 		indexes: [
 			{ key: 'idx_user', type: 'unique', columns: ['user_id'] },
@@ -113,8 +114,7 @@ const SCHEMA = [
 			{ key: 'user_id', type: 'varchar', size: 64, required: true },
 			{ key: 'title', type: 'varchar', size: 256, required: true },
 			{ key: 'summary', type: 'varchar', size: 1024 },
-			{ key: 'content_type', type: 'enum', elements: CONTENT_TYPES, default: 'blog' },
-			{ key: 'body', type: 'mediumtext' },
+			{ key: 'content_type', type: 'enum', elements: CONTENT_TYPES, required: true },
 			{ key: 'external_url', type: 'url' },
 			{ key: 'status', type: 'enum', elements: SUBMISSION_STATUSES, default: 'pending' },
 			{ key: 'tags', type: 'varchar', size: 64, array: true },
@@ -515,11 +515,43 @@ async function seedData() {
 	// remains for the optional admin-managed past-meetups archive.
 }
 
+/**
+ * One-time data migration for the "listed/approved by default" change.
+ * Existing never-reviewed submissions (`pending`) become public (`approved`);
+ * `rejected` rows are left hidden so past reject decisions are preserved.
+ * Profiles are backfilled to listed by the `listed` column default.
+ */
+async function migrateContent() {
+	console.log('Migrating existing content');
+	let migrated = 0;
+	for (let i = 0; i < 100; i++) {
+		const res = await tablesDB.listRows({
+			databaseId: DATABASE_ID,
+			tableId: TABLES.submissions,
+			queries: [Query.equal('status', 'pending'), Query.limit(100)]
+		});
+		const rows = res.rows ?? res.documents ?? [];
+		if (!rows.length) break;
+		for (const row of rows) {
+			await tablesDB.updateRow({
+				databaseId: DATABASE_ID,
+				tableId: TABLES.submissions,
+				rowId: row.$id,
+				data: { status: 'approved' }
+			});
+			migrated++;
+		}
+		if (rows.length < 100) break;
+	}
+	console.log(`  ✓ ${migrated} pending submission(s) set to approved`);
+}
+
 async function main() {
 	console.log(`Provisioning project "${project}" at ${endpoint}\n`);
 	await provisionDatabase();
 	await provisionBucket();
 	await seedData();
+	await migrateContent();
 	console.log('\nDone. Schema, bucket and seed data are in place.');
 }
 

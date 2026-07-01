@@ -226,6 +226,13 @@
                     "required": false,
                     "array": false,
                     "default": null
+                },
+                {
+                    "key": "listed",
+                    "type": "boolean",
+                    "required": false,
+                    "array": false,
+                    "default": true
                 }
             ],
             "indexes": [
@@ -361,9 +368,9 @@
                 {
                     "key": "content_type",
                     "type": "string",
-                    "required": false,
+                    "required": true,
                     "array": false,
-                    "default": "blog",
+                    "default": null,
                     "format": "enum",
                     "elements": [
                         "blog",
@@ -375,14 +382,6 @@
                         "book",
                         "other"
                     ]
-                },
-                {
-                    "key": "body",
-                    "type": "mediumtext",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "encrypt": false
                 },
                 {
                     "key": "external_url",

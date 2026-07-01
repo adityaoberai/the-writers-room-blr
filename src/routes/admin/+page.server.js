@@ -2,7 +2,8 @@ import { fail } from '@sveltejs/kit';
 import { requireAdmin } from '$lib/server/guards.js';
 import { getDashboardData } from '$lib/server/admin.js';
 import { getAllSettings, setSetting } from '$lib/server/settings.js';
-import { approveProfile, setFeatured } from '$lib/server/profiles.js';
+import { setProfileListed, setFeatured } from '$lib/server/profiles.js';
+import { setUserAdmin } from '$lib/server/users.js';
 import {
 	moderateSubmission,
 	listPublicSubmissions,
@@ -37,6 +38,7 @@ export async function load({ locals }) {
 		dashboard,
 		settings,
 		editableSettings: EDITABLE_SETTINGS,
+		currentUserId: locals.user.$id,
 		events: events.map(serializeEvent),
 		approvedSubmissions: approved.map((s) =>
 			serializeSubmission(s, { author: authors[s.user_id] ?? null })
@@ -47,12 +49,29 @@ export async function load({ locals }) {
 const ok = (message) => ({ success: message });
 
 export const actions = {
-	approveMember: async ({ request, locals }) => {
+	setMemberListed: async ({ request, locals }) => {
 		requireAdmin(locals);
 		const fd = await request.formData();
+		const listed = fd.get('listed') === 'true';
 		try {
-			await approveProfile(String(fd.get('profile_id')), locals.user.$id);
-			return ok('Member approved for the directory.');
+			await setProfileListed(String(fd.get('profile_id')), listed);
+			return ok(listed ? 'Member listed in the directory.' : 'Member unlisted.');
+		} catch (err) {
+			return fail(400, { error: err.message });
+		}
+	},
+
+	setMemberAdmin: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const fd = await request.formData();
+		const userId = String(fd.get('user_id'));
+		const makeAdmin = fd.get('make_admin') === 'true';
+		if (userId === locals.user.$id) {
+			return fail(400, { error: "You can't change your own admin status." });
+		}
+		try {
+			await setUserAdmin(userId, makeAdmin);
+			return ok(makeAdmin ? 'Member promoted to admin.' : 'Admin access removed.');
 		} catch (err) {
 			return fail(400, { error: err.message });
 		}

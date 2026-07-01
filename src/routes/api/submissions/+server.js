@@ -37,7 +37,7 @@ export async function GET() {
 	}
 }
 
-// POST /api/submissions { title, summary, content_type, body, external_url, tags } -> { submission_id, status }
+// POST /api/submissions { title, content_type, summary?, external_url?, tags? } -> { submission_id, status }
 export async function POST({ locals, request }) {
 	try {
 		requireUser(locals);

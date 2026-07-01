@@ -10,8 +10,7 @@ import {
 	cleanTagList,
 	optionalUrl,
 	ensureOneOf,
-	renderBodyToHtml,
-	ValidationError
+	renderBodyToHtml
 } from './validation.js';
 import { DEFAULT_SUBMISSION_IMAGE } from './link-preview.js';
 
@@ -40,25 +39,19 @@ export async function createSubmission(userId, input) {
 	const title = requireString(input.title, 'Title', { max: 256 });
 	const summary = cleanString(input.summary, { max: 1024 });
 	const contentType = ensureOneOf(
-		cleanString(input.content_type, { max: 32 }) || 'blog',
+		requireString(input.content_type, 'Type', { max: 32 }),
 		CONTENT_TYPES,
-		'content type'
+		'type'
 	);
-	const body = cleanString(input.body, { max: 100000, trim: false }).trim();
 	const externalUrl = optionalUrl(input.external_url, 'External URL');
 	const tags = cleanTagList(input.tags);
-
-	if (!body && !externalUrl) {
-		throw new ValidationError('Add written text, an external link, or both.');
-	}
 
 	const data = {
 		user_id: userId,
 		title,
 		summary,
 		content_type: contentType,
-		body,
-		status: 'pending',
+		status: 'approved',
 		tags
 	};
 	// `external_url` is a URL column; omit it when blank (empty string is rejected).
@@ -126,6 +119,15 @@ export async function listPendingSubmissions(limit = 50) {
 	const { rows } = await listRows(TABLES.submissions, [
 		Query.equal('status', 'pending'),
 		Query.orderAsc('$createdAt'),
+		Query.limit(limit)
+	]);
+	return rows;
+}
+
+/** Every submission (any status), newest first — powers the admin list/unlist tab. */
+export async function listRecentSubmissions(limit = 100) {
+	const { rows } = await listRows(TABLES.submissions, [
+		Query.orderDesc('$createdAt'),
 		Query.limit(limit)
 	]);
 	return rows;

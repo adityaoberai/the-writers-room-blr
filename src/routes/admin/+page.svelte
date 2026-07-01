@@ -65,8 +65,7 @@
 					<span class="m-num">{d.memberCounts.total}</span><span class="muted">Members</span>
 				</div>
 				<div class="card metric">
-					<span class="m-num">{d.memberCounts.approved}</span><span class="muted">In directory</span
-					>
+					<span class="m-num">{d.memberCounts.listed}</span><span class="muted">Listed</span>
 				</div>
 				<div class="card metric">
 					<span class="m-num">{d.memberCounts.featured}</span><span class="muted"
@@ -78,8 +77,8 @@
 					>
 				</div>
 				<div class="card metric">
-					<span class="m-num">{d.submissionCounts.pending}</span><span class="muted"
-						>Pending review</span
+					<span class="m-num">{d.submissionCounts.rejected}</span><span class="muted"
+						>Unlisted writing</span
 					>
 				</div>
 				<div class="card metric">
@@ -100,12 +99,10 @@
 			</div>
 			<div class="grid grid-2" style="margin-top:1.5rem">
 				<div class="card">
-					<h3>Needs attention</h3>
+					<h3>At a glance</h3>
 					<ul class="bullets">
-						<li><strong>{d.submissionCounts.pending}</strong> submissions awaiting moderation</li>
-						<li>
-							<strong>{d.pendingQueues.membersNeedingReview}</strong> complete profiles you can approve
-						</li>
+						<li><strong>{d.queues.unlisted}</strong> members currently unlisted</li>
+						<li><strong>{d.submissionCounts.rejected}</strong> submissions currently unlisted</li>
 					</ul>
 				</div>
 				<div class="card">
@@ -129,15 +126,16 @@
 		{#if tab === 'members'}
 			<h2>Member moderation</h2>
 			<p class="muted">
-				Members auto-list once they share a piece. Approve to override, or feature to spotlight.
+				Every member is listed in the directory by default. Unlist to hide someone, feature to
+				spotlight them, or grant admin access.
 			</p>
 			<div class="table-wrap">
 				<table class="data">
 					<thead>
-						<tr><th>Member</th><th>Status</th><th>Listed</th><th>Actions</th></tr>
+						<tr><th>Member</th><th>Profile</th><th>Listed</th><th>Role</th><th>Actions</th></tr>
 					</thead>
 					<tbody>
-						{#each d.pendingQueues.members as m (m.raw_id)}
+						{#each d.queues.members as m (m.raw_id)}
 							<tr>
 								<td>
 									<a href={`/members/${m.raw_id}`}>{m.profile.display_name}</a>
@@ -149,17 +147,25 @@
 										>{/if}
 									{#if !m.profile.is_public}<span class="pill pill-red">Private</span>{/if}
 								</td>
-								<td
-									>{m.approved ? 'Approved' : '-'}{#if m.profile.is_featured}
-										· ★{/if}</td
-								>
+								<td>
+									{#if m.listed}<span class="pill pill-green">Listed</span>{:else}<span
+											class="pill pill-gray">Unlisted</span
+										>{/if}{#if m.profile.is_featured}
+										★{/if}
+								</td>
+								<td>
+									{#if m.is_admin}<span class="pill pill-amber">Admin</span>{:else}<span
+											class="muted">Member</span
+										>{/if}
+								</td>
 								<td class="actions">
-									{#if !m.approved}
-										<form method="POST" action="?/approveMember" use:enhance>
-											<input type="hidden" name="profile_id" value={m.raw_id} />
-											<button class="btn btn-secondary btn-sm" type="submit">Approve</button>
-										</form>
-									{/if}
+									<form method="POST" action="?/setMemberListed" use:enhance>
+										<input type="hidden" name="profile_id" value={m.raw_id} />
+										<input type="hidden" name="listed" value={m.listed ? 'false' : 'true'} />
+										<button class="btn btn-secondary btn-sm" type="submit"
+											>{m.listed ? 'Unlist' : 'List'}</button
+										>
+									</form>
 									<form method="POST" action="?/featureMember" use:enhance>
 										<input type="hidden" name="profile_id" value={m.raw_id} />
 										<input
@@ -171,11 +177,24 @@
 											>{m.profile.is_featured ? 'Unfeature' : 'Feature'}</button
 										>
 									</form>
+									{#if m.user_id !== data.currentUserId}
+										<form method="POST" action="?/setMemberAdmin" use:enhance>
+											<input type="hidden" name="user_id" value={m.user_id} />
+											<input
+												type="hidden"
+												name="make_admin"
+												value={m.is_admin ? 'false' : 'true'}
+											/>
+											<button class="btn btn-ghost btn-sm" type="submit"
+												>{m.is_admin ? 'Remove admin' : 'Make admin'}</button
+											>
+										</form>
+									{/if}
 								</td>
 							</tr>
 						{/each}
-						{#if !d.pendingQueues.members.length}
-							<tr><td colspan="4" class="muted">No members yet.</td></tr>
+						{#if !d.queues.members.length}
+							<tr><td colspan="5" class="muted">No members yet.</td></tr>
 						{/if}
 					</tbody>
 				</table>
@@ -184,40 +203,47 @@
 
 		<!-- SUBMISSIONS -->
 		{#if tab === 'submissions'}
-			<h2>Submission moderation</h2>
-			<p class="muted">{d.pendingQueues.submissions.length} pending submissions.</p>
-			{#if d.pendingQueues.submissions.length}
-				<div class="stack">
-					{#each d.pendingQueues.submissions as s (s.id)}
-						<div class="card mod-row">
-							<div class="mod-main">
-								<div class="mod-top">
-									<a href={`/writing/${s.id}`}><strong>{s.title}</strong></a>
-									<span class="chip chip-accent">{s.content_type_label}</span>
-								</div>
-								<p class="muted">{s.summary || 'No summary.'}</p>
-								<span class="muted small">by {s.author?.display_name ?? 'Unknown'}</span>
-							</div>
-							<form method="POST" action="?/moderateSubmission" use:enhance class="mod-actions">
-								<input type="hidden" name="id" value={s.id} />
-								<input type="text" name="moderation_note" placeholder="Note (optional)" />
-								<div class="btns">
-									<button
-										class="btn btn-primary btn-sm"
-										name="status"
-										value="approved"
-										type="submit">Approve</button
+			<h2>Submissions</h2>
+			<p class="muted">
+				New writing is listed automatically. Unlist to hide a piece from the public site, or list it
+				again.
+			</p>
+			{#if d.queues.submissions.length}
+				<div class="table-wrap">
+					<table class="data">
+						<thead>
+							<tr><th>Title</th><th>Author</th><th>Type</th><th>Status</th><th></th></tr>
+						</thead>
+						<tbody>
+							{#each d.queues.submissions as s (s.id)}
+								{@const isPublic = s.status === 'approved' || s.status === 'featured'}
+								<tr>
+									<td><a href={`/writing/${s.id}`}>{s.title}</a></td>
+									<td>{s.author?.display_name ?? 'Unknown'}</td>
+									<td>{s.content_type_label}</td>
+									<td
+										><span class="pill {statusClass[s.status] ?? 'pill-gray'}">{s.status}</span></td
 									>
-									<button class="btn btn-danger btn-sm" name="status" value="rejected" type="submit"
-										>Reject</button
-									>
-								</div>
-							</form>
-						</div>
-					{/each}
+									<td>
+										<form method="POST" action="?/moderateSubmission" use:enhance>
+											<input type="hidden" name="id" value={s.id} />
+											<input
+												type="hidden"
+												name="status"
+												value={isPublic ? 'rejected' : 'approved'}
+											/>
+											<button class="btn btn-secondary btn-sm" type="submit"
+												>{isPublic ? 'Unlist' : 'List'}</button
+											>
+										</form>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
 				</div>
 			{:else}
-				<div class="card muted">Nothing waiting. The queue is clear.</div>
+				<div class="card muted">No submissions yet.</div>
 			{/if}
 		{/if}
 

@@ -1,7 +1,7 @@
 /** Admin dashboard aggregation, shared by /admin and /api/admin/dashboard. */
 import { countRows, listAllRows, Query } from './data.js';
 import { TABLES } from '$lib/constants.js';
-import { submissionCounts, listPendingSubmissions, serializeSubmission } from './submissions.js';
+import { submissionCounts, listRecentSubmissions, serializeSubmission } from './submissions.js';
 import { listProfilesForModeration, getAuthorsForUserIds } from './profiles.js';
 import { getRewardRules } from './rewards.js';
 
@@ -11,36 +11,41 @@ export async function getDashboardData() {
 		active,
 		suspended,
 		profilesTotal,
-		approved,
 		featured,
 		subCounts,
 		moderationProfiles,
-		pendingSubs,
+		recentSubs,
 		rules,
 		allLogs,
-		badgesEarned
+		badgesEarned,
+		allUsers
 	] = await Promise.all([
 		countRows(TABLES.users),
 		countRows(TABLES.users, [Query.equal('status', 'active')]),
 		countRows(TABLES.users, [Query.equal('status', 'suspended')]),
 		countRows(TABLES.profiles),
-		countRows(TABLES.directory),
 		countRows(TABLES.profiles, [Query.equal('is_featured', true)]),
 		submissionCounts(),
 		listProfilesForModeration(),
-		listPendingSubmissions(50),
+		listRecentSubmissions(100),
 		getRewardRules(),
 		listAllRows(TABLES.activityLogs),
-		countRows(TABLES.userBadges)
+		countRows(TABLES.userBadges),
+		listAllRows(TABLES.users)
 	]);
 
-	const authors = await getAuthorsForUserIds(pendingSubs.map((s) => s.user_id));
-	const totalPointsAwarded = allLogs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
+	// Admin authority is derived from the Auth `admin` label; the `users.role`
+	// column mirrors it and is enough for the dashboard display.
+	const roleByUser = new Map(allUsers.map((u) => [u.$id, u.role]));
+	const members = moderationProfiles.map((m) => ({
+		...m,
+		is_admin: roleByUser.get(m.user_id) === 'admin'
+	}));
+	const listedCount = members.filter((m) => m.profile.is_public && m.listed).length;
+	const unlistedCount = members.filter((m) => !m.listed).length;
 
-	// Members who need a manual approval decision: complete & public but not yet listed.
-	const needsReview = moderationProfiles.filter(
-		(m) => m.complete && m.profile.is_public && !m.approved
-	);
+	const authors = await getAuthorsForUserIds(recentSubs.map((s) => s.user_id));
+	const totalPointsAwarded = allLogs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
 
 	return {
 		memberCounts: {
@@ -48,14 +53,14 @@ export async function getDashboardData() {
 			active,
 			suspended,
 			profiles: profilesTotal,
-			approved,
+			listed: listedCount,
 			featured
 		},
 		submissionCounts: subCounts,
-		pendingQueues: {
-			members: moderationProfiles,
-			membersNeedingReview: needsReview.length,
-			submissions: pendingSubs.map((s) =>
+		queues: {
+			members,
+			unlisted: unlistedCount,
+			submissions: recentSubs.map((s) =>
 				serializeSubmission(s, { author: authors[s.user_id] ?? null })
 			)
 		},

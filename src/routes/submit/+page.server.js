@@ -17,9 +17,7 @@ export const actions = {
 			title: fd.get('title'),
 			summary: fd.get('summary'),
 			content_type: fd.get('content_type'),
-			body: fd.get('body'),
-			external_url: fd.get('external_url'),
-			tags: fd.get('tags')
+			external_url: fd.get('external_url')
 		};
 		let submission;
 		try {

@@ -117,9 +117,7 @@
 			placeholder="Tell the community about your writing: what you work on, what you're looking for."
 			>{profile.bio ?? ''}</textarea
 		>
-		<p class="hint">
-			A complete bio (40+ characters) plus a genre unlocks the directory and earns points.
-		</p>
+		<p class="hint">A short bio and at least one genre complete your profile and earn points.</p>
 	</div>
 
 	<div class="field">

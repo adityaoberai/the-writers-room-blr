@@ -71,3 +71,27 @@ export async function syncUserOnLogin(authUser) {
 export async function getAppUser(userId) {
 	return tryGetRow(TABLES.users, userId);
 }
+
+/**
+ * Grant or revoke admin for a member. Admin authority lives on the Auth account's
+ * `admin` label; the `users.role` column is kept in sync for display/queries.
+ * Bootstrap admins (ADMIN_EMAILS) cannot be demoted here — they would be
+ * re-promoted on their next login anyway.
+ */
+export async function setUserAdmin(userId, makeAdmin) {
+	const authUser = await adminUsers().get({ userId });
+	if (!makeAdmin && emailIsBootstrapAdmin(authUser.email)) {
+		throw Object.assign(
+			new Error('This account is a bootstrap admin (ADMIN_EMAILS) and cannot be demoted here.'),
+			{ status: 400 }
+		);
+	}
+
+	const labels = new Set(authUser.labels ?? []);
+	if (makeAdmin) labels.add('admin');
+	else labels.delete('admin');
+	await adminUsers().updateLabels({ userId, labels: [...labels] });
+
+	await updateRow(TABLES.users, userId, { role: makeAdmin ? 'admin' : 'member' });
+	return { userId, isAdmin: makeAdmin };
+}

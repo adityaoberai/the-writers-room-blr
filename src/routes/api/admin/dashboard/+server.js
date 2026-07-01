@@ -3,7 +3,7 @@ import { getDashboardData } from '$lib/server/admin.js';
 import { requireAdmin } from '$lib/server/guards.js';
 import { jsonError } from '$lib/server/respond.js';
 
-// GET /api/admin/dashboard -> { memberCounts, submissionCounts, pendingQueues, rewardStats }
+// GET /api/admin/dashboard -> { memberCounts, submissionCounts, queues, rewardStats }
 export async function GET({ locals }) {
 	try {
 		requireAdmin(locals);

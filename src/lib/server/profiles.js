@@ -1,11 +1,12 @@
 /**
  * Member profiles and the public directory.
  *
- * Directory-visibility rule (per product decision): a profile appears in the
- * directory when it is public AND its owner has at least one non-rejected
- * submission, OR an admin has explicitly approved it (directory entry), OR it
- * is featured. Genre/keyword filtering is done in memory because Appwrite cannot
- * index array columns.
+ * Directory-visibility rule: a profile appears in the directory when its owner
+ * has kept it public (`is_public`, member-controlled) AND an admin has not
+ * unlisted it (`listed`, admin-controlled, defaults to true). Every member is
+ * therefore listed by default; admins unlist/re-list from the dashboard.
+ * Genre/keyword filtering is done in memory because Appwrite cannot index array
+ * columns.
  */
 import { createRow, listAllRows, tryGetRow, updateRow, Query } from './data.js';
 import { TABLES } from '$lib/constants.js';
@@ -33,7 +34,8 @@ export function serializeProfile(profile) {
 		links: profile.is_public ? parseLinks(profile.links) : [],
 		location: profile.location ?? 'Bengaluru',
 		is_public: !!profile.is_public,
-		is_featured: !!profile.is_featured
+		is_featured: !!profile.is_featured,
+		listed: profile.listed !== false
 	};
 }
 
@@ -75,7 +77,8 @@ export async function ensureProfile(userId, displayName) {
 		links: '[]',
 		location: 'Bengaluru',
 		is_public: true,
-		is_featured: false
+		is_featured: false,
+		listed: true
 	});
 }
 
@@ -121,22 +124,12 @@ export async function setProfilePhoto(userId, photoUrl) {
 	return updateRow(TABLES.profiles, profile.$id, { photo_url: photoUrl });
 }
 
-/** A profile is "complete" once it has a name, a real bio and at least one genre. */
+/** A profile is "complete" once it has a name, a bio and at least one genre. */
 export function isProfileComplete(profile) {
 	if (!profile) return false;
 	const bio = (profile.bio ?? '').trim();
 	const genres = profile.genres ?? [];
-	return !!profile.display_name && bio.length >= 40 && genres.length >= 1;
-}
-
-async function approvedProfileIds() {
-	const entries = await listAllRows(TABLES.directory);
-	return new Set(entries.map((e) => e.profile_id));
-}
-
-async function usersWithVisibleSubmissions() {
-	const subs = await listAllRows(TABLES.submissions, [Query.notEqual('status', 'rejected')]);
-	return new Set(subs.map((s) => s.user_id));
+	return !!profile.display_name && bio.length > 0 && genres.length >= 1;
 }
 
 /**
@@ -144,15 +137,10 @@ async function usersWithVisibleSubmissions() {
  * Returns `{ members, genres }` where `genres` is the union for filter chips.
  */
 export async function listDirectory({ search = '', genre = '', focus = '' } = {}) {
-	const [profiles, approved, contributors] = await Promise.all([
-		listAllRows(TABLES.profiles, [Query.equal('is_public', true)]),
-		approvedProfileIds(),
-		usersWithVisibleSubmissions()
-	]);
+	const profiles = await listAllRows(TABLES.profiles, [Query.equal('is_public', true)]);
 
-	const visible = profiles.filter(
-		(p) => approved.has(p.$id) || contributors.has(p.user_id) || p.is_featured
-	);
+	// Public by default; only admin-unlisted profiles (`listed === false`) are hidden.
+	const visible = profiles.filter((p) => p.listed !== false);
 
 	const genreSet = new Set();
 	for (const p of visible) for (const g of p.genres ?? []) genreSet.add(g);
@@ -198,18 +186,15 @@ export async function listFeaturedProfiles(limit = 3) {
 		Query.equal('is_featured', true),
 		Query.equal('is_public', true)
 	]);
-	return rows.slice(0, limit);
+	return rows.filter((p) => p.listed !== false).slice(0, limit);
 }
 
-/** Profiles awaiting admin approval: public, complete, not yet in the directory. */
+/** All profiles for the admin moderation table, with their listing state. */
 export async function listProfilesForModeration() {
-	const [profiles, approved] = await Promise.all([
-		listAllRows(TABLES.profiles),
-		approvedProfileIds()
-	]);
+	const profiles = await listAllRows(TABLES.profiles);
 	return profiles.map((p) => ({
 		profile: serializeProfile(p),
-		approved: approved.has(p.$id),
+		listed: p.listed !== false,
 		complete: isProfileComplete(p),
 		raw_id: p.$id,
 		user_id: p.user_id,
@@ -217,29 +202,11 @@ export async function listProfilesForModeration() {
 	}));
 }
 
-/** Record an admin approval as a directory entry (idempotent on profile_id). */
-export async function approveProfile(profileId, adminId, tags = []) {
+/** Admin-controlled directory listing: show (true) or hide (false) a profile. */
+export async function setProfileListed(profileId, listed) {
 	const profile = await getProfileById(profileId);
 	if (!profile) throw Object.assign(new Error('Profile not found.'), { status: 404 });
-	const now = new Date().toISOString();
-	const directoryTags = tags.length ? cleanTagList(tags) : (profile.genres ?? []);
-
-	const existing = await listAllRows(TABLES.directory, [Query.equal('profile_id', profileId)]);
-	if (existing[0]) {
-		await updateRow(TABLES.directory, existing[0].$id, {
-			approved_by: adminId,
-			approved_at: now,
-			directory_tags: directoryTags
-		});
-	} else {
-		await createRow(TABLES.directory, 'unique()', {
-			profile_id: profileId,
-			approved_by: adminId,
-			approved_at: now,
-			directory_tags: directoryTags
-		});
-	}
-	return { status: 'approved', approved_at: now };
+	return updateRow(TABLES.profiles, profileId, { listed: !!listed });
 }
 
 export async function setFeatured(profileId, isFeatured) {
