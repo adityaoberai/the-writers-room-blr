@@ -9,6 +9,9 @@
 	const genreValue = $derived(selectedGenres.join(', '));
 	const links = $derived(profile.links ?? []);
 	let saving = $state(false);
+	let fieldsDirty = $state(false);
+	let savedGenreValue = $state(initialSelectedGenres().join(', '));
+	const dirty = $derived(fieldsDirty || genreValue !== savedGenreValue);
 
 	function initialSelectedGenres() {
 		return normalizeGenres(profile.genres ?? []);
@@ -87,14 +90,29 @@
 		return async ({ update }) => {
 			try {
 				await update({ reset: false, invalidateAll: false });
+				fieldsDirty = false;
+				savedGenreValue = genreValue;
 			} finally {
 				saving = false;
 			}
 		};
 	};
+
+	function markDirty(event) {
+		if (event?.target?.id === 'genre-entry') return;
+		fieldsDirty = true;
+	}
 </script>
 
-<form method="POST" {action} use:enhance={onSubmit} class="profile-form" aria-busy={saving}>
+<form
+	method="POST"
+	{action}
+	use:enhance={onSubmit}
+	class="profile-form"
+	aria-busy={saving}
+	oninput={markDirty}
+	onchange={markDirty}
+>
 	<div class="field">
 		<label for="display_name">Display name</label>
 		<input
@@ -213,7 +231,7 @@
 		<p class="hint">You stay in control. Uncheck to keep your profile and links private.</p>
 	</div>
 
-	<button class="btn btn-primary" type="submit" disabled={saving}>
+	<button class="btn btn-primary" type="submit" disabled={saving || !dirty}>
 		{saving ? 'Saving...' : submitLabel}
 	</button>
 </form>
