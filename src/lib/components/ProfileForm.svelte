@@ -10,7 +10,7 @@
 	const links = $derived(profile.links ?? []);
 	let saving = $state(false);
 	let fieldsDirty = $state(false);
-	let savedGenreValue = $state(initialSelectedGenres().join(', '));
+	let savedGenreValue = $state(genreValue);
 	const dirty = $derived(fieldsDirty || genreValue !== savedGenreValue);
 
 	function initialSelectedGenres() {
