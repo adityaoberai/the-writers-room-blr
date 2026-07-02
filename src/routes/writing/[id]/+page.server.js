@@ -20,11 +20,8 @@ export async function load({ params, locals }) {
 
 	const authors = await getAuthorsForUserIds([row.user_id]);
 	const [submission] = await withSubmissionPreviewImages([
-		serializeSubmission(row, {
-			author: authors[row.user_id] ?? null,
-			includeBody: true
-		})
+		serializeSubmission(row, { author: authors[row.user_id] ?? null })
 	]);
 
-	return { submission, isPublic: PUBLIC.includes(row.status) };
+	return { submission, isPublic: PUBLIC.includes(row.status), isOwner };
 }

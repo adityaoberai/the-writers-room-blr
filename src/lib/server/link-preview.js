@@ -252,9 +252,14 @@ async function mapLimit(items, limit, mapper) {
 }
 
 export async function withSubmissionPreviewImages(submissions) {
-	const images = await mapLimit(submissions, CONCURRENCY, (submission) =>
-		resolveSubmissionPreviewImage(submission.external_url)
-	);
+	const images = await mapLimit(submissions, CONCURRENCY, (submission) => {
+		// A creator-uploaded image (already set as preview_image) always wins;
+		// only fall back to scraping the external link when there isn't one.
+		if (submission.preview_image && submission.preview_image !== DEFAULT_SUBMISSION_IMAGE) {
+			return submission.preview_image;
+		}
+		return resolveSubmissionPreviewImage(submission.external_url);
+	});
 
 	return submissions.map((submission, index) => ({
 		...submission,

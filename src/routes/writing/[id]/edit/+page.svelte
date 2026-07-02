@@ -4,29 +4,31 @@
 	import SubmissionForm from '$lib/components/SubmissionForm.svelte';
 
 	let { data, form } = $props();
-	const values = $derived(form?.values ?? {});
+	// Prefer the just-submitted values on a failed save, else the saved row.
+	const values = $derived(form?.values ?? data.values);
 </script>
 
-<Seo
-	title="Submit your writing"
-	description="Share a blog, essay, excerpt, newsletter or research piece with The Writers' Room BLR."
-	noindex={true}
-/>
+<Seo title="Edit your writing" description="Edit your piece." noindex={true} />
 
 <section class="section">
 	<div class="container narrow">
 		<header class="page-head">
-			<p class="eyebrow">Share your work</p>
-			<h1>Submit writing</h1>
+			<p class="eyebrow">Edit</p>
+			<h1>Edit writing</h1>
 			<p class="lead">
-				Share a title and type. Add a link, short summary, or a cover image if you have one. Your
-				piece appears in the community writing feed right away.
+				Update the details of your piece. Changes go live immediately.
+				<a href={`/writing/${data.id}`}>View the piece →</a>
 			</p>
 		</header>
 
 		<FormFeedback {form} />
 
-		<SubmissionForm types={data.types} {values} submitLabel="Publish" />
+		<SubmissionForm
+			types={data.types}
+			{values}
+			currentImage={data.currentImage}
+			submitLabel="Save changes"
+		/>
 	</div>
 </section>
 

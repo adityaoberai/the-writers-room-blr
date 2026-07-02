@@ -15,7 +15,7 @@ export async function PATCH({ params, locals, request }) {
 			adminId: locals.user.$id
 		});
 		const updated = await getSubmission(params.id);
-		return json({ submission: serializeSubmission(updated, { includeBody: true }) });
+		return json({ submission: serializeSubmission(updated) });
 	} catch (err) {
 		return jsonError(err);
 	}

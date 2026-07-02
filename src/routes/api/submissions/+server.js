@@ -1,37 +1,23 @@
 import { json } from '@sveltejs/kit';
-import {
-	listPublicSubmissions,
-	createSubmission,
-	serializeSubmission
-} from '$lib/server/submissions.js';
-import { getAuthorsForUserIds } from '$lib/server/profiles.js';
-import { withSubmissionPreviewImages } from '$lib/server/link-preview.js';
+import { createSubmission } from '$lib/server/submissions.js';
+import { getWritingListing } from '$lib/server/writing.js';
 import { awardPoints } from '$lib/server/rewards.js';
 import { requireUser } from '$lib/server/guards.js';
 import { jsonError, readJson } from '$lib/server/respond.js';
 
-// GET /api/submissions -> [{ id, title, summary, content_type, author, status, preview_image }]
-export async function GET() {
+// GET /api/submissions?type&tag&author&search&sort&cursor -> { items, total, nextCursor }
+// Server-side filtered + cursor-paginated feed for the public Writings page.
+export async function GET({ url }) {
 	try {
-		const rows = await listPublicSubmissions({ limit: 60 });
-		const authors = await getAuthorsForUserIds(rows.map((r) => r.user_id));
-		const submissions = await withSubmissionPreviewImages(
-			rows.map((r) => serializeSubmission(r, { author: authors[r.user_id] ?? null }))
-		);
-		return json(
-			submissions.map((s) => {
-				return {
-					id: s.id,
-					title: s.title,
-					summary: s.summary,
-					content_type: s.content_type,
-					author: s.author,
-					status: s.status,
-					preview_image: s.preview_image,
-					tags: s.tags
-				};
-			})
-		);
+		const listing = await getWritingListing({
+			type: url.searchParams.get('type') ?? '',
+			tag: url.searchParams.get('tag') ?? '',
+			authorId: url.searchParams.get('author') ?? '',
+			search: url.searchParams.get('search') ?? '',
+			sort: url.searchParams.get('sort') ?? 'newest',
+			cursor: url.searchParams.get('cursor') ?? ''
+		});
+		return json(listing);
 	} catch (err) {
 		return jsonError(err);
 	}

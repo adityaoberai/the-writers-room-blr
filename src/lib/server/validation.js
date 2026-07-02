@@ -105,20 +105,6 @@ function hostLabel(url) {
 	}
 }
 
-/**
- * Render user-authored body text as safe HTML. Input is treated as plain text
- * (never trusted markup): everything is escaped, blank lines become paragraphs
- * and single newlines become <br>. This guarantees no XSS from submissions.
- */
-export function renderBodyToHtml(text) {
-	const safe = escapeHtml(text ?? '').trim();
-	if (!safe) return '';
-	return safe
-		.split(/\n{2,}/)
-		.map((para) => `<p>${para.replace(/\n/g, '<br>')}</p>`)
-		.join('\n');
-}
-
 export function ensureOneOf(value, allowed, field) {
 	if (!allowed.includes(value)) throw new ValidationError(`Invalid ${field}.`);
 	return value;

@@ -6,6 +6,7 @@
 
 export const DATABASE_ID = 'main';
 export const PHOTO_BUCKET_ID = 'profile_photos';
+export const SUBMISSION_IMAGE_BUCKET_ID = 'submission_images';
 
 export const TABLES = {
 	users: 'users',

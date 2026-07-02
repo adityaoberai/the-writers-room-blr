@@ -24,6 +24,9 @@
 			<span class="chip chip-accent">{s.content_type_label}</span>
 			{#if s.status === 'featured'}<span class="pill pill-amber">★ Featured</span>{/if}
 			{#if !data.isPublic}<span class="pill pill-gray">{s.status}</span>{/if}
+			{#if data.isOwner}
+				<a class="edit-link" href={`/writing/${s.id}/edit`}>Edit</a>
+			{/if}
 		</div>
 
 		<h1>{s.title}</h1>
@@ -56,16 +59,9 @@
 			</ul>
 		{/if}
 
-		<hr />
-
-		{#if s.body_html}
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -- body_html is HTML-escaped server-side in renderBodyToHtml -->
-			<div class="prose body">{@html s.body_html}</div>
-		{/if}
-
 		{#if s.external_url}
-			<div class="card external">
-				<p class="muted">This piece is hosted elsewhere.</p>
+			<hr />
+			<div class="external">
 				<a
 					class="btn btn-primary"
 					href={s.external_url}
@@ -96,6 +92,11 @@
 		margin-bottom: 0.6rem;
 		flex-wrap: wrap;
 	}
+	.edit-link {
+		margin-left: auto;
+		font-weight: 600;
+		font-size: 0.9rem;
+	}
 	h1 {
 		font-size: clamp(2rem, 5vw, 3rem);
 		margin-bottom: 0.5rem;
@@ -121,15 +122,8 @@
 		font-style: italic;
 		overflow-wrap: anywhere;
 	}
-	.body {
-		font-size: 1.1rem;
-		overflow-wrap: anywhere;
-	}
 	.external {
 		margin-top: 1.5rem;
 		text-align: center;
-	}
-	.external p {
-		margin-bottom: 0.8rem;
 	}
 </style>

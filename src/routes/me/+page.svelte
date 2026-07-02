@@ -106,7 +106,10 @@
 									<a href={`/writing/${s.id}`}>{s.title}</a>
 									<span class="muted">{s.content_type_label} · {formatDate(s.created_at)}</span>
 								</div>
-								<span class="pill {statusClass[s.status] ?? 'pill-gray'}">{s.status}</span>
+								<div class="sub-side">
+									<span class="pill {statusClass[s.status] ?? 'pill-gray'}">{s.status}</span>
+									<a class="edit-link" href={`/writing/${s.id}/edit`}>Edit</a>
+								</div>
 							</li>
 						{/each}
 					</ul>
@@ -226,6 +229,17 @@
 		font-weight: 600;
 	}
 	.sub-main span {
+		font-size: 0.82rem;
+	}
+	.sub-side {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.35rem;
+		flex-shrink: 0;
+	}
+	.sub-side .edit-link {
+		font-weight: 600;
 		font-size: 0.82rem;
 	}
 	@media (max-width: 900px) {

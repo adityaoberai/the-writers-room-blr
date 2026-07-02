@@ -1,19 +1,24 @@
-import { listPublicSubmissions, serializeSubmission } from '$lib/server/submissions.js';
-import { getAuthorsForUserIds } from '$lib/server/profiles.js';
-import { CONTENT_TYPES, CONTENT_TYPE_LABELS } from '$lib/constants.js';
+import {
+	getWritingListing,
+	getWritingFacetOptions,
+	WRITING_PAGE_SIZE
+} from '$lib/server/writing.js';
+import { CONTENT_TYPE_LABELS } from '$lib/constants.js';
 
 export async function load() {
-	const rows = await listPublicSubmissions({ limit: 100 });
-	const authors = await getAuthorsForUserIds(rows.map((r) => r.user_id));
-
-	// Every approved piece is returned; searching, type-filtering and sorting all
-	// happen client-side so they compose instantly without a round-trip.
-	const submissions = rows.map((r) =>
-		serializeSubmission(r, { author: authors[r.user_id] ?? null })
-	);
+	// First page (newest, unfiltered) is rendered server-side; the dropdowns and
+	// "Load more" drive subsequent, server-filtered pages via /api/submissions.
+	const [listing, facets] = await Promise.all([getWritingListing({}), getWritingFacetOptions()]);
 
 	return {
-		submissions,
-		types: CONTENT_TYPES.map((t) => ({ key: t, label: CONTENT_TYPE_LABELS[t] }))
+		items: listing.items,
+		total: listing.total,
+		nextCursor: listing.nextCursor,
+		pageSize: WRITING_PAGE_SIZE,
+		facets: {
+			types: facets.types.map((k) => ({ key: k, label: CONTENT_TYPE_LABELS[k] ?? k })),
+			tags: facets.tags,
+			authors: facets.authors
+		}
 	};
 }

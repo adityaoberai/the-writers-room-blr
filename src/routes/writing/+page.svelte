@@ -5,34 +5,84 @@
 	let { data } = $props();
 	const user = $derived(data.user);
 
-	let query = $state('');
-	let activeType = $state('');
+	// Filter state. Changing any of these re-queries page 1 server-side.
+	let type = $state('');
+	let tag = $state('');
+	let author = $state('');
+	let search = $state('');
 	let sort = $state('newest');
 
-	const norm = (s) => (s ?? '').toString().toLowerCase();
-	const authorName = (s) =>
-		typeof s.author === 'string' ? s.author : (s.author?.display_name ?? '');
+	// Result state, seeded from the server-rendered first page.
+	let items = $state(data.items);
+	let total = $state(data.total);
+	let cursor = $state(data.nextCursor);
+	let loading = $state(false);
+	let loadingMore = $state(false);
+	let failed = $state(false);
 
-	// Only show type chips for types that actually have pieces.
-	const availableTypes = $derived(
-		data.types.filter((t) => data.submissions.some((s) => s.content_type === t.key))
-	);
+	const hasLibrary = data.total > 0;
+	const hasMore = $derived(!!cursor && items.length < total);
 
-	const filtered = $derived.by(() => {
-		const q = norm(query).trim();
-		const list = data.submissions.filter((s) => {
-			if (activeType && s.content_type !== activeType) return false;
-			if (!q) return true;
-			const hay = norm([s.title, s.summary, authorName(s), ...(s.tags ?? [])].join(' '));
-			return hay.includes(q);
-		});
-		return [...list].sort((a, b) => {
-			if (sort === 'title') return norm(a.title).localeCompare(norm(b.title));
-			const da = a.created_at ?? '';
-			const db = b.created_at ?? '';
-			return sort === 'oldest' ? da.localeCompare(db) : db.localeCompare(da);
-		});
-	});
+	function buildQuery(cursorParam) {
+		const parts = [];
+		const add = (k, v) => v && parts.push(`${k}=${encodeURIComponent(v)}`);
+		add('type', type);
+		add('tag', tag);
+		add('author', author);
+		add('search', search.trim());
+		if (sort !== 'newest') add('sort', sort);
+		add('cursor', cursorParam);
+		return parts.join('&');
+	}
+
+	async function fetchPage(cursorParam) {
+		const res = await fetch(`/api/submissions?${buildQuery(cursorParam)}`);
+		if (!res.ok) throw new Error('Failed to load writing.');
+		return res.json();
+	}
+
+	// Guards against out-of-order responses when filters change quickly.
+	let reqSeq = 0;
+
+	async function applyFilters() {
+		const seq = ++reqSeq;
+		loading = true;
+		failed = false;
+		try {
+			const r = await fetchPage('');
+			if (seq !== reqSeq) return;
+			items = r.items;
+			total = r.total;
+			cursor = r.nextCursor;
+		} catch {
+			if (seq === reqSeq) failed = true;
+		} finally {
+			if (seq === reqSeq) loading = false;
+		}
+	}
+
+	async function loadMore() {
+		if (!cursor) return;
+		const seq = reqSeq;
+		loadingMore = true;
+		try {
+			const r = await fetchPage(cursor);
+			if (seq !== reqSeq) return; // a filter change superseded this
+			items = [...items, ...r.items];
+			total = r.total;
+			cursor = r.nextCursor;
+		} catch {
+			failed = true;
+		} finally {
+			loadingMore = false;
+		}
+	}
+
+	let searchTimer;
+	function onSearchInput() {
+		clearTimeout(searchTimer);
+		searchTimer = setTimeout(applyFilters, 300);
+	}
 </script>
 
 <Seo
@@ -60,60 +110,88 @@
 			<a class="btn btn-primary" href="/submit">{user ? 'Start writing' : 'Sign in to write'}</a>
 		</div>
 
-		{#if data.submissions.length}
+		{#if hasLibrary}
 			<div class="controls">
 				<div class="search">
 					<input
 						type="search"
 						placeholder="Search titles, summaries, authors, tags…"
-						bind:value={query}
+						bind:value={search}
+						oninput={onSearchInput}
 						aria-label="Search writing"
 					/>
 				</div>
-				<label class="sort">
-					<span class="visually-hidden">Sort pieces</span>
-					<select bind:value={sort}>
-						<option value="newest">Newest first</option>
-						<option value="oldest">Oldest first</option>
-						<option value="title">Title A–Z</option>
-					</select>
-				</label>
+				<div class="filters">
+					{#if data.facets.types.length}
+						<label>
+							<span class="visually-hidden">Filter by type</span>
+							<select bind:value={type} onchange={applyFilters} disabled={loading}>
+								<option value="">All types</option>
+								{#each data.facets.types as t (t.key)}
+									<option value={t.key}>{t.label}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
+					{#if data.facets.tags.length}
+						<label>
+							<span class="visually-hidden">Filter by tag</span>
+							<select bind:value={tag} onchange={applyFilters} disabled={loading}>
+								<option value="">All tags</option>
+								{#each data.facets.tags as tg (tg)}
+									<option value={tg}>{tg}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
+					{#if data.facets.authors.length}
+						<label>
+							<span class="visually-hidden">Filter by author</span>
+							<select bind:value={author} onchange={applyFilters} disabled={loading}>
+								<option value="">All authors</option>
+								{#each data.facets.authors as a (a.id)}
+									<option value={a.id}>{a.name}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
+					<label>
+						<span class="visually-hidden">Sort pieces</span>
+						<select bind:value={sort} onchange={applyFilters} disabled={loading}>
+							<option value="newest">Newest first</option>
+							<option value="oldest">Oldest first</option>
+							<option value="title">Title A–Z</option>
+						</select>
+					</label>
+				</div>
 			</div>
 
-			<div class="chips" role="group" aria-label="Filter by type">
-				<button
-					type="button"
-					class="chip"
-					class:is-active={!activeType}
-					onclick={() => (activeType = '')}
-				>
-					All
-				</button>
-				{#each availableTypes as t (t.key)}
-					<button
-						type="button"
-						class="chip"
-						class:is-active={activeType === t.key}
-						onclick={() => (activeType = t.key)}
-					>
-						{t.label}
-					</button>
-				{/each}
-			</div>
-
-			{#if filtered.length}
+			{#if failed}
+				<div class="card center empty">
+					<p class="muted">Couldn't load writing. Change a filter to try again.</p>
+				</div>
+			{:else if items.length}
 				<p class="result-count muted">
-					{filtered.length} piece{filtered.length === 1 ? '' : 's'}
+					{total} piece{total === 1 ? '' : 's'}
 				</p>
-				<div class="writing-grid">
-					{#each filtered as s (s.id)}
+				<div class="writing-grid" class:busy={loading} aria-busy={loading}>
+					{#each items as s (s.id)}
 						<SubmissionCard submission={s} compact />
 					{/each}
 				</div>
+				{#if hasMore}
+					<div class="load-more">
+						<button class="btn btn-secondary" onclick={loadMore} disabled={loadingMore}>
+							{loadingMore ? 'Loading…' : 'Load more'}
+						</button>
+					</div>
+				{/if}
+			{:else if loading}
+				<p class="result-count muted">Loading…</p>
 			{:else}
 				<div class="card center empty">
 					<h3>No matches</h3>
-					<p class="muted">Try a different search term or clear the filters.</p>
+					<p class="muted">Try different filters or clear them.</p>
 				</div>
 			{/if}
 		{:else}
@@ -159,27 +237,21 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.75rem;
-		margin-bottom: 0.9rem;
+		margin-bottom: 1.1rem;
 	}
 	.controls .search {
 		flex: 1 1 320px;
 	}
-	.controls .sort {
-		flex: 0 0 auto;
-		margin: 0;
-	}
-	.controls .sort select {
-		width: auto;
-	}
-	.chips {
+	.filters {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
-		margin-bottom: 1.1rem;
 	}
-	.chips .chip {
-		font-family: inherit;
-		font-size: 0.82rem;
+	.filters label {
+		margin: 0;
+	}
+	.filters select {
+		width: auto;
 	}
 	.result-count {
 		margin: 0 0 1rem;
@@ -188,7 +260,22 @@
 	.writing-grid {
 		display: grid;
 		gap: 1rem;
-		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+		transition: opacity 0.15s ease;
+	}
+	.writing-grid.busy {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+	@media (max-width: 420px) {
+		.writing-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+	.load-more {
+		display: flex;
+		justify-content: center;
+		margin-top: 1.5rem;
 	}
 	.empty {
 		padding: 3rem 1.5rem;
