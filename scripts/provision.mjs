@@ -12,6 +12,7 @@ import { Client, TablesDB, Storage, Permission, Role, Query } from 'node-appwrit
 import {
 	DATABASE_ID,
 	PHOTO_BUCKET_ID,
+	SUBMISSION_IMAGE_BUCKET_ID,
 	TABLES,
 	ROLES,
 	USER_STATUSES,
@@ -114,18 +115,23 @@ const SCHEMA = [
 			{ key: 'user_id', type: 'varchar', size: 64, required: true },
 			{ key: 'title', type: 'varchar', size: 256, required: true },
 			{ key: 'summary', type: 'varchar', size: 1024 },
-			{ key: 'content_type', type: 'enum', elements: CONTENT_TYPES, required: true },
-			{ key: 'external_url', type: 'url' },
-			{ key: 'status', type: 'enum', elements: SUBMISSION_STATUSES, default: 'pending' },
+			{ key: 'content_type', type: 'enum', elements: CONTENT_TYPES, default: 'blog' },
+			{ key: 'status', type: 'enum', elements: SUBMISSION_STATUSES },
 			{ key: 'tags', type: 'varchar', size: 64, array: true },
 			{ key: 'moderated_by', type: 'varchar', size: 64 },
-			{ key: 'moderated_at', type: 'datetime' }
+			{ key: 'moderated_at', type: 'datetime' },
+			{ key: 'image_url', type: 'varchar', size: 2048 },
+			// Combined, full-text-indexed haystack (title + summary + tags + author name).
+			{ key: 'search_text', type: 'longtext' },
+			{ key: 'external_url', type: 'url' }
 		],
 		indexes: [
 			{ key: 'idx_user', type: 'key', columns: ['user_id'] },
 			{ key: 'idx_status', type: 'key', columns: ['status'] },
 			{ key: 'idx_type', type: 'key', columns: ['content_type'] },
-			{ key: 'idx_title_search', type: 'fulltext', columns: ['title'] }
+			{ key: 'idx_title_search', type: 'fulltext', columns: ['title'] },
+			{ key: 'idx_title_unique', type: 'unique', columns: ['title'] },
+			{ key: 'idx_search', type: 'fulltext', columns: ['search_text'] }
 		]
 	},
 	{
@@ -229,6 +235,12 @@ function createColumn(databaseId, tableId, c) {
 				array: !!c.array,
 				...(canDefault ? { default: c.default } : {})
 			});
+		case 'longtext':
+			return tablesDB.createLongtextColumn({
+				...base,
+				array: !!c.array,
+				...(canDefault ? { default: c.default } : {})
+			});
 		case 'boolean':
 			return tablesDB.createBooleanColumn({
 				...base,
@@ -327,18 +339,25 @@ async function provisionDatabase() {
 	}
 }
 
-async function provisionBucket() {
-	console.log(`Bucket "${PHOTO_BUCKET_ID}"`);
-	await ensure(`bucket ${PHOTO_BUCKET_ID}`, () =>
-		storage.createBucket({
-			bucketId: PHOTO_BUCKET_ID,
-			name: 'Profile Photos',
-			permissions: [Permission.read(Role.any())],
-			fileSecurity: false,
-			enabled: true,
-			maximumFileSize: 100 * 1024 * 1024
-		})
-	);
+const BUCKETS = [
+	{ id: PHOTO_BUCKET_ID, name: 'Profile Photos' },
+	{ id: SUBMISSION_IMAGE_BUCKET_ID, name: 'Submission Images' }
+];
+
+async function provisionBuckets() {
+	for (const bucket of BUCKETS) {
+		console.log(`Bucket "${bucket.id}"`);
+		await ensure(`bucket ${bucket.id}`, () =>
+			storage.createBucket({
+				bucketId: bucket.id,
+				name: bucket.name,
+				permissions: [Permission.read(Role.any())],
+				fileSecurity: false,
+				enabled: true,
+				maximumFileSize: 100 * 1024 * 1024
+			})
+		);
+	}
 }
 
 async function seedRow(tableId, rowId, data) {
@@ -544,12 +563,55 @@ async function migrateContent() {
 		if (rows.length < 100) break;
 	}
 	console.log(`  ✓ ${migrated} pending submission(s) set to approved`);
+
+	await backfillSearchText();
+}
+
+/** Fetch every row of a table (minimal fields), paging past the 100-row ceiling. */
+async function scanAll(tableId, select) {
+	const out = [];
+	let cursor = null;
+	for (let i = 0; i < 200; i++) {
+		const queries = [Query.limit(100)];
+		if (select) queries.push(Query.select(select));
+		if (cursor) queries.push(Query.cursorAfter(cursor));
+		const res = await tablesDB.listRows({ databaseId: DATABASE_ID, tableId, queries });
+		const rows = res.rows ?? res.documents ?? [];
+		out.push(...rows);
+		if (rows.length < 100) break;
+		cursor = rows[rows.length - 1].$id;
+	}
+	return out;
+}
+
+/** Populate `search_text` (title + summary + tags + author name) on rows missing it. */
+async function backfillSearchText() {
+	const profiles = await scanAll(TABLES.profiles, ['user_id', 'display_name']);
+	const nameByUser = Object.fromEntries(profiles.map((p) => [p.user_id, p.display_name ?? '']));
+	const rows = await scanAll(TABLES.submissions);
+
+	let backfilled = 0;
+	for (const r of rows) {
+		const text = [r.title, r.summary, ...(r.tags ?? []), nameByUser[r.user_id]]
+			.filter(Boolean)
+			.join(' ')
+			.slice(0, 8000);
+		if ((r.search_text ?? '') === text) continue;
+		await tablesDB.updateRow({
+			databaseId: DATABASE_ID,
+			tableId: TABLES.submissions,
+			rowId: r.$id,
+			data: { search_text: text }
+		});
+		backfilled++;
+	}
+	console.log(`  ✓ backfilled search_text on ${backfilled} submission(s)`);
 }
 
 async function main() {
 	console.log(`Provisioning project "${project}" at ${endpoint}\n`);
 	await provisionDatabase();
-	await provisionBucket();
+	await provisionBuckets();
 	await seedData();
 	await migrateContent();
 	console.log('\nDone. Schema, bucket and seed data are in place.');

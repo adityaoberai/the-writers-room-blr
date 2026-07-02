@@ -1,891 +1,865 @@
 {
-    "organizationId": "68822ff3002601a4a545",
-    "projectId": "the-writers-room-blr",
-    "projectName": "The Writers Room BLR",
-    "endpoint": "https://sgp.cloud.appwrite.io/v1",
-    "settings": {
-        "services": {
-            "account": true,
-            "avatars": true,
-            "databases": true,
-            "locale": true,
-            "health": true,
-            "storage": true,
-            "teams": true,
-            "users": true,
-            "sites": true,
-            "functions": true,
-            "graphql": true,
-            "messaging": true
-        },
-        "protocols": {
-            "rest": true,
-            "graphql": true,
-            "websocket": true
-        },
-        "auth": {
-            "methods": {
-                "jwt": true,
-                "phone": true,
-                "invites": true,
-                "anonymous": true,
-                "email-otp": true,
-                "magic-url": true,
-                "email-password": true
-            },
-            "security": {
-                "duration": 31536000,
-                "limit": 0,
-                "sessionsLimit": 0,
-                "passwordHistory": 0,
-                "passwordDictionary": false,
-                "personalDataCheck": false,
-                "sessionAlerts": false,
-                "mockNumbers": []
-            }
-        }
-    },
-    "sites": [
-        {
-            "$id": "6a441487000c7bae0684",
-            "name": "the-writers-room-blr",
-            "path": "./",
-            "framework": "sveltekit",
-            "logging": true,
-            "timeout": 30,
-            "buildRuntime": "node-22",
-            "adapter": "ssr",
-            "installCommand": "npm install",
-            "buildCommand": "npm run build",
-            "outputDirectory": "./build",
-            "fallbackFile": "",
-            "startCommand": "",
-            "buildSpecification": "s-1vcpu-512mb",
-            "runtimeSpecification": "s-1vcpu-512mb",
-            "deploymentRetention": 7
-        }
-    ],
-    "tablesDB": [
-        {
-            "$id": "main",
-            "name": "The Writers' Room",
-            "enabled": true
-        }
-    ],
-    "tables": [
-        {
-            "$id": "users",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Users",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "email",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "default": null,
-                    "format": "email"
-                },
-                {
-                    "key": "role",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "member",
-                        "admin"
-                    ]
-                },
-                {
-                    "key": "status",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "pending",
-                        "active",
-                        "suspended"
-                    ]
-                },
-                {
-                    "key": "last_login_at",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_email",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "email"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_role",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "role"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "profiles",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Profiles",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "user_id",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "display_name",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 128,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "photo_url",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 2048,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "bio",
-                    "type": "text",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "genres",
-                    "type": "varchar",
-                    "required": false,
-                    "array": true,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "links",
-                    "type": "text",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "location",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 128,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "is_public",
-                    "type": "boolean",
-                    "required": false,
-                    "array": false,
-                    "default": null
-                },
-                {
-                    "key": "is_featured",
-                    "type": "boolean",
-                    "required": false,
-                    "array": false,
-                    "default": null
-                },
-                {
-                    "key": "listed",
-                    "type": "boolean",
-                    "required": false,
-                    "array": false,
-                    "default": true
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_user",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "user_id"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_public",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "is_public"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_featured",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "is_featured"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_name_search",
-                    "type": "fulltext",
-                    "status": "available",
-                    "columns": [
-                        "display_name"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "member_directory_entries",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Member Directory Entries",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "profile_id",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "approved_by",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "approved_at",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                },
-                {
-                    "key": "directory_tags",
-                    "type": "varchar",
-                    "required": false,
-                    "array": true,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_profile",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "profile_id"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "writing_submissions",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Writing Submissions",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "user_id",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "title",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 256,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "summary",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 1024,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "content_type",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "blog",
-                        "essay",
-                        "article",
-                        "excerpt",
-                        "newsletter",
-                        "research",
-                        "book",
-                        "other"
-                    ]
-                },
-                {
-                    "key": "external_url",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "url"
-                },
-                {
-                    "key": "status",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "pending",
-                        "approved",
-                        "rejected",
-                        "featured"
-                    ]
-                },
-                {
-                    "key": "tags",
-                    "type": "varchar",
-                    "required": false,
-                    "array": true,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "moderated_by",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "moderated_at",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_user",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "user_id"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_status",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "status"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_type",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "content_type"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_title_search",
-                    "type": "fulltext",
-                    "status": "available",
-                    "columns": [
-                        "title"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "events",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Events",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "title",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 256,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "start_at",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                },
-                {
-                    "key": "end_at",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                },
-                {
-                    "key": "location",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 256,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "description",
-                    "type": "text",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "source",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "luma",
-                        "manual"
-                    ]
-                },
-                {
-                    "key": "external_url",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "url"
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_start",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "start_at"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "rewards_rules",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Rewards Rules",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "action_key",
-                    "type": "string",
-                    "required": true,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "attendance",
-                        "submission",
-                        "profile_completion",
-                        "referral",
-                        "prompt_participation"
-                    ]
-                },
-                {
-                    "key": "points",
-                    "type": "integer",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "min": 0,
-                    "max": 9223372036854775807
-                },
-                {
-                    "key": "is_active",
-                    "type": "boolean",
-                    "required": false,
-                    "array": false,
-                    "default": null
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_action",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "action_key"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "activity_logs",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Activity Logs",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "user_id",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "reward_rule_id",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "points_awarded",
-                    "type": "integer",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "min": -9223372036854775808,
-                    "max": 9223372036854775807
-                },
-                {
-                    "key": "source_type",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "event",
-                        "submission",
-                        "profile",
-                        "referral",
-                        "prompt"
-                    ]
-                },
-                {
-                    "key": "source_id",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "notes",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 1024,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_user",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "user_id"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_dedupe",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "user_id",
-                        "source_type",
-                        "source_id"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "badges",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Badges",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "name",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 128,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "description",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 512,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "icon",
-                    "type": "varchar",
-                    "required": false,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "criteria_type",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": "enum",
-                    "elements": [
-                        "points",
-                        "submissions",
-                        "attendance",
-                        "profile_completion"
-                    ]
-                },
-                {
-                    "key": "criteria_value",
-                    "type": "integer",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "min": 0,
-                    "max": 9223372036854775807
-                },
-                {
-                    "key": "is_active",
-                    "type": "boolean",
-                    "required": false,
-                    "array": false,
-                    "default": null
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_criteria",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "criteria_type"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "user_badges",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "User Badges",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "user_id",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "badge_id",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 64,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "earned_at",
-                    "type": "datetime",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "format": ""
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_user",
-                    "type": "key",
-                    "status": "available",
-                    "columns": [
-                        "user_id"
-                    ],
-                    "orders": []
-                },
-                {
-                    "key": "idx_unique",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "user_id",
-                        "badge_id"
-                    ],
-                    "orders": []
-                }
-            ]
-        },
-        {
-            "$id": "site_settings",
-            "$permissions": [],
-            "databaseId": "main",
-            "name": "Site Settings",
-            "enabled": true,
-            "rowSecurity": false,
-            "columns": [
-                {
-                    "key": "key",
-                    "type": "varchar",
-                    "required": true,
-                    "array": false,
-                    "size": 128,
-                    "default": null,
-                    "encrypt": false
-                },
-                {
-                    "key": "value",
-                    "type": "mediumtext",
-                    "required": false,
-                    "array": false,
-                    "default": null,
-                    "encrypt": false
-                }
-            ],
-            "indexes": [
-                {
-                    "key": "idx_key",
-                    "type": "unique",
-                    "status": "available",
-                    "columns": [
-                        "key"
-                    ],
-                    "orders": []
-                }
-            ]
-        }
-    ],
-    "buckets": [
-        {
-            "$id": "profile_photos",
-            "$permissions": [
-                "read(\"any\")"
-            ],
-            "fileSecurity": false,
-            "name": "Profile Photos",
-            "enabled": true,
-            "maximumFileSize": 100000000,
-            "allowedFileExtensions": [],
-            "compression": "none",
-            "encryption": true,
-            "antivirus": true
-        }
-    ]
+	"organizationId": "68822ff3002601a4a545",
+	"projectId": "the-writers-room-blr",
+	"projectName": "The Writers Room BLR",
+	"endpoint": "https://sgp.cloud.appwrite.io/v1",
+	"settings": {
+		"services": {
+			"account": true,
+			"avatars": true,
+			"databases": true,
+			"locale": true,
+			"health": true,
+			"storage": true,
+			"teams": true,
+			"users": true,
+			"sites": true,
+			"functions": true,
+			"graphql": true,
+			"messaging": true
+		},
+		"protocols": {
+			"rest": true,
+			"graphql": true,
+			"websocket": true
+		},
+		"auth": {
+			"methods": {
+				"jwt": true,
+				"phone": true,
+				"invites": true,
+				"anonymous": true,
+				"email-otp": true,
+				"magic-url": true,
+				"email-password": true
+			},
+			"security": {
+				"duration": 31536000,
+				"limit": 0,
+				"sessionsLimit": 0,
+				"passwordHistory": 0,
+				"passwordDictionary": false,
+				"personalDataCheck": false,
+				"sessionAlerts": false,
+				"mockNumbers": []
+			}
+		}
+	},
+	"sites": [
+		{
+			"$id": "6a441487000c7bae0684",
+			"name": "the-writers-room-blr",
+			"path": "./",
+			"framework": "sveltekit",
+			"logging": true,
+			"timeout": 30,
+			"buildRuntime": "node-22",
+			"adapter": "ssr",
+			"installCommand": "npm install",
+			"buildCommand": "npm run build",
+			"outputDirectory": "./build",
+			"fallbackFile": "",
+			"startCommand": "",
+			"buildSpecification": "s-1vcpu-512mb",
+			"runtimeSpecification": "s-1vcpu-512mb",
+			"deploymentRetention": 7
+		}
+	],
+	"tablesDB": [
+		{
+			"$id": "main",
+			"name": "The Writers' Room",
+			"enabled": true
+		}
+	],
+	"tables": [
+		{
+			"$id": "users",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Users",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "email",
+					"type": "string",
+					"required": true,
+					"array": false,
+					"default": null,
+					"format": "email"
+				},
+				{
+					"key": "role",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": ["member", "admin"]
+				},
+				{
+					"key": "status",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": ["pending", "active", "suspended"]
+				},
+				{
+					"key": "last_login_at",
+					"type": "datetime",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": ""
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_email",
+					"type": "unique",
+					"status": "available",
+					"columns": ["email"],
+					"orders": []
+				},
+				{
+					"key": "idx_role",
+					"type": "key",
+					"status": "available",
+					"columns": ["role"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "profiles",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Profiles",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "user_id",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "display_name",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 128,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "photo_url",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 2048,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "bio",
+					"type": "text",
+					"required": false,
+					"array": false,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "genres",
+					"type": "varchar",
+					"required": false,
+					"array": true,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "links",
+					"type": "text",
+					"required": false,
+					"array": false,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "location",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 128,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "is_public",
+					"type": "boolean",
+					"required": false,
+					"array": false,
+					"default": null
+				},
+				{
+					"key": "is_featured",
+					"type": "boolean",
+					"required": false,
+					"array": false,
+					"default": null
+				},
+				{
+					"key": "listed",
+					"type": "boolean",
+					"required": false,
+					"array": false,
+					"default": true
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_user",
+					"type": "unique",
+					"status": "available",
+					"columns": ["user_id"],
+					"orders": []
+				},
+				{
+					"key": "idx_public",
+					"type": "key",
+					"status": "available",
+					"columns": ["is_public"],
+					"orders": []
+				},
+				{
+					"key": "idx_featured",
+					"type": "key",
+					"status": "available",
+					"columns": ["is_featured"],
+					"orders": []
+				},
+				{
+					"key": "idx_name_search",
+					"type": "fulltext",
+					"status": "available",
+					"columns": ["display_name"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "member_directory_entries",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Member Directory Entries",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "profile_id",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "approved_by",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "approved_at",
+					"type": "datetime",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": ""
+				},
+				{
+					"key": "directory_tags",
+					"type": "varchar",
+					"required": false,
+					"array": true,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_profile",
+					"type": "unique",
+					"status": "available",
+					"columns": ["profile_id"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "writing_submissions",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Writing Submissions",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "user_id",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "title",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 256,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "summary",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 1024,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "content_type",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": "blog",
+					"format": "enum",
+					"elements": [
+						"blog",
+						"essay",
+						"article",
+						"excerpt",
+						"newsletter",
+						"research",
+						"book",
+						"other"
+					]
+				},
+				{
+					"key": "status",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": ["pending", "approved", "rejected", "featured"]
+				},
+				{
+					"key": "tags",
+					"type": "varchar",
+					"required": false,
+					"array": true,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "moderated_by",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "moderated_at",
+					"type": "datetime",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": ""
+				},
+				{
+					"key": "image_url",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 2048,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "search_text",
+					"type": "longtext",
+					"required": false,
+					"array": false,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "external_url",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "url"
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_user",
+					"type": "key",
+					"status": "available",
+					"columns": ["user_id"],
+					"orders": []
+				},
+				{
+					"key": "idx_status",
+					"type": "key",
+					"status": "available",
+					"columns": ["status"],
+					"orders": []
+				},
+				{
+					"key": "idx_type",
+					"type": "key",
+					"status": "available",
+					"columns": ["content_type"],
+					"orders": []
+				},
+				{
+					"key": "idx_title_search",
+					"type": "fulltext",
+					"status": "available",
+					"columns": ["title"],
+					"orders": []
+				},
+				{
+					"key": "idx_title_unique",
+					"type": "unique",
+					"status": "available",
+					"columns": ["title"],
+					"orders": []
+				},
+				{
+					"key": "idx_search",
+					"type": "fulltext",
+					"status": "available",
+					"columns": ["search_text"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "events",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Events",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "title",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 256,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "start_at",
+					"type": "datetime",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": ""
+				},
+				{
+					"key": "end_at",
+					"type": "datetime",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": ""
+				},
+				{
+					"key": "location",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 256,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "description",
+					"type": "text",
+					"required": false,
+					"array": false,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "source",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": ["luma", "manual"]
+				},
+				{
+					"key": "external_url",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "url"
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_start",
+					"type": "key",
+					"status": "available",
+					"columns": ["start_at"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "rewards_rules",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Rewards Rules",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "action_key",
+					"type": "string",
+					"required": true,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": [
+						"attendance",
+						"submission",
+						"profile_completion",
+						"referral",
+						"prompt_participation"
+					]
+				},
+				{
+					"key": "points",
+					"type": "integer",
+					"required": false,
+					"array": false,
+					"default": null,
+					"min": 0,
+					"max": 9223372036854775807
+				},
+				{
+					"key": "is_active",
+					"type": "boolean",
+					"required": false,
+					"array": false,
+					"default": null
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_action",
+					"type": "unique",
+					"status": "available",
+					"columns": ["action_key"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "activity_logs",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Activity Logs",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "user_id",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "reward_rule_id",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "points_awarded",
+					"type": "integer",
+					"required": false,
+					"array": false,
+					"default": null,
+					"min": -9223372036854775808,
+					"max": 9223372036854775807
+				},
+				{
+					"key": "source_type",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": ["event", "submission", "profile", "referral", "prompt"]
+				},
+				{
+					"key": "source_id",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "notes",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 1024,
+					"default": null,
+					"encrypt": false
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_user",
+					"type": "key",
+					"status": "available",
+					"columns": ["user_id"],
+					"orders": []
+				},
+				{
+					"key": "idx_dedupe",
+					"type": "unique",
+					"status": "available",
+					"columns": ["user_id", "source_type", "source_id"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "badges",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Badges",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "name",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 128,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "description",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 512,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "icon",
+					"type": "varchar",
+					"required": false,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "criteria_type",
+					"type": "string",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": "enum",
+					"elements": ["points", "submissions", "attendance", "profile_completion"]
+				},
+				{
+					"key": "criteria_value",
+					"type": "integer",
+					"required": false,
+					"array": false,
+					"default": null,
+					"min": 0,
+					"max": 9223372036854775807
+				},
+				{
+					"key": "is_active",
+					"type": "boolean",
+					"required": false,
+					"array": false,
+					"default": null
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_criteria",
+					"type": "key",
+					"status": "available",
+					"columns": ["criteria_type"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "user_badges",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "User Badges",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "user_id",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "badge_id",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 64,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "earned_at",
+					"type": "datetime",
+					"required": false,
+					"array": false,
+					"default": null,
+					"format": ""
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_user",
+					"type": "key",
+					"status": "available",
+					"columns": ["user_id"],
+					"orders": []
+				},
+				{
+					"key": "idx_unique",
+					"type": "unique",
+					"status": "available",
+					"columns": ["user_id", "badge_id"],
+					"orders": []
+				}
+			]
+		},
+		{
+			"$id": "site_settings",
+			"$permissions": [],
+			"databaseId": "main",
+			"name": "Site Settings",
+			"enabled": true,
+			"rowSecurity": false,
+			"columns": [
+				{
+					"key": "key",
+					"type": "varchar",
+					"required": true,
+					"array": false,
+					"size": 128,
+					"default": null,
+					"encrypt": false
+				},
+				{
+					"key": "value",
+					"type": "mediumtext",
+					"required": false,
+					"array": false,
+					"default": null,
+					"encrypt": false
+				}
+			],
+			"indexes": [
+				{
+					"key": "idx_key",
+					"type": "unique",
+					"status": "available",
+					"columns": ["key"],
+					"orders": []
+				}
+			]
+		}
+	],
+	"buckets": [
+		{
+			"$id": "profile_photos",
+			"$permissions": ["read(\"any\")"],
+			"fileSecurity": false,
+			"name": "Profile Photos",
+			"enabled": true,
+			"maximumFileSize": 100000000,
+			"allowedFileExtensions": [],
+			"compression": "none",
+			"encryption": true,
+			"antivirus": true
+		},
+		{
+			"$id": "submission_images",
+			"$permissions": ["read(\"any\")"],
+			"fileSecurity": false,
+			"name": "Submission Images",
+			"enabled": true,
+			"maximumFileSize": 104857600,
+			"allowedFileExtensions": [],
+			"compression": "none",
+			"encryption": true,
+			"antivirus": true
+		}
+	]
 }
