@@ -25,8 +25,11 @@
 				<h4>Community</h4>
 				<ul>
 					<li><a href="/signin">Join the room</a></li>
-					<li><a href="/me">Your profile</a></li>
-					<li><a href="/submit">Submit writing</a></li>
+					<li>
+						<a href="https://x.com/blrwritersroom" target="_blank" rel="noopener noreferrer">
+							Follow on X
+						</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
