@@ -110,7 +110,6 @@
 						}}
 					>
 						<Avatar src={user.photo_url} name={user.name} size={34} />
-						<span class="account-name">{user.name}</span>
 						<svg
 							class="chev"
 							class:up={accountOpen}
@@ -236,13 +235,6 @@
 	.account-toggle:hover {
 		background: var(--surface-2);
 	}
-	.account-name {
-		max-width: 9rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-size: 0.92rem;
-	}
 	.chev {
 		color: var(--muted-2);
 		transition: transform 0.15s ease;
@@ -341,9 +333,6 @@
 	}
 	@media (max-width: 520px) {
 		.brand-text {
-			display: none;
-		}
-		.account-name {
 			display: none;
 		}
 	}
