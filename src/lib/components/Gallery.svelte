@@ -120,7 +120,6 @@
 	}
 	.carousel {
 		margin-top: 1.5rem;
-		max-width: 960px;
 	}
 	.frame {
 		position: relative;
