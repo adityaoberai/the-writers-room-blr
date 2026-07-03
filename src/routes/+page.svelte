@@ -3,6 +3,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import MemberCard from '$lib/components/MemberCard.svelte';
 	import SubmissionCard from '$lib/components/SubmissionCard.svelte';
+	import EventCard from '$lib/components/EventCard.svelte';
 	import Typewriter from '$lib/components/Typewriter.svelte';
 	import Gallery from '$lib/components/Gallery.svelte';
 	import { reveal } from '$lib/actions/reveal.js';
@@ -13,6 +14,7 @@
 	const siteCopy = $derived(data.siteCopy);
 	const featuredMembers = $derived(data.featuredMembers);
 	const featuredWriting = $derived(data.featuredWriting);
+	const upcomingEvents = $derived(data.upcomingEvents ?? []);
 	const user = $derived(data.user);
 
 	const typedWords = [
@@ -136,7 +138,7 @@
 	</section>
 {/if}
 
-<!-- Events + Luma -->
+<!-- Upcoming events -->
 <section class="section" id="events" use:reveal>
 	<div class="container">
 		<div class="section-head">
@@ -147,15 +149,16 @@
 			<a class="btn btn-secondary btn-sm" href="/events">All events</a>
 		</div>
 
-		{#if siteCopy.luma_embed_url}
-			<div class="luma-embed">
-				<iframe
-					src={siteCopy.luma_embed_url}
-					title="The Writers' Room BLR events on Luma"
-					loading="lazy"
-					allowfullscreen
-				></iframe>
+		{#if upcomingEvents.length}
+			<div class="grid grid-3">
+				{#each upcomingEvents as e (e.id)}
+					<EventCard event={e} />
+				{/each}
 			</div>
+		{:else}
+			<p class="empty muted">
+				No meetups are scheduled right now — check back soon, or <a href="/events">browse past sessions</a>.
+			</p>
 		{/if}
 	</div>
 </section>
@@ -410,18 +413,13 @@
 	.section-head h2 {
 		margin: 0;
 	}
-	.luma-embed {
-		border: 1px solid var(--border);
+	.empty {
+		border: 1px dashed var(--border);
 		border-radius: var(--radius);
-		overflow: hidden;
 		background: var(--surface);
-		box-shadow: var(--shadow-sm);
-	}
-	.luma-embed iframe {
-		width: 100%;
-		height: 600px;
-		border: 0;
-		display: block;
+		padding: 2rem 1.5rem;
+		text-align: center;
+		margin: 0;
 	}
 	.cta-band {
 		background: linear-gradient(135deg, var(--navy), #16335f);

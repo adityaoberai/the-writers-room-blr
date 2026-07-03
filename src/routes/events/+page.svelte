@@ -1,5 +1,6 @@
 <script>
 	import Seo from '$lib/components/Seo.svelte';
+	import EventCard from '$lib/components/EventCard.svelte';
 	import { formatDate } from '$lib/format.js';
 
 	let { data } = $props();
@@ -7,7 +8,7 @@
 
 <Seo
 	title="Events & meetups"
-	description="Upcoming Writers' Room BLR meetups, embedded from Luma, plus a look back at past sessions."
+	description="Upcoming Writers' Room BLR meetups plus a look back at past sessions."
 />
 
 <section class="section">
@@ -24,15 +25,26 @@
 			</a>
 		</header>
 
-		{#if data.luma_embed_url}
-			<div class="luma-embed">
-				<iframe
-					src={data.luma_embed_url}
-					title="The Writers' Room BLR events on Luma"
-					loading="lazy"
-					allowfullscreen
-				></iframe>
+		{#if data.ongoing.length}
+			<h2>Happening now</h2>
+			<div class="grid grid-3 upcoming">
+				{#each data.ongoing as e (e.id)}
+					<EventCard event={e} />
+				{/each}
 			</div>
+		{/if}
+
+		<h2>Upcoming meetups</h2>
+		{#if data.upcoming.length}
+			<div class="grid grid-3 upcoming">
+				{#each data.upcoming as e (e.id)}
+					<EventCard event={e} />
+				{/each}
+			</div>
+		{:else}
+			<p class="empty muted">
+				No meetups are scheduled right now — check back soon for the next session.
+			</p>
 		{/if}
 
 		{#if data.past.length}
@@ -63,19 +75,16 @@
 	.page-head .btn {
 		margin-top: 0.5rem;
 	}
-	.luma-embed {
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		overflow: hidden;
-		background: var(--surface);
-		box-shadow: var(--shadow-sm);
+	.upcoming {
 		margin-bottom: 2.5rem;
 	}
-	.luma-embed iframe {
-		width: 100%;
-		height: 640px;
-		border: 0;
-		display: block;
+	.empty {
+		border: 1px dashed var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		padding: 2rem 1.5rem;
+		text-align: center;
+		margin: 0 0 2.5rem;
 	}
 	h2 {
 		font-size: 1.5rem;

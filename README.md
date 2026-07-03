@@ -5,8 +5,8 @@ _A focused writing community for Bengaluru writers to create, connect, and grow 
 A community website where writers discover the meetup, sign up with a passwordless
 email code, build a public profile, browse a member directory, submit writing, and
 earn points and badges for taking part. Admins get a full management dashboard for
-members, submissions, rewards, events and site content. Upcoming events are embedded
-from Luma.
+members, submissions, rewards, events and site content. Upcoming and past meetups
+are managed in the dashboard and shown from the events table.
 
 ## Tech stack
 
@@ -35,13 +35,13 @@ src/
                            submissions, rewards, events, settings, admin, storage
   routes/
     +layout.*              shell + user summary
-    +page.*                homepage (hero, Luma, featured, testimonials)
+    +page.*                homepage (hero, upcoming events, featured, testimonials)
     signin/                email-OTP sign in (request + verify, resend timer)
     onboarding/  me/       profile setup & management + photo upload
     directory/             searchable member directory
     members/[id]/          public member profile
     writing/  writing/[id] community writing list + single piece
-    events/                Luma embed + upcoming + past archive
+    events/                upcoming events + past archive
     rewards/               points, badges, milestones, activity history
     submit/                writing submission form
     admin/                 dashboard (metrics, moderation, rewards, content, events)
