@@ -1,11 +1,22 @@
-import { listPastEvents, serializeEvent } from '$lib/server/events.js';
+import {
+	listOngoingEvents,
+	listUpcomingEvents,
+	listPastEvents,
+	serializeEvent
+} from '$lib/server/events.js';
 import { getAllSettings } from '$lib/server/settings.js';
 
 export async function load() {
-	const [past, settings] = await Promise.all([listPastEvents(24), getAllSettings()]);
+	const [ongoing, upcoming, past, settings] = await Promise.all([
+		listOngoingEvents(12),
+		listUpcomingEvents(12),
+		listPastEvents(24),
+		getAllSettings()
+	]);
 	return {
+		ongoing: ongoing.map(serializeEvent),
+		upcoming: upcoming.map(serializeEvent),
 		past: past.map(serializeEvent),
-		luma_embed_url: settings.luma_embed_url || '',
 		luma_url: settings.luma_url || 'https://luma.com/the-writers-room'
 	};
 }

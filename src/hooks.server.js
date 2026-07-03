@@ -64,7 +64,6 @@ export async function handle({ event, resolve }) {
 			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 			"font-src 'self' https://fonts.gstatic.com",
 			"script-src 'self' 'unsafe-inline'",
-			'frame-src https://lu.ma https://*.lu.ma https://luma.com https://*.luma.com',
 			"connect-src 'self' https://*.cloud.appwrite.io"
 		].join('; ')
 	);

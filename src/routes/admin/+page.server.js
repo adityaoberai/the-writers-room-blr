@@ -11,7 +11,13 @@ import {
 } from '$lib/server/submissions.js';
 import { getAuthorsForUserIds } from '$lib/server/profiles.js';
 import { upsertRewardRule } from '$lib/server/rewards.js';
-import { listAllEvents, serializeEvent, createEvent, deleteEvent } from '$lib/server/events.js';
+import {
+	listAllEvents,
+	serializeEvent,
+	createEvent,
+	updateEvent,
+	deleteEvent
+} from '$lib/server/events.js';
 
 const EDITABLE_SETTINGS = [
 	{ key: 'hero_title', label: 'Hero title', type: 'text' },
@@ -20,8 +26,7 @@ const EDITABLE_SETTINGS = [
 	{ key: 'meetup_format', label: 'Meetup format', type: 'textarea' },
 	{ key: 'meetup_note', label: 'Work-first note', type: 'textarea' },
 	{ key: 'readers_room', label: "Readers' Room note", type: 'textarea' },
-	{ key: 'luma_url', label: 'Luma calendar URL', type: 'text' },
-	{ key: 'luma_embed_url', label: 'Luma embed URL (iframe src)', type: 'text' }
+	{ key: 'luma_url', label: 'Luma calendar URL', type: 'text' }
 ];
 
 export async function load({ locals }) {
@@ -157,6 +162,25 @@ export const actions = {
 				source: 'manual'
 			});
 			return ok('Event added.');
+		} catch (err) {
+			return fail(400, { error: err.message });
+		}
+	},
+
+	updateEvent: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const fd = await request.formData();
+		try {
+			await updateEvent(String(fd.get('id')), {
+				title: fd.get('title'),
+				start_at: fd.get('start_at') || undefined,
+				end_at: fd.get('end_at') || undefined,
+				location: fd.get('location'),
+				description: fd.get('description'),
+				external_url: fd.get('external_url'),
+				source: fd.get('source') || 'manual'
+			});
+			return ok('Event updated.');
 		} catch (err) {
 			return fail(400, { error: err.message });
 		}

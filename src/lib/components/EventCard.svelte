@@ -5,11 +5,16 @@
 </script>
 
 <article class="card event">
+	{#if event.status === 'ongoing'}
+		<span class="live">Happening now</span>
+	{/if}
 	<div class="when">
 		<Icon name="calendar" size={20} />
 		<span>{event.start_at ? formatDate(event.start_at) : 'Date to be announced'}</span>
 		{#if event.start_at}
-			<span class="muted">· {formatTime(event.start_at)}</span>
+			<span class="muted">
+				· {formatTime(event.start_at)}{#if event.end_at}–{formatTime(event.end_at)}{/if}
+			</span>
 		{/if}
 	</div>
 	<h3>{event.title}</h3>
@@ -37,6 +42,27 @@
 		flex-direction: column;
 		gap: 0.55rem;
 		height: 100%;
+	}
+	.live {
+		align-self: flex-start;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		font-size: 0.72rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #fff;
+		background: var(--accent-strong);
+	}
+	.live::before {
+		content: '';
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: currentColor;
 	}
 	.when {
 		display: flex;

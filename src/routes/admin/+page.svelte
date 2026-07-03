@@ -3,10 +3,14 @@
 	import Seo from '$lib/components/Seo.svelte';
 	import FormFeedback from '$lib/components/FormFeedback.svelte';
 	import { REWARD_ACTION_LABELS } from '$lib/constants.js';
-	import { formatNumber, formatDate } from '$lib/format.js';
+	import { formatNumber, formatDate, toDateTimeLocal } from '$lib/format.js';
 
 	let { data, form } = $props();
 	const d = $derived(data.dashboard);
+
+	// Which scheduled event is currently being edited inline (by id), if any.
+	let editingId = $state(null);
+	const eventStatusLabel = { upcoming: 'Upcoming', ongoing: 'Happening now', ended: 'Ended' };
 
 	const tabs = [
 		{ id: 'overview', label: 'Overview' },
@@ -316,7 +320,7 @@
 		<!-- CONTENT -->
 		{#if tab === 'content'}
 			<h2>Site content</h2>
-			<p class="muted">Edit the public homepage copy and the Luma calendar embed.</p>
+			<p class="muted">Edit the public homepage copy and the Luma calendar link.</p>
 			<div class="stack">
 				{#each data.editableSettings as setting (setting.key)}
 					<form method="POST" action="?/saveSetting" use:enhance class="card setting">
@@ -346,6 +350,7 @@
 			<div class="grid grid-2">
 				<form method="POST" action="?/createEvent" use:enhance class="card stack">
 					<h3>Add an event</h3>
+					<p class="muted small">Dates and times are in IST (Asia/Kolkata).</p>
 					<div class="field">
 						<label for="e-title">Title</label><input id="e-title" name="title" required />
 					</div>
@@ -384,17 +389,88 @@
 					<h3>Scheduled</h3>
 					<ul class="event-list">
 						{#each data.events as e (e.id)}
-							<li class="card">
-								<div>
-									<strong>{e.title}</strong>
-									<div class="muted small">
-										{e.start_at ? formatDate(e.start_at) : 'No date'} · {e.location || '-'}
+							<li class="card" class:editing={editingId === e.id}>
+								{#if editingId === e.id}
+									<form
+										method="POST"
+										action="?/updateEvent"
+										class="stack edit-event"
+										use:enhance={() =>
+											async ({ result, update }) => {
+												await update({ reset: false });
+												if (result.type === 'success') editingId = null;
+											}}
+									>
+										<input type="hidden" name="id" value={e.id} />
+										<input type="hidden" name="source" value={e.source} />
+										<div class="field">
+											<label for={`edit-title-${e.id}`}>Title</label>
+											<input id={`edit-title-${e.id}`} name="title" value={e.title} required />
+										</div>
+										<div class="field">
+											<label for={`edit-start-${e.id}`}>Starts</label>
+											<input
+												id={`edit-start-${e.id}`}
+												name="start_at"
+												type="datetime-local"
+												value={toDateTimeLocal(e.start_at)}
+											/>
+										</div>
+										<div class="field">
+											<label for={`edit-end-${e.id}`}>Ends</label>
+											<input
+												id={`edit-end-${e.id}`}
+												name="end_at"
+												type="datetime-local"
+												value={toDateTimeLocal(e.end_at)}
+											/>
+										</div>
+										<div class="field">
+											<label for={`edit-loc-${e.id}`}>Location</label>
+											<input id={`edit-loc-${e.id}`} name="location" value={e.location} />
+										</div>
+										<div class="field">
+											<label for={`edit-url-${e.id}`}>Luma / registration URL</label>
+											<input
+												id={`edit-url-${e.id}`}
+												name="external_url"
+												type="url"
+												value={e.external_url}
+											/>
+										</div>
+										<div class="field">
+											<label for={`edit-desc-${e.id}`}>Description</label>
+											<textarea id={`edit-desc-${e.id}`} name="description" rows="2">{e.description}</textarea>
+										</div>
+										<div class="btns">
+											<button class="btn btn-primary btn-sm" type="submit">Save changes</button>
+											<button
+												class="btn btn-secondary btn-sm"
+												type="button"
+												onclick={() => (editingId = null)}>Cancel</button
+											>
+										</div>
+									</form>
+								{:else}
+									<div>
+										<strong>{e.title}</strong>
+										<div class="muted small">
+											{e.start_at ? formatDate(e.start_at) : 'No date'} · {e.location || '-'}
+											{#if e.status}· {eventStatusLabel[e.status]}{/if}
+										</div>
 									</div>
-								</div>
-								<form method="POST" action="?/deleteEvent" use:enhance>
-									<input type="hidden" name="id" value={e.id} />
-									<button class="btn btn-danger btn-sm" type="submit">Delete</button>
-								</form>
+									<div class="btns">
+										<button
+											class="btn btn-secondary btn-sm"
+											type="button"
+											onclick={() => (editingId = e.id)}>Edit</button
+										>
+										<form method="POST" action="?/deleteEvent" use:enhance>
+											<input type="hidden" name="id" value={e.id} />
+											<button class="btn btn-danger btn-sm" type="submit">Delete</button>
+										</form>
+									</div>
+								{/if}
 							</li>
 						{/each}
 						{#if !data.events.length}<li class="muted">No events.</li>{/if}
@@ -548,8 +624,19 @@
 		align-items: center;
 		gap: 1rem;
 	}
+	.event-list li.editing {
+		display: block;
+	}
 	.event-list li.card form {
 		margin: 0;
+	}
+	.event-list .btns {
+		display: flex;
+		gap: 0.4rem;
+		align-items: center;
+	}
+	.edit-event {
+		width: 100%;
 	}
 	.linklike {
 		background: none;

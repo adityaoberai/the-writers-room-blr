@@ -518,10 +518,6 @@ async function seedData() {
 			value: 'Same calm, phones-down format, but you bring a book and read instead of write.'
 		},
 		{ key: 'luma_url', value: 'https://luma.com/the-writers-room' },
-		{
-			key: 'luma_embed_url',
-			value: 'https://luma.com/embed/calendar/cal-Ghb0PyZV9XUEJSL/events'
-		},
 		{ key: 'benefits', value: benefits },
 		{ key: 'testimonials', value: testimonials }
 	];
@@ -529,9 +525,8 @@ async function seedData() {
 		await seedRow(TABLES.siteSettings, `setting_${s.key}`, s);
 	}
 
-	// Events are not seeded; the public calendar is driven entirely by the Luma
-	// embed (configured via the `luma_embed_url` site setting). The events table
-	// remains for the optional admin-managed past-meetups archive.
+	// Events are not seeded; upcoming and past meetups are driven entirely by the
+	// events table, managed by admins from the dashboard.
 }
 
 /**
