@@ -80,7 +80,6 @@
 <!-- Mission / description -->
 <section class="section mission" use:reveal>
 	<div class="container">
-		<p class="eyebrow">What this is</p>
 		<h2>A standing time and place to do the work.</h2>
 		<p class="lead">{siteCopy.mission}</p>
 
@@ -123,7 +122,6 @@
 {#if siteCopy.benefits?.length}
 	<section class="section benefits" use:reveal>
 		<div class="container">
-			<p class="eyebrow">Why join</p>
 			<h2>Everything you need to keep writing.</h2>
 			<div class="grid grid-4">
 				{#each siteCopy.benefits as b (b.title)}
@@ -143,7 +141,6 @@
 	<div class="container">
 		<div class="section-head">
 			<div>
-				<p class="eyebrow">Upcoming</p>
 				<h2>Next meetups</h2>
 			</div>
 			<a class="btn btn-secondary btn-sm" href="/events">All events</a>
@@ -157,7 +154,9 @@
 			</div>
 		{:else}
 			<p class="empty muted">
-				No meetups are scheduled right now — check back soon, or <a href="/events">browse past sessions</a>.
+				No meetups are scheduled right now — check back soon, or <a href="/events"
+					>browse past sessions</a
+				>.
 			</p>
 		{/if}
 	</div>
@@ -169,7 +168,6 @@
 		<div class="container">
 			<div class="section-head">
 				<div>
-					<p class="eyebrow">Community</p>
 					<h2>Featured members</h2>
 				</div>
 				<a class="btn btn-secondary btn-sm" href="/directory">Browse directory</a>
@@ -189,7 +187,6 @@
 		<div class="container">
 			<div class="section-head">
 				<div>
-					<p class="eyebrow">From the room</p>
 					<h2>Featured writing</h2>
 				</div>
 				<a class="btn btn-secondary btn-sm" href="/writing">All writing</a>
