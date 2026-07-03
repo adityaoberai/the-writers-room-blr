@@ -194,10 +194,15 @@
 	}
 	.layout {
 		display: grid;
-		grid-template-columns: 1fr 360px;
+		grid-template-columns: minmax(0, 640px) minmax(0, 1fr);
+		justify-content: space-between;
 		gap: 2rem;
 		align-items: start;
 		margin-top: 1rem;
+	}
+	.edit,
+	.subs {
+		min-width: 0;
 	}
 	h2 {
 		font-size: 1.3rem;
