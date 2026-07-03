@@ -352,7 +352,7 @@
 					<h3>Add an event</h3>
 					<p class="muted small">Dates and times are in IST (Asia/Kolkata).</p>
 					<div class="field">
-						<label for="e-title">Title</label><input id="e-title" name="title" required />
+						<label for="e-title">Title</label><input id="e-title" name="title" type="text" required />
 					</div>
 					<div class="field">
 						<label for="e-start">Starts</label><input
@@ -368,6 +368,7 @@
 						<label for="e-loc">Location</label><input
 							id="e-loc"
 							name="location"
+							type="text"
 							placeholder="Venue or Online"
 						/>
 					</div>
@@ -405,7 +406,7 @@
 										<input type="hidden" name="source" value={e.source} />
 										<div class="field">
 											<label for={`edit-title-${e.id}`}>Title</label>
-											<input id={`edit-title-${e.id}`} name="title" value={e.title} required />
+											<input id={`edit-title-${e.id}`} name="title" type="text" value={e.title} required />
 										</div>
 										<div class="field">
 											<label for={`edit-start-${e.id}`}>Starts</label>
@@ -427,7 +428,7 @@
 										</div>
 										<div class="field">
 											<label for={`edit-loc-${e.id}`}>Location</label>
-											<input id={`edit-loc-${e.id}`} name="location" value={e.location} />
+											<input id={`edit-loc-${e.id}`} name="location" type="text" value={e.location} />
 										</div>
 										<div class="field">
 											<label for={`edit-url-${e.id}`}>Luma / registration URL</label>
