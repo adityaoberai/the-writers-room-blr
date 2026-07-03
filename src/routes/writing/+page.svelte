@@ -86,7 +86,7 @@
 </script>
 
 <Seo
-	title="Community writing"
+	title="Writings from the community"
 	description="Read blogs, essays, excerpts, newsletters and research shared by members of The Writers' Room BLR."
 />
 
@@ -94,7 +94,7 @@
 	<div class="container">
 		<header class="page-head">
 			<p class="eyebrow">From the room</p>
-			<h1>Community writing</h1>
+			<h1>Writings from the community</h1>
 			<p class="lead">Pieces shared and approved by members.</p>
 		</header>
 
