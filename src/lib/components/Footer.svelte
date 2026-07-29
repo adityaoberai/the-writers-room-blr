@@ -46,8 +46,8 @@
 		</div>
 
 		<div class="footer-bottom">
-			<p>© {year} {SITE.name}. Printed nightly in Bengaluru.</p>
-			<p class="note">Sessions are calm, focused and phone-down.</p>
+			<p>© {year} {SITE.name}.</p>
+			<p class="note">Printed monthly in Bengaluru.</p>
 		</div>
 	</div>
 </footer>
