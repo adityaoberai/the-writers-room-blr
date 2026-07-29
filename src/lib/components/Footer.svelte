@@ -1,5 +1,7 @@
 <script>
 	import { SITE } from '$lib/seo.js';
+
+	let { user = null } = $props();
 	const year = new Date().getFullYear();
 </script>
 
@@ -17,14 +19,16 @@
 				<h4>Explore</h4>
 				<ul>
 					<li><a href="/directory">Member directory</a></li>
-					<li><a href="/writing">Community writing</a></li>
+					<li><a href="/writing">Writings from the community</a></li>
 					<li><a href="/events">Upcoming events</a></li>
 				</ul>
 			</nav>
 			<nav aria-label="Footer: Community">
 				<h4>Community</h4>
 				<ul>
-					<li><a href="/signin">Join the room</a></li>
+					{#if !user}
+						<li><a href="/signin">Join the room</a></li>
+					{/if}
 					<li>
 						<a href="https://x.com/blrwritersroom" target="_blank" rel="noopener noreferrer">
 							Follow on X

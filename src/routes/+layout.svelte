@@ -12,5 +12,5 @@
 <main id="main">
 	{@render children()}
 </main>
-<Footer />
+<Footer user={data.user} />
 <Toaster />

@@ -201,15 +201,17 @@
 {/if}
 
 <!-- Final CTA -->
-<section class="section" use:reveal>
-	<div class="container">
-		<div class="cta-band">
-			<h2>Bring your writing. We'll bring the room.</h2>
-			<p>Join free, build your profile, and reserve a spot at the next meetup.</p>
-			<a class="btn btn-primary" href="/signin">Join The Writers' Room BLR</a>
+{#if !user}
+	<section class="section" use:reveal>
+		<div class="container">
+			<div class="cta-band">
+				<h2>Bring your writing. We'll bring the room.</h2>
+				<p>Join free, build your profile, and reserve a spot at the next meetup.</p>
+				<a class="btn btn-primary" href="/signin">Join The Writers' Room</a>
+			</div>
 		</div>
-	</div>
-</section>
+	</section>
+{/if}
 
 <style>
 	.hero {
