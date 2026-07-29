@@ -24,7 +24,8 @@
 			<nav aria-label="Footer: Community">
 				<h4>Community</h4>
 				<ul>
-					<li><a href="/signin">Join the room</a></li>
+					<li><a href="/signin">Create your profile</a></li>
+					<li><a href="/events">Register for a meetup</a></li>
 					<li>
 						<a href="https://x.com/blrwritersroom" target="_blank" rel="noopener noreferrer">
 							Follow on X

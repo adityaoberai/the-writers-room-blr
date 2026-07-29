@@ -40,9 +40,19 @@
 			<p class="typed-line">A focused room for <Typewriter words={typedWords} /></p>
 			<p class="lead">{hero.subtitle}</p>
 			<div class="cta-row">
-				<a class="btn btn-primary" href={user ? '/submit' : '/signin'}>
-					{user ? 'Submit writing' : 'Join the room'}
-				</a>
+				{#if user}
+					<a class="btn btn-primary" href="/submit">Submit writing</a>
+				{:else}
+					<a class="btn btn-primary" href="/signin">Create your profile</a>
+					<a
+						class="btn btn-secondary"
+						href={siteCopy.luma_url}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Register for a meetup
+					</a>
+				{/if}
 			</div>
 			{#if stats.pieces > 0}
 				<p class="social-proof">
@@ -200,16 +210,28 @@
 	</section>
 {/if}
 
-<!-- Final CTA -->
-<section class="section" use:reveal>
-	<div class="container">
-		<div class="cta-band">
-			<h2>Bring your writing. We'll bring the room.</h2>
-			<p>Join free, build your profile, and reserve a spot at the next meetup.</p>
-			<a class="btn btn-primary" href="/signin">Join The Writers' Room BLR</a>
+<!-- Final CTA (only for logged-out visitors) -->
+{#if !user}
+	<section class="section" use:reveal>
+		<div class="container">
+			<div class="cta-band">
+				<h2>Bring your writing. We'll bring the room.</h2>
+				<p>Create your free profile, then reserve your spot at the next meetup on Luma.</p>
+				<div class="cta-band-actions">
+					<a class="btn btn-primary" href="/signin">Create your profile</a>
+					<a
+						class="btn btn-secondary"
+						href={siteCopy.luma_url}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Register for a meetup
+					</a>
+				</div>
+			</div>
 		</div>
-	</div>
-</section>
+	</section>
+{/if}
 
 <style>
 	.hero {
@@ -433,6 +455,12 @@
 		max-width: 46ch;
 		margin-inline: auto;
 		margin-bottom: 1.5rem;
+	}
+	.cta-band-actions {
+		display: flex;
+		gap: 0.8rem;
+		flex-wrap: wrap;
+		justify-content: center;
 	}
 
 	@media (max-width: 860px) {
