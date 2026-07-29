@@ -119,8 +119,8 @@
 		box-shadow: none;
 	}
 	.search-field:focus-within {
-		border-color: var(--accent);
-		box-shadow: 0 0 0 3px rgba(47, 111, 176, 0.2);
+		border-color: var(--accent-strong);
+		box-shadow: 0 0 0 3px rgba(142, 42, 33, 0.18);
 	}
 	.chips {
 		display: flex;

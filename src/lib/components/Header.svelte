@@ -16,6 +16,13 @@
 		{ href: '/events', label: 'Events' }
 	];
 
+	const today = new Date().toLocaleDateString('en-IN', {
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric'
+	});
+
 	const isActive = (href) =>
 		href === '/' ? $page.url.pathname === '/' : $page.url.pathname.startsWith(href);
 
@@ -48,13 +55,25 @@
 </script>
 
 <header class="site-header">
-	<div class="container bar">
-		<a class="brand" href="/" aria-label="{SITE.name} home">
-			<img src="/logo-mark.png" alt="" width="34" height="34" style="border-radius: 22%" />
-			<span class="brand-text">The Writers' Room <strong>BLR</strong></span>
-		</a>
+	<!-- Dateline bar -->
+	<div class="dateline">
+		<div class="container dateline-inner">
+			<span>Bengaluru, India</span>
+			<span class="edition">Writers' Edition</span>
+			<span class="date">{today}</span>
+		</div>
+	</div>
 
-		<div class="bar-right">
+	<!-- Masthead -->
+	<div class="masthead">
+		<div class="container">
+			<a class="brand" href="/" aria-label="{SITE.name} home">The Writers&rsquo; Room BLR</a>
+		</div>
+	</div>
+
+	<!-- Section bar -->
+	<div class="navbar">
+		<div class="container bar">
 			<button
 				class="menu-toggle"
 				aria-expanded={navOpen}
@@ -65,7 +84,7 @@
 					accountOpen = false;
 				}}
 			>
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 					{#if navOpen}
 						<path
 							d="M6 6l12 12M18 6L6 18"
@@ -109,7 +128,7 @@
 							navOpen = false;
 						}}
 					>
-						<Avatar src={user.photo_url} name={user.name} size={34} />
+						<Avatar src={user.photo_url} name={user.name} size={30} />
 						<svg
 							class="chev"
 							class:up={accountOpen}
@@ -154,86 +173,111 @@
 
 <style>
 	.site-header {
-		position: sticky;
-		top: 0;
-		z-index: 100;
-		background: rgba(246, 243, 236, 0.88);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid var(--border);
+		background: var(--paper);
+		border-bottom: 1px solid var(--rule);
 	}
-	.bar {
+
+	/* Dateline bar */
+	.dateline {
+		border-bottom: 1px solid var(--rule);
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--muted);
+	}
+	.dateline-inner {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		min-height: 68px;
+		padding-block: 0.35rem;
+	}
+	.edition {
+		color: var(--accent-strong);
+		font-weight: 700;
+	}
+
+	/* Masthead */
+	.masthead {
+		text-align: center;
+		padding-block: clamp(0.9rem, 2.5vw, 1.4rem);
 	}
 	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.6rem;
-		min-width: 0;
-		color: var(--navy);
-		font-family: var(--font-sans);
-		font-size: 1.15rem;
+		font-family: var(--font-masthead);
+		font-weight: 400;
+		font-size: clamp(1.7rem, 6.5vw, 3.4rem);
+		line-height: 1.05;
+		color: var(--ink);
 		text-decoration: none;
-		white-space: nowrap;
 	}
-	.brand strong {
+	.brand:hover {
+		text-decoration: none;
 		color: var(--accent-strong);
 	}
-	.bar-right {
+
+	/* Section bar */
+	.navbar {
+		border-top: 3px double var(--rule);
+		position: relative;
+	}
+	.bar {
 		display: flex;
 		align-items: center;
-		gap: 1.5rem;
+		justify-content: center;
+		gap: 1rem;
+		min-height: 46px;
+		position: relative;
 	}
 	.nav-links {
 		display: flex;
 		align-items: center;
-		gap: 1.2rem;
+		gap: 1.8rem;
 		list-style: none;
 		margin: 0;
 		padding: 0;
 	}
 	.nav-links a {
-		color: var(--muted);
-		font-weight: 500;
+		display: inline-block;
+		color: var(--ink);
+		font-size: 0.8rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
 		text-decoration: none;
-		padding: 0.3rem 0;
-		border-bottom: 2px solid transparent;
+		padding: 0.75rem 0;
+		border-bottom: 3px solid transparent;
+		margin-bottom: -1px;
 	}
 	.nav-links a:hover {
-		color: var(--navy);
+		color: var(--accent-strong);
 	}
 	.nav-links a[aria-current='page'] {
-		color: var(--navy);
-		border-bottom-color: var(--accent);
+		color: var(--accent-strong);
+		border-bottom-color: var(--accent-strong);
 	}
-	.auth-actions {
+	.auth-actions,
+	.account {
+		position: absolute;
+		right: 1.25rem;
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
 	}
 
 	/* Account dropdown */
-	.account {
-		position: relative;
-	}
 	.account-toggle {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.4rem;
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 999px;
-		padding: 0.25rem 0.55rem 0.25rem 0.3rem;
+		padding: 0.2rem 0.4rem 0.2rem 0.25rem;
 		cursor: pointer;
-		color: var(--navy);
+		color: var(--ink);
 		font: inherit;
 		font-weight: 600;
 	}
 	.account-toggle:hover {
-		background: var(--surface-2);
+		background: var(--paper-shade);
 	}
 	.chev {
 		color: var(--muted-2);
@@ -245,11 +289,10 @@
 	.account-menu {
 		position: absolute;
 		right: 0;
-		top: calc(100% + 8px);
+		top: calc(100% + 10px);
 		min-width: 210px;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		background: var(--paper-bright);
+		border: 1px solid var(--ink);
 		box-shadow: var(--shadow-lg);
 		padding: 0.4rem;
 		display: flex;
@@ -265,21 +308,21 @@
 		background: none;
 		border: none;
 		font: inherit;
+		font-size: 0.95rem;
 		font-weight: 500;
-		color: var(--navy);
+		color: var(--ink);
 		padding: 0.55rem 0.7rem;
-		border-radius: 8px;
 		text-decoration: none;
 		cursor: pointer;
 	}
 	.account-menu a:hover,
 	.account-menu .signout:hover {
-		background: var(--surface-2);
+		background: var(--paper-shade);
 	}
 	.account-menu form {
 		margin: 0.2rem 0 0;
 		padding-top: 0.2rem;
-		border-top: 1px solid var(--border);
+		border-top: 1px solid var(--hairline);
 	}
 	.account-menu .signout {
 		color: var(--danger);
@@ -288,35 +331,31 @@
 	.menu-toggle {
 		display: none;
 		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		padding: 0.5rem;
-		color: var(--navy);
+		border: 1px solid var(--ink);
+		padding: 0.4rem;
+		color: var(--ink);
 		cursor: pointer;
 	}
 
 	@media (max-width: 860px) {
-		.bar-right {
-			gap: 0.6rem;
+		.bar {
+			justify-content: flex-start;
+			min-height: 52px;
 		}
 		.menu-toggle {
 			display: inline-flex;
-			order: 1;
-		}
-		.account,
-		.auth-actions {
-			order: 2;
 		}
 		.nav {
 			position: absolute;
 			left: 0;
 			right: 0;
 			top: 100%;
-			background: var(--surface);
-			border-bottom: 1px solid var(--border);
-			box-shadow: var(--shadow);
+			background: var(--paper-bright);
+			border-bottom: 1px solid var(--rule);
+			box-shadow: var(--shadow-lg);
 			padding: 0.6rem 1.25rem 1rem;
 			display: none;
+			z-index: 150;
 		}
 		.nav.open {
 			display: block;
@@ -327,13 +366,25 @@
 			gap: 0.2rem;
 		}
 		.nav-links a {
-			padding: 0.6rem 0;
-			border-bottom: 1px solid var(--border);
+			padding: 0.65rem 0;
+			border-bottom: 1px solid var(--hairline);
+			margin-bottom: 0;
+		}
+		.nav-links a[aria-current='page'] {
+			border-bottom-color: var(--accent-strong);
 		}
 	}
-	@media (max-width: 520px) {
-		.brand-text {
+	@media (max-width: 640px) {
+		.dateline .edition {
 			display: none;
+		}
+	}
+	@media (max-width: 460px) {
+		.dateline .date {
+			display: none;
+		}
+		.dateline-inner {
+			justify-content: center;
 		}
 	}
 </style>

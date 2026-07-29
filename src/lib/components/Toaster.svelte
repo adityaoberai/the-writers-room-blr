@@ -87,7 +87,7 @@
 		justify-content: center;
 		width: 24px;
 		height: 24px;
-		border-radius: 999px;
+		border-radius: 0;
 		flex-shrink: 0;
 		margin-top: 1px;
 	}
@@ -95,22 +95,22 @@
 		border-left-color: var(--success);
 	}
 	.toast-success .t-icon {
-		background: #dcfce7;
-		color: #166534;
+		background: var(--paper-shade);
+		color: var(--success);
 	}
 	.toast-error {
 		border-left-color: var(--danger);
 	}
 	.toast-error .t-icon {
-		background: #fee2e2;
-		color: #991b1b;
+		background: var(--paper-shade);
+		color: var(--danger);
 	}
 	.toast-info {
 		border-left-color: var(--accent);
 	}
 	.toast-info .t-icon {
-		background: #eaf1f9;
-		color: var(--accent-strong);
+		background: var(--paper-shade);
+		color: var(--ink);
 	}
 	.t-close {
 		pointer-events: auto;
@@ -120,18 +120,17 @@
 		color: var(--muted-2);
 		cursor: pointer;
 		padding: 2px;
-		border-radius: 6px;
+		border-radius: 0;
 		line-height: 0;
 	}
 	.t-close:hover {
 		color: var(--navy);
 		background: var(--surface-2);
 	}
-	/* While the mobile nav (hamburger) is present, push toasts below the 68px
-	   sticky header so they never cover the menu toggle / first nav row. */
+	/* The masthead header no longer sticks, so toasts can sit at the top edge. */
 	@media (max-width: 860px) {
 		.toaster {
-			top: calc(68px + 0.6rem);
+			top: 0.6rem;
 		}
 	}
 	@media (max-width: 520px) {

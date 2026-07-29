@@ -42,8 +42,8 @@
 		background: var(--surface);
 	}
 	.badge.earned {
-		border-color: #bbf7d0;
-		background: #f6fef9;
+		border-color: var(--success);
+		background: var(--paper-bright);
 	}
 	.medal {
 		flex-shrink: 0;
@@ -52,13 +52,13 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 12px;
+		border-radius: 0;
 		background: var(--surface-2);
 		color: var(--muted-2);
 	}
 	.badge.earned .medal {
-		background: linear-gradient(135deg, var(--accent), var(--accent-2));
-		color: #fff;
+		background: var(--success);
+		color: var(--paper-bright);
 	}
 	.info {
 		min-width: 0;
@@ -76,14 +76,13 @@
 	.bar {
 		height: 7px;
 		background: var(--surface-2);
-		border-radius: 999px;
+		border: 1px solid var(--hairline);
 		overflow: hidden;
 		margin-top: 0.2rem;
 	}
 	.bar span {
 		display: block;
 		height: 100%;
-		background: var(--accent);
-		border-radius: 999px;
+		background: var(--ink);
 	}
 </style>

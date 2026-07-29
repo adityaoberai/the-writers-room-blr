@@ -207,14 +207,14 @@
 	}
 	.verify-button.is-loading {
 		opacity: 1;
-		background: #204c7d;
-		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+		background: var(--ink-soft);
+		box-shadow: inset 0 0 0 1px rgba(250, 248, 241, 0.2);
 	}
 	.verify-spinner {
 		width: 1rem;
 		height: 1rem;
-		border: 2px solid rgba(255, 255, 255, 0.45);
-		border-top-color: #fff;
+		border: 2px solid rgba(250, 248, 241, 0.45);
+		border-top-color: var(--paper-bright);
 		border-radius: 50%;
 		animation: verify-spin 0.75s linear infinite;
 	}

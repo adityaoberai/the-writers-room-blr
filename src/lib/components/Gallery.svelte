@@ -151,15 +151,14 @@
 		justify-content: center;
 		width: 44px;
 		height: 44px;
-		border-radius: 999px;
-		border: none;
-		background: rgba(255, 255, 255, 0.86);
-		color: var(--navy);
+		border-radius: 0;
+		border: 1px solid var(--ink);
+		background: rgba(250, 248, 241, 0.9);
+		color: var(--ink);
 		cursor: pointer;
-		box-shadow: var(--shadow-sm);
 	}
 	.nav:hover {
-		background: #fff;
+		background: var(--paper-bright);
 	}
 	.prev {
 		left: 0.8rem;

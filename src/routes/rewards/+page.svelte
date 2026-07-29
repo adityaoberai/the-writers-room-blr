@@ -126,10 +126,10 @@
 		gap: 0.8rem;
 	}
 	.rule .pts {
-		font-family: var(--font-sans);
-		font-weight: 700;
+		font-family: var(--font-display);
+		font-weight: 800;
 		font-size: 1.4rem;
-		color: var(--highlight);
+		color: var(--accent-strong);
 		min-width: 3rem;
 	}
 	.activity {
@@ -151,9 +151,9 @@
 		justify-content: center;
 		width: 30px;
 		height: 30px;
-		border-radius: 999px;
-		background: #dcfce7;
-		color: #166534;
+		border-radius: 0;
+		background: var(--paper-shade);
+		color: var(--success);
 		flex-shrink: 0;
 	}
 	.act-main {

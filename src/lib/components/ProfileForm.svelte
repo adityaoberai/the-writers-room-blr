@@ -250,8 +250,8 @@
 			box-shadow 0.15s ease;
 	}
 	.genre-picker:focus-within {
-		border-color: var(--accent);
-		box-shadow: 0 0 0 3px rgba(47, 111, 176, 0.2);
+		border-color: var(--accent-strong);
+		box-shadow: 0 0 0 3px rgba(142, 42, 33, 0.18);
 	}
 	.selected-genres {
 		display: flex;
@@ -262,12 +262,13 @@
 		padding: 0;
 	}
 	.selected-genre {
-		background: var(--accent-strong);
-		border-color: var(--accent-strong);
-		color: #fff;
+		background: var(--ink);
+		border-color: var(--ink);
+		color: var(--paper-bright);
 	}
 	.selected-genre:hover {
-		background: #173a63;
+		background: var(--accent-strong);
+		border-color: var(--accent-strong);
 	}
 	.remove-mark {
 		font-weight: 700;
@@ -291,7 +292,7 @@
 		margin-top: 0.5rem;
 	}
 	.genre-suggestion.is-active {
-		background: #eaf1f9;
+		background: var(--paper-shade);
 		color: var(--accent-strong);
 		border-color: var(--accent-2);
 	}

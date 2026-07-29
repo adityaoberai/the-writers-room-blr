@@ -157,7 +157,9 @@
 			</div>
 		{:else}
 			<p class="empty muted">
-				No meetups are scheduled right now — check back soon, or <a href="/events">browse past sessions</a>.
+				No meetups are scheduled right now — check back soon, or <a href="/events"
+					>browse past sessions</a
+				>.
 			</p>
 		{/if}
 	</div>
@@ -218,16 +220,16 @@
 	.hero {
 		position: relative;
 		overflow: hidden;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid var(--rule);
+		/* Faint ruled lines, like a fresh sheet of newsprint. */
 		background:
-			radial-gradient(900px 380px at 88% -10%, rgba(47, 111, 176, 0.16), transparent),
 			repeating-linear-gradient(
 				180deg,
 				transparent,
 				transparent 31px,
-				rgba(15, 23, 42, 0.035) 32px
+				rgba(28, 26, 23, 0.045) 32px
 			),
-			linear-gradient(180deg, #fffdf8, var(--bg));
+			linear-gradient(180deg, var(--paper-bright), var(--paper));
 	}
 	.hero-inner {
 		display: grid;
@@ -244,9 +246,10 @@
 		margin-bottom: 0.4rem;
 	}
 	.typed-line {
-		font-family: var(--font-sans);
+		font-family: var(--font-display);
+		font-style: italic;
 		font-size: clamp(1.3rem, 2.6vw, 1.9rem);
-		color: var(--navy);
+		color: var(--ink);
 		margin: 0 0 0.9rem;
 		min-height: 1.5em;
 	}
@@ -273,11 +276,15 @@
 	.stats div {
 		margin: 0;
 	}
+	.stats > div + div {
+		border-left: 1px solid var(--hairline);
+		padding-left: 2rem;
+	}
 	.stats dt {
-		font-family: var(--font-sans);
+		font-family: var(--font-display);
 		font-size: 1.5rem;
-		color: var(--navy);
-		font-weight: 700;
+		color: var(--ink);
+		font-weight: 800;
 	}
 	.stats dd {
 		margin: 0.1rem 0 0;
@@ -327,9 +334,9 @@
 		gap: 0.2rem;
 	}
 	.fmt-num {
-		font-family: var(--font-sans);
+		font-family: var(--font-display);
 		font-size: 1.9rem;
-		font-weight: 700;
+		font-weight: 800;
 		color: var(--accent-strong);
 		line-height: 1;
 	}
@@ -346,13 +353,15 @@
 	}
 	.note {
 		margin-top: 1rem;
-		border-color: #fcd9a6;
-		background: #fffaf0;
+		border-left: 3px solid var(--accent-strong);
 	}
 	.note strong {
 		display: block;
 		margin-bottom: 0.3rem;
-		color: #92400e;
+		color: var(--accent-strong);
+		text-transform: uppercase;
+		font-size: 0.82rem;
+		letter-spacing: 0.1em;
 	}
 	.note p {
 		margin: 0;
@@ -363,8 +372,8 @@
 		display: flex;
 		gap: 0.8rem;
 		align-items: flex-start;
-		border-color: #cfe0f0;
-		background: #eaf1f9;
+		border: 3px double var(--rule);
+		background: var(--paper-shade);
 	}
 	.readers-icon {
 		color: var(--accent-strong);
@@ -393,9 +402,9 @@
 		justify-content: center;
 		width: 44px;
 		height: 44px;
-		border-radius: 12px;
-		background: #eaf1f9;
-		color: var(--accent-strong);
+		border: 1px solid var(--ink);
+		background: var(--paper-bright);
+		color: var(--ink);
 		margin-bottom: 0.8rem;
 	}
 	.benefit h3 {
@@ -422,20 +431,30 @@
 		margin: 0;
 	}
 	.cta-band {
-		background: linear-gradient(135deg, var(--navy), #16335f);
-		color: #fff;
-		border-radius: var(--radius-lg);
-		padding: clamp(2rem, 5vw, 3.5rem);
+		background: var(--ink);
+		color: var(--paper-bright);
+		outline: 1px solid rgba(250, 248, 241, 0.45);
+		outline-offset: -10px;
+		padding: clamp(2.5rem, 5vw, 4rem);
 		text-align: center;
 	}
 	.cta-band h2 {
-		color: #fff;
+		color: var(--paper-bright);
 	}
 	.cta-band p {
-		color: #cbd5e1;
+		color: rgba(250, 248, 241, 0.75);
+		font-style: italic;
 		max-width: 46ch;
 		margin-inline: auto;
 		margin-bottom: 1.5rem;
+	}
+	.cta-band .btn-primary {
+		background: var(--paper-bright);
+		color: var(--ink);
+		border-color: var(--paper-bright);
+	}
+	.cta-band .btn-primary:hover {
+		background: var(--paper-shade);
 	}
 
 	@media (max-width: 860px) {

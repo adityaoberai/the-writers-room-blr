@@ -7,10 +7,7 @@
 	<div class="container">
 		<div class="footer-grid">
 			<div>
-				<a class="brand" href="/">
-					<img src="/logo-mark.png" alt="" width="30" height="30" style="border-radius: 22%" />
-					<span>The Writers' Room <strong>BLR</strong></span>
-				</a>
+				<a class="brand" href="/">The Writers&rsquo; Room BLR</a>
 				<p class="muted tag">{SITE.tagline}</p>
 			</div>
 			<nav aria-label="Footer: Explore">
@@ -34,18 +31,19 @@
 			</nav>
 		</div>
 		<div class="footer-bottom">
-			<p>© {year} {SITE.name}. Made in Bengaluru.</p>
-			<p class="muted">Sessions are calm, focused and phone-down.</p>
+			<p>© {year} {SITE.name}.</p>
+			<p class="note">Printed monthky in Bengaluru.</p>
 		</div>
 	</div>
 </footer>
 
 <style>
 	.site-footer {
-		background: var(--navy);
-		color: #cbd5e1;
+		background: var(--paper);
+		color: var(--ink);
 		margin-top: 4rem;
-		padding-block: 3rem 1.5rem;
+		border-top: 6px double var(--rule);
+		padding-block: 2.5rem 1.5rem;
 	}
 	.footer-grid {
 		display: grid;
@@ -53,27 +51,31 @@
 		gap: 2rem;
 	}
 	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.55rem;
-		color: #f8fafc;
-		font-family: var(--font-sans);
-		font-size: 1.1rem;
+		display: inline-block;
+		font-family: var(--font-masthead);
+		font-size: 1.6rem;
+		line-height: 1.1;
+		color: var(--ink);
 		text-decoration: none;
 	}
-	.brand strong {
-		color: var(--accent-2);
+	.brand:hover {
+		color: var(--accent-strong);
+		text-decoration: none;
 	}
 	.tag {
 		max-width: 30ch;
-		margin-top: 0.8rem;
-		color: #94a3b8;
+		margin-top: 0.7rem;
+		font-style: italic;
 	}
 	h4 {
-		color: #f8fafc;
-		font-family: var(--font-sans);
-		font-size: 0.85rem;
+		font-family: var(--font-serif);
+		color: var(--ink);
+		font-size: 0.76rem;
+		font-weight: 700;
 		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		border-bottom: 1px solid var(--rule);
+		padding-bottom: 0.4rem;
 		margin: 0 0 0.8rem;
 	}
 	ul {
@@ -84,11 +86,11 @@
 		gap: 0.5rem;
 	}
 	a {
-		color: #cbd5e1;
+		color: var(--ink-soft);
 		text-decoration: none;
 	}
 	a:hover {
-		color: #fff;
+		color: var(--accent-strong);
 		text-decoration: underline;
 	}
 	.footer-bottom {
@@ -96,16 +98,17 @@
 		justify-content: space-between;
 		flex-wrap: wrap;
 		gap: 0.5rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.12);
+		border-top: 1px solid var(--rule);
 		margin-top: 2.5rem;
-		padding-top: 1.5rem;
+		padding-top: 1rem;
 		font-size: 0.85rem;
 	}
 	.footer-bottom p {
 		margin: 0;
 	}
-	.footer-bottom .muted {
-		color: #94a3b8;
+	.footer-bottom .note {
+		color: var(--muted);
+		font-style: italic;
 	}
 	@media (max-width: 720px) {
 		.footer-grid {

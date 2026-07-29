@@ -48,13 +48,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.4rem;
-		padding: 0.15rem 0.6rem;
-		border-radius: 999px;
+		padding: 0.18rem 0.6rem;
+		border-radius: 0;
 		font-size: 0.72rem;
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: #fff;
+		letter-spacing: 0.08em;
+		color: var(--paper-bright);
 		background: var(--accent-strong);
 	}
 	.live::before {

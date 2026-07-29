@@ -352,7 +352,12 @@
 					<h3>Add an event</h3>
 					<p class="muted small">Dates and times are in IST (Asia/Kolkata).</p>
 					<div class="field">
-						<label for="e-title">Title</label><input id="e-title" name="title" type="text" required />
+						<label for="e-title">Title</label><input
+							id="e-title"
+							name="title"
+							type="text"
+							required
+						/>
 					</div>
 					<div class="field">
 						<label for="e-start">Starts</label><input
@@ -406,7 +411,13 @@
 										<input type="hidden" name="source" value={e.source} />
 										<div class="field">
 											<label for={`edit-title-${e.id}`}>Title</label>
-											<input id={`edit-title-${e.id}`} name="title" type="text" value={e.title} required />
+											<input
+												id={`edit-title-${e.id}`}
+												name="title"
+												type="text"
+												value={e.title}
+												required
+											/>
 										</div>
 										<div class="field">
 											<label for={`edit-start-${e.id}`}>Starts</label>
@@ -428,7 +439,12 @@
 										</div>
 										<div class="field">
 											<label for={`edit-loc-${e.id}`}>Location</label>
-											<input id={`edit-loc-${e.id}`} name="location" type="text" value={e.location} />
+											<input
+												id={`edit-loc-${e.id}`}
+												name="location"
+												type="text"
+												value={e.location}
+											/>
 										</div>
 										<div class="field">
 											<label for={`edit-url-${e.id}`}>Luma / registration URL</label>
@@ -441,7 +457,9 @@
 										</div>
 										<div class="field">
 											<label for={`edit-desc-${e.id}`}>Description</label>
-											<textarea id={`edit-desc-${e.id}`} name="description" rows="2">{e.description}</textarea>
+											<textarea id={`edit-desc-${e.id}`} name="description" rows="2"
+												>{e.description}</textarea
+											>
 										</div>
 										<div class="btns">
 											<button class="btn btn-primary btn-sm" type="submit">Save changes</button>

@@ -218,8 +218,8 @@
 		justify-content: space-between;
 		gap: 1.25rem;
 		flex-wrap: wrap;
-		background: #eaf1f9;
-		border: 1px solid #cfe0f0;
+		background: var(--paper-shade);
+		border: 3px double var(--rule);
 		border-radius: var(--radius);
 		padding: 1.1rem 1.4rem;
 		margin-bottom: 1.5rem;
