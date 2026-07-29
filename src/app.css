@@ -925,9 +925,15 @@ table.data tr:last-child td {
 	object-fit: cover;
 	background: var(--paper-shade);
 	border: 1px solid var(--rule);
+}
+/* Grayscale only with JS on: the `develop` action colors portraits as they
+   come into focus; without JS they print in color from the start. :where()
+   keeps this gate at zero extra specificity so `.avatar.developed` can win. */
+html.js :where(.avatar) {
 	filter: grayscale(1) contrast(1.04);
 	transition: filter 0.4s ease;
 }
+.avatar.developed,
 a:hover .avatar,
 .avatar:hover {
 	filter: none;
@@ -945,10 +951,15 @@ a:hover .avatar,
 }
 
 /* ---------- Figures — every picture carries a caption ---------- */
-.print-photo {
+/* Photos print grayscale and develop into color as they come into focus
+   (the `develop` action adds .developed on viewport entry; hover still
+   works as an early develop). No JS → color from the start. :where() keeps
+   the html.js gate at zero extra specificity so .developed/:hover can win. */
+html.js :where(.print-photo) {
 	filter: grayscale(1) contrast(1.04);
-	transition: filter 0.5s ease;
+	transition: filter 0.6s ease;
 }
+.print-photo.developed,
 a:hover .print-photo,
 .print-photo:hover {
 	filter: none;
@@ -1039,26 +1050,27 @@ figure.figure figcaption b {
 		transform 0.6s ease;
 }
 
-/* ---------- Page flip between pages (View Transitions) ---------- */
+/* ---------- Page turn between pages (View Transitions) ----------
+   Kept deliberately quiet: only the outgoing sheet lifts a little at its
+   spine and fades; the incoming page lies still beneath it and settles.
+   Rotating both layers reads as seasick — don't. */
 @media (prefers-reduced-motion: no-preference) {
 	::view-transition-old(root) {
-		animation: 420ms cubic-bezier(0.4, 0, 0.2, 1) both page-flip-out;
+		animation: 240ms cubic-bezier(0.3, 0, 0.6, 1) both page-turn-away;
 		transform-origin: left center;
 	}
 	::view-transition-new(root) {
-		animation: 420ms cubic-bezier(0.4, 0, 0.2, 1) both page-flip-in;
-		transform-origin: left center;
+		animation: 240ms ease both page-settle;
 	}
 }
-@keyframes page-flip-out {
+@keyframes page-turn-away {
 	to {
-		transform: perspective(1600px) rotateY(-38deg);
+		transform: perspective(2600px) rotateY(-8deg) translateX(-1.5%);
 		opacity: 0;
 	}
 }
-@keyframes page-flip-in {
+@keyframes page-settle {
 	from {
-		transform: perspective(1600px) rotateY(24deg);
-		opacity: 0;
+		opacity: 0.55;
 	}
 }

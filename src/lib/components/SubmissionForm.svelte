@@ -1,5 +1,6 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { develop } from '$lib/actions/develop.js';
 
 	let { types = [], values = {}, currentImage = '', submitLabel = 'Publish' } = $props();
 
@@ -74,7 +75,7 @@
 		<div class="field" style="margin-bottom:0">
 			<label for="image">Cover image <span class="optional">— optional</span></label>
 			{#if currentImage}
-				<img class="current-cover print-photo" src={currentImage} alt="Current cover" />
+				<img class="current-cover print-photo" src={currentImage} alt="Current cover" use:develop />
 			{/if}
 			<label class="file-btn">
 				<input

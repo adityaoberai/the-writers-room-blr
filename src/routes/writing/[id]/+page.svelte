@@ -1,5 +1,6 @@
 <script>
 	import Seo from '$lib/components/Seo.svelte';
+	import { develop } from '$lib/actions/develop.js';
 	import { formatDate } from '$lib/format.js';
 
 	let { data } = $props();
@@ -51,6 +52,7 @@
 				loading="eager"
 				decoding="async"
 				onerror={useFallbackImage}
+				use:develop
 			/>
 			<figcaption>
 				Cover plate for &ldquo;{s.title}&rdquo;. <b>PLATE: {credit}</b>

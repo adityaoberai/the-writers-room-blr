@@ -1,5 +1,6 @@
 <script>
 	import { reveal } from '$lib/actions/reveal.js';
+	import { develop } from '$lib/actions/develop.js';
 
 	// Photo URLs are resolved server-side from static/events-gallery (see
 	// $lib/server/gallery.js). The section hides itself when there are none.
@@ -12,10 +13,11 @@
 	const order = $derived(shuffledOrder ?? photos);
 	const count = $derived(order.length);
 
-	// Up to three other plates shown as the contact sheet.
+	// Up to two other plates shown as the contact sheet — they share the main
+	// plate's height, so two keeps them at a natural crop.
 	const sheet = $derived(
 		count > 1
-			? Array.from({ length: Math.min(3, count - 1) }, (_, k) => (index + k + 1) % count)
+			? Array.from({ length: Math.min(2, count - 1) }, (_, k) => (index + k + 1) % count)
 			: []
 	);
 
@@ -69,7 +71,7 @@
 				onfocusout={() => (paused = false)}
 			>
 				<figure class="plate-fig">
-					<div class="plate">
+					<div class="plate" use:develop>
 						{#each order as src, i (src)}
 							<img
 								class="slide print-photo"
@@ -106,18 +108,22 @@
 				</figure>
 
 				{#if sheet.length}
-					<div class="contact">
-						<div class="lbl">Contact sheet</div>
-						{#each sheet as i (order[i])}
-							<button
-								class="thumb"
-								type="button"
-								onclick={() => go(i)}
-								aria-label={`Show photo ${i + 1} of ${count}`}
-							>
-								<img class="print-photo" src={order[i]} alt="" loading="lazy" />
-							</button>
-						{/each}
+					<!-- The contact sheet borrows its height from the plate: the wrapper adds
+					     no height of its own, and the thumbs split whatever the plate sets. -->
+					<div class="contactwrap">
+						<div class="contact">
+							<div class="lbl">Contact sheet</div>
+							{#each sheet as i (order[i])}
+								<button
+									class="thumb"
+									type="button"
+									onclick={() => go(i)}
+									aria-label={`Show photo ${i + 1} of ${count}`}
+								>
+									<img class="print-photo" src={order[i]} alt="" loading="lazy" use:develop />
+								</button>
+							{/each}
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -142,13 +148,16 @@
 	.spread {
 		display: grid;
 		grid-template-columns: 2.3fr 1fr;
-		gap: 1.4rem;
-		align-items: start;
+		gap: 0 1.4rem;
 	}
+	/* The figure dissolves into the grid so the plate (row 1) and the caption
+	   bar (row 2) size their rows independently — the contact sheet then
+	   aligns to the plate alone. */
 	.plate-fig {
-		margin: 0;
+		display: contents;
 	}
 	.plate {
+		grid-area: 1 / 1;
 		position: relative;
 		aspect-ratio: 16 / 9;
 		overflow: hidden;
@@ -162,12 +171,21 @@
 		height: 100%;
 		object-fit: cover;
 		opacity: 0;
-		transition: opacity 0.8s ease;
+		transition:
+			opacity 0.8s ease,
+			filter 0.6s ease;
 	}
 	.slide.active {
 		opacity: 1;
 	}
+	/* Each plate develops into color as it takes the frame. (.developed is
+	   added at runtime by the develop action, so it needs :global to survive
+	   the compiler's unused-selector pruning.) */
+	.plate:global(.developed) .slide.active {
+		filter: none;
+	}
 	.capbar {
+		grid-area: 2 / 1;
 		display: flex;
 		align-items: flex-end;
 		gap: 1rem;
@@ -216,10 +234,19 @@
 		background: var(--ink);
 		color: var(--paper);
 	}
+	.contactwrap {
+		grid-area: 1 / 2;
+		position: relative;
+		min-width: 0;
+	}
 	.contact {
+		position: absolute;
+		inset: 0;
 		display: grid;
+		grid-template-rows: auto;
+		grid-auto-rows: 1fr;
 		gap: 0.7rem;
-		align-content: start;
+		min-height: 0;
 	}
 	.contact .lbl {
 		font-size: 0.64rem;
@@ -235,13 +262,15 @@
 		padding: 0;
 		cursor: pointer;
 		display: block;
+		min-height: 0;
+		overflow: hidden;
 	}
 	.thumb:hover {
 		border-color: var(--rule);
 	}
 	.thumb img {
 		width: 100%;
-		aspect-ratio: 3 / 2;
+		height: 100%;
 		object-fit: cover;
 		display: block;
 	}
@@ -249,11 +278,14 @@
 		.spread {
 			grid-template-columns: 1fr;
 		}
-		.contact {
-			grid-template-columns: repeat(3, 1fr);
+		.plate,
+		.capbar {
+			grid-area: auto;
 		}
-		.contact .lbl {
-			grid-column: 1 / -1;
+		/* The arrows drive the carousel on small screens; the contact sheet
+		   would only push the page down. */
+		.contactwrap {
+			display: none;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

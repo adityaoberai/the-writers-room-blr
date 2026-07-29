@@ -6,6 +6,7 @@
 	import Typewriter from '$lib/components/Typewriter.svelte';
 	import Gallery from '$lib/components/Gallery.svelte';
 	import { reveal } from '$lib/actions/reveal.js';
+	import { develop } from '$lib/actions/develop.js';
 
 	let { data } = $props();
 	const hero = $derived(data.hero);
@@ -60,7 +61,7 @@
 
 		<div class="fold-aside">
 			<figure class="figure">
-				<img class="print-photo" src="/logo.jpg" alt="" width="440" height="440" />
+				<img class="print-photo" src="/logo.jpg" alt="" width="440" height="440" use:develop />
 				<figcaption>
 					The room&rsquo;s plate — laptops, notebooks and the occasional typewriter.
 					<b>THE WRITERS&rsquo; ROOM</b>
