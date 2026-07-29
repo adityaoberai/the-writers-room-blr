@@ -40,19 +40,9 @@
 			<p class="typed-line">A focused room for <Typewriter words={typedWords} /></p>
 			<p class="lead">{hero.subtitle}</p>
 			<div class="cta-row">
-				{#if user}
-					<a class="btn btn-primary" href="/submit">Submit writing</a>
-				{:else}
-					<a class="btn btn-primary" href="/signin">Create your profile</a>
-					<a
-						class="btn btn-secondary"
-						href={siteCopy.luma_url}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Register for a meetup
-					</a>
-				{/if}
+				<a class="btn btn-primary" href={user ? '/submit' : '/signin'}>
+					{user ? 'Submit writing' : 'Join the room'}
+				</a>
 			</div>
 			{#if stats.pieces > 0}
 				<p class="social-proof">
