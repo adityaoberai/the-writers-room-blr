@@ -4,7 +4,7 @@
 	import PhotoUpload from '$lib/components/PhotoUpload.svelte';
 	import Flash from '$lib/components/Flash.svelte';
 	import FormFeedback from '$lib/components/FormFeedback.svelte';
-	import { formatNumber, formatDate } from '$lib/format.js';
+	import { formatDate } from '$lib/format.js';
 
 	let { data, form } = $props();
 
@@ -58,10 +58,6 @@
 		</header>
 
 		<div class="snapshot">
-			<div class="stat card">
-				<span class="num">{formatNumber(data.points)}</span>
-				<span class="muted">points</span>
-			</div>
 			<div class="stat card">
 				<span class="num">{data.submissions.length}</span>
 				<span class="muted">submissions</span>

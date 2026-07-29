@@ -9,16 +9,15 @@ import {
 } from '$lib/server/profiles.js';
 import { listSubmissionsByUser } from '$lib/server/submissions.js';
 import { uploadProfilePhoto } from '$lib/server/storage.js';
-import { awardProfileCompletion, getTotalPoints } from '$lib/server/rewards.js';
+import { awardProfileCompletion } from '$lib/server/rewards.js';
 import { CONTENT_TYPE_LABELS } from '$lib/constants.js';
 
 export async function load({ locals }) {
 	requireUser(locals);
 	const fallbackName = locals.user.name || locals.user.email?.split('@')[0] || 'New member';
-	const [profile, submissions, points] = await Promise.all([
+	const [profile, submissions] = await Promise.all([
 		ensureProfile(locals.user.$id, fallbackName),
-		listSubmissionsByUser(locals.user.$id),
-		getTotalPoints(locals.user.$id)
+		listSubmissionsByUser(locals.user.$id)
 	]);
 
 	return {
@@ -33,7 +32,6 @@ export async function load({ locals }) {
 			photo_url: profile.photo_url ?? ''
 		},
 		complete: isProfileComplete(profile),
-		points,
 		submissions: submissions.map((s) => ({
 			id: s.$id,
 			title: s.title,
