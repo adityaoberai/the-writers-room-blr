@@ -69,7 +69,8 @@ export async function listCurrentEvents(limit = 6) {
 		.map((e) => ({ e, status: eventStatus(e, now) }))
 		.filter((x) => x.status === 'ongoing' || x.status === 'upcoming')
 		.sort(
-			(a, b) => rank[a.status] - rank[b.status] || Date.parse(a.e.start_at) - Date.parse(b.e.start_at)
+			(a, b) =>
+				rank[a.status] - rank[b.status] || Date.parse(a.e.start_at) - Date.parse(b.e.start_at)
 		)
 		.slice(0, limit)
 		.map((x) => x.e);

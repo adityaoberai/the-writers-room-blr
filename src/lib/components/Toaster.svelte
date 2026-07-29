@@ -1,10 +1,8 @@
 <script>
 	import { fly } from 'svelte/transition';
 	import { toasts, dismissToast } from '$lib/toast.svelte.js';
-	import Icon from './Icon.svelte';
 
-	const ICON = { success: 'check', error: 'spark', info: 'mail' };
-	const LABEL = { success: 'Success', error: 'Error', info: 'Notice' };
+	const LABEL = { success: 'Set', error: 'Correction', info: 'Notice' };
 
 	// Honour the reduced-motion preference: Svelte JS transitions animate via the
 	// Web Animations API, not CSS `transition`, so a CSS media query can't disable
@@ -25,23 +23,15 @@
 			aria-atomic="true"
 			transition:fly={flyParams}
 		>
-			<span class="t-icon" aria-hidden="true"><Icon name={ICON[t.type] ?? 'mail'} size={16} /></span
-			>
-			<p><span class="visually-hidden">{LABEL[t.type] ?? 'Notice'}: </span>{t.message}</p>
+			<span class="t-label">{LABEL[t.type] ?? 'Notice'}</span>
+			<p>{t.message}</p>
 			<button
 				class="t-close"
 				type="button"
 				aria-label="Dismiss notification"
 				onclick={() => dismissToast(t.id)}
 			>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-					<path
-						d="M6 6l12 12M18 6L6 18"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-					/>
-				</svg>
+				✕
 			</button>
 		</div>
 	{/each}
@@ -53,24 +43,23 @@
 		top: 1rem;
 		right: 1rem;
 		left: auto;
-		z-index: 300;
+		z-index: 10500;
 		display: flex;
 		flex-direction: column;
 		gap: 0.6rem;
 		width: min(380px, calc(100vw - 2rem));
 		pointer-events: none;
 	}
+	/* A compositor's slug: ink on paper, reversed. */
 	.toast {
 		pointer-events: none;
 		display: flex;
-		align-items: flex-start;
+		align-items: baseline;
 		gap: 0.65rem;
-		padding: 0.8rem 0.9rem;
-		border-radius: var(--radius-sm);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		box-shadow: var(--shadow-lg);
-		border-left-width: 4px;
+		padding: 0.7rem 0.85rem;
+		background: var(--ink);
+		color: var(--paper);
+		border-left: 4px solid var(--ink);
 	}
 	.toast p {
 		margin: 0;
@@ -79,59 +68,49 @@
 		overflow-wrap: anywhere;
 		font-size: 0.92rem;
 		line-height: 1.4;
-		color: var(--text);
+		color: var(--paper);
 	}
-	.t-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 24px;
-		height: 24px;
-		border-radius: 999px;
+	.t-label {
 		flex-shrink: 0;
-		margin-top: 1px;
+		font-size: 0.62rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		color: var(--hairline);
 	}
 	.toast-success {
-		border-left-color: var(--success);
-	}
-	.toast-success .t-icon {
-		background: #dcfce7;
-		color: #166534;
+		border-left-color: var(--ledger);
 	}
 	.toast-error {
 		border-left-color: var(--danger);
 	}
-	.toast-error .t-icon {
-		background: #fee2e2;
-		color: #991b1b;
+	.toast-error .t-label {
+		color: #e8b0a8;
 	}
 	.toast-info {
-		border-left-color: var(--accent);
-	}
-	.toast-info .t-icon {
-		background: #eaf1f9;
-		color: var(--accent-strong);
+		border-left-color: var(--hairline);
 	}
 	.t-close {
 		pointer-events: auto;
 		flex-shrink: 0;
 		background: none;
 		border: none;
-		color: var(--muted-2);
+		color: var(--paper);
+		font-family: var(--serif);
+		font-size: 0.85rem;
 		cursor: pointer;
-		padding: 2px;
-		border-radius: 6px;
-		line-height: 0;
+		padding: 2px 4px;
+		line-height: 1;
 	}
 	.t-close:hover {
-		color: var(--navy);
-		background: var(--surface-2);
+		color: #fff;
+		background: rgba(255, 255, 255, 0.15);
 	}
-	/* While the mobile nav (hamburger) is present, push toasts below the 68px
-	   sticky header so they never cover the menu toggle / first nav row. */
+	/* While the mobile nav (hamburger) is present, push toasts below the sticky
+	   nav bar so they never cover the menu toggle / first nav row. */
 	@media (max-width: 860px) {
 		.toaster {
-			top: calc(68px + 0.6rem);
+			top: calc(48px + 0.6rem);
 		}
 	}
 	@media (max-width: 520px) {

@@ -1,7 +1,6 @@
 <script>
 	import { page } from '$app/stores';
 	import { SITE } from '$lib/seo.js';
-	import Avatar from './Avatar.svelte';
 
 	let { user = null } = $props();
 	let navOpen = $state(false);
@@ -10,7 +9,7 @@
 	let accountBtn = $state(null);
 
 	const links = [
-		{ href: '/', label: 'Home' },
+		{ href: '/', label: 'Front page' },
 		{ href: '/directory', label: 'Directory' },
 		{ href: '/writing', label: 'Writing' },
 		{ href: '/events', label: 'Events' }
@@ -18,6 +17,16 @@
 
 	const isActive = (href) =>
 		href === '/' ? $page.url.pathname === '/' : $page.url.pathname.startsWith(href);
+
+	const today = new Intl.DateTimeFormat('en-IN', {
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric',
+		timeZone: 'Asia/Kolkata'
+	}).format(new Date());
+
+	const firstName = (name) => (name || 'Member').trim().split(/\s+/)[0];
 
 	// Close both menus whenever the route changes.
 	$effect(() => {
@@ -47,41 +56,33 @@
 	});
 </script>
 
-<header class="site-header">
-	<div class="container bar">
-		<a class="brand" href="/" aria-label="{SITE.name} home">
-			<img src="/logo-mark.png" alt="" width="34" height="34" style="border-radius: 22%" />
-			<span class="brand-text">The Writers' Room <strong>BLR</strong></span>
-		</a>
+<header class="masthead-wrap">
+	<div class="dateline">
+		<div class="container dateline-inner">
+			<span class="dl-vol">Vol. II</span>
+			<span>Bengaluru, India</span>
+			<span class="dl-date">{today}</span>
+			<span class="dl-free">Free for members</span>
+		</div>
+	</div>
 
-		<div class="bar-right">
+	<div class="masthead container">
+		<a class="brand" href="/" aria-label="{SITE.name} front page">The Writers&rsquo; Room BLR</a>
+		<p class="tagline">{SITE.tagline}</p>
+	</div>
+
+	<div class="navbar">
+		<div class="container bar">
 			<button
 				class="menu-toggle"
 				aria-expanded={navOpen}
 				aria-controls="primary-nav"
-				aria-label="Menu"
 				onclick={() => {
 					navOpen = !navOpen;
 					accountOpen = false;
 				}}
 			>
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-					{#if navOpen}
-						<path
-							d="M6 6l12 12M18 6L6 18"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-						/>
-					{:else}
-						<path
-							d="M4 7h16M4 12h16M4 17h16"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-						/>
-					{/if}
-				</svg>
+				{navOpen ? 'Close' : 'Menu'}
 			</button>
 
 			<nav id="primary-nav" class="nav" class:open={navOpen} aria-label="Primary">
@@ -99,7 +100,7 @@
 			{#if user}
 				<div class="account" bind:this={accountEl}>
 					<button
-						class="account-toggle"
+						class="desk-toggle"
 						bind:this={accountBtn}
 						aria-haspopup="true"
 						aria-expanded={accountOpen}
@@ -109,24 +110,7 @@
 							navOpen = false;
 						}}
 					>
-						<Avatar src={user.photo_url} name={user.name} size={34} />
-						<svg
-							class="chev"
-							class:up={accountOpen}
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							aria-hidden="true"
-						>
-							<path
-								d="M6 9l6 6 6-6"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							/>
-						</svg>
+						{firstName(user.name)}&rsquo;s desk <span aria-hidden="true">▾</span>
 					</button>
 
 					{#if accountOpen}
@@ -144,117 +128,147 @@
 					{/if}
 				</div>
 			{:else}
-				<div class="auth-actions">
-					<a class="btn btn-primary btn-sm" href="/signin">Sign in</a>
-				</div>
+				<a class="signin" href="/signin">Sign in</a>
 			{/if}
 		</div>
 	</div>
 </header>
 
 <style>
-	.site-header {
+	.masthead-wrap {
+		background: var(--paper);
+	}
+	.dateline {
+		border-bottom: 1px solid var(--rule);
+	}
+	.dateline-inner {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-block: 0.32rem;
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--muted);
+	}
+	.masthead {
+		text-align: center;
+		padding-block: 1.05rem 0.85rem;
+	}
+	.brand {
+		font-weight: 700;
+		font-size: clamp(1.9rem, 5vw, 2.9rem);
+		line-height: 1;
+		letter-spacing: -0.015em;
+		color: var(--ink);
+		text-decoration: none;
+		display: inline-block;
+	}
+	.brand:hover {
+		color: var(--ink);
+	}
+	.tagline {
+		margin: 0.35rem 0 0;
+		font-style: italic;
+		font-size: 0.88rem;
+		color: var(--muted);
+	}
+
+	.navbar {
 		position: sticky;
 		top: 0;
 		z-index: 100;
-		background: rgba(246, 243, 236, 0.88);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid var(--border);
+		background: var(--paper);
+		border-top: 3px double var(--rule);
+		border-bottom: 1px solid var(--rule);
 	}
 	.bar {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		min-height: 68px;
-	}
-	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.6rem;
-		min-width: 0;
-		color: var(--navy);
-		font-family: var(--font-sans);
-		font-size: 1.15rem;
-		text-decoration: none;
-		white-space: nowrap;
-	}
-	.brand strong {
-		color: var(--accent-strong);
-	}
-	.bar-right {
-		display: flex;
-		align-items: center;
+		justify-content: center;
 		gap: 1.5rem;
+		min-height: 44px;
+		position: relative;
 	}
 	.nav-links {
 		display: flex;
-		align-items: center;
-		gap: 1.2rem;
+		align-items: stretch;
+		gap: 2rem;
 		list-style: none;
 		margin: 0;
 		padding: 0;
 	}
 	.nav-links a {
-		color: var(--muted);
-		font-weight: 500;
-		text-decoration: none;
-		padding: 0.3rem 0;
-		border-bottom: 2px solid transparent;
-	}
-	.nav-links a:hover {
-		color: var(--navy);
-	}
-	.nav-links a[aria-current='page'] {
-		color: var(--navy);
-		border-bottom-color: var(--accent);
-	}
-	.auth-actions {
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
+		color: var(--ink);
+		font-size: 0.78rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.16em;
+		text-decoration: none;
+		padding: 0.75rem 0;
+		border-bottom: 3px solid transparent;
+		margin-bottom: -1px;
+	}
+	.nav-links a:hover {
+		border-bottom-color: var(--hairline);
+		color: var(--ink);
+	}
+	.nav-links a[aria-current='page'] {
+		border-bottom-color: var(--ink);
 	}
 
-	/* Account dropdown */
+	.signin {
+		position: absolute;
+		right: 1.25rem;
+		background: var(--cta);
+		color: #fff;
+		font-size: 0.72rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		padding: 0.5rem 0.95rem;
+		text-decoration: none;
+	}
+	.signin:hover {
+		background: var(--cta-deep);
+		color: #fff;
+	}
+
 	.account {
-		position: relative;
+		position: absolute;
+		right: 1.25rem;
 	}
-	.account-toggle {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: transparent;
-		border: 1px solid transparent;
-		border-radius: 999px;
-		padding: 0.25rem 0.55rem 0.25rem 0.3rem;
-		cursor: pointer;
-		color: var(--navy);
+	.desk-toggle {
 		font: inherit;
-		font-weight: 600;
+		font-variant: small-caps;
+		letter-spacing: 0.06em;
+		font-size: 0.95rem;
+		color: var(--ink);
+		background: var(--paper);
+		border: 1px solid var(--rule);
+		padding: 0.32rem 0.8rem;
+		cursor: pointer;
 	}
-	.account-toggle:hover {
-		background: var(--surface-2);
+	.desk-toggle:hover {
+		background: var(--paper-shade);
 	}
-	.chev {
-		color: var(--muted-2);
-		transition: transform 0.15s ease;
-	}
-	.chev.up {
-		transform: rotate(180deg);
+	.desk-toggle span {
+		color: var(--muted);
 	}
 	.account-menu {
 		position: absolute;
 		right: 0;
-		top: calc(100% + 8px);
+		top: calc(100% + 6px);
 		min-width: 210px;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		box-shadow: var(--shadow-lg);
-		padding: 0.4rem;
+		background: var(--paper);
+		border: 1px solid var(--rule);
+		outline: 1px solid var(--rule);
+		outline-offset: 2px;
+		padding: 0.3rem 0;
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
 		z-index: 200;
 	}
 	.account-menu a,
@@ -264,58 +278,56 @@
 		text-align: left;
 		background: none;
 		border: none;
+		border-bottom: 1px dotted var(--hairline);
 		font: inherit;
-		font-weight: 500;
-		color: var(--navy);
-		padding: 0.55rem 0.7rem;
-		border-radius: 8px;
+		font-size: 0.92rem;
+		color: var(--ink);
+		padding: 0.55rem 0.9rem;
 		text-decoration: none;
 		cursor: pointer;
 	}
 	.account-menu a:hover,
 	.account-menu .signout:hover {
-		background: var(--surface-2);
+		background: var(--paper-shade);
+		color: var(--ink);
 	}
 	.account-menu form {
-		margin: 0.2rem 0 0;
-		padding-top: 0.2rem;
-		border-top: 1px solid var(--border);
+		margin: 0;
 	}
 	.account-menu .signout {
 		color: var(--danger);
+		border-bottom: none;
 	}
 
 	.menu-toggle {
 		display: none;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		padding: 0.5rem;
-		color: var(--navy);
+		background: var(--paper);
+		border: 1px solid var(--rule);
+		font: inherit;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		padding: 0.45rem 0.8rem;
+		color: var(--ink);
 		cursor: pointer;
 	}
 
 	@media (max-width: 860px) {
-		.bar-right {
-			gap: 0.6rem;
+		.bar {
+			justify-content: flex-start;
 		}
 		.menu-toggle {
 			display: inline-flex;
-			order: 1;
-		}
-		.account,
-		.auth-actions {
-			order: 2;
 		}
 		.nav {
 			position: absolute;
 			left: 0;
 			right: 0;
 			top: 100%;
-			background: var(--surface);
-			border-bottom: 1px solid var(--border);
-			box-shadow: var(--shadow);
-			padding: 0.6rem 1.25rem 1rem;
+			background: var(--paper);
+			border-bottom: 1px solid var(--rule);
+			padding: 0.4rem 1.25rem 0.9rem;
 			display: none;
 		}
 		.nav.open {
@@ -324,15 +336,21 @@
 		.nav-links {
 			flex-direction: column;
 			align-items: stretch;
-			gap: 0.2rem;
+			gap: 0;
 		}
 		.nav-links a {
-			padding: 0.6rem 0;
-			border-bottom: 1px solid var(--border);
+			padding: 0.65rem 0;
+			border-bottom: 1px dotted var(--hairline);
+			margin-bottom: 0;
+		}
+		.nav-links a[aria-current='page'] {
+			border-bottom: 1px dotted var(--hairline);
+			color: var(--cta);
 		}
 	}
-	@media (max-width: 520px) {
-		.brand-text {
+	@media (max-width: 700px) {
+		.dl-vol,
+		.dl-free {
 			display: none;
 		}
 	}

@@ -8,6 +8,9 @@
 		(s.summary || `${s.title}, shared in The Writers' Room BLR.`).slice(0, 160)
 	);
 	const image = $derived(s.preview_image || '/og.png');
+	const credit = $derived(
+		s.author?.display_name ? s.author.display_name.toUpperCase() : "THE WRITERS' ROOM"
+	);
 
 	function useFallbackImage(event) {
 		event.currentTarget.src = '/og.png';
@@ -21,9 +24,9 @@
 		<a class="back" href="/writing">← All writing</a>
 
 		<div class="meta-row">
-			<span class="chip chip-accent">{s.content_type_label}</span>
-			{#if s.status === 'featured'}<span class="pill pill-amber">★ Featured</span>{/if}
-			{#if !data.isPublic}<span class="pill pill-gray">{s.status}</span>{/if}
+			<span class="chip">{s.content_type_label}</span>
+			{#if s.status === 'featured'}<span class="stamp st-featured">★ Featured</span>{/if}
+			{#if !data.isPublic}<span class="stamp st-pending">{s.status}</span>{/if}
 			{#if data.isOwner}
 				<a class="edit-link" href={`/writing/${s.id}/edit`}>Edit</a>
 			{/if}
@@ -31,37 +34,41 @@
 
 		<h1>{s.title}</h1>
 
-		<p class="byline muted">
+		<p class="byline story-byline">
 			{#if s.author}
 				By <a href={`/members/${s.author.profile_id}`}>{s.author.display_name}</a> ·
 			{/if}
 			{formatDate(s.created_at)}
 		</p>
 
-		<img
-			class="preview-image"
-			src={image}
-			alt=""
-			width="1200"
-			height="630"
-			loading="eager"
-			decoding="async"
-			onerror={useFallbackImage}
-		/>
+		<figure class="figure">
+			<img
+				class="print-photo"
+				src={image}
+				alt=""
+				width="1200"
+				height="630"
+				loading="eager"
+				decoding="async"
+				onerror={useFallbackImage}
+			/>
+			<figcaption>
+				Cover plate for &ldquo;{s.title}&rdquo;. <b>PLATE: {credit}</b>
+			</figcaption>
+		</figure>
 
 		{#if s.summary}
-			<p class="summary">{s.summary}</p>
+			<p class="summary lead j">{s.summary}</p>
 		{/if}
 
 		{#if s.tags?.length}
-			<ul class="tag-list">
-				{#each s.tags as t (t)}<li class="chip">#{t}</li>{/each}
-			</ul>
+			<p class="hashes">{s.tags.map((t) => `#${t}`).join('  ')}</p>
 		{/if}
 
 		{#if s.external_url}
-			<hr />
+			<div class="dinkus" aria-hidden="true">***</div>
 			<div class="external">
+				<p class="continues">This piece continues off the page.</p>
 				<a
 					class="btn btn-primary"
 					href={s.external_url}
@@ -82,48 +89,57 @@
 	.back {
 		display: inline-block;
 		margin-bottom: 1rem;
-		font-weight: 600;
 		font-size: 0.9rem;
 	}
 	.meta-row {
 		display: flex;
-		gap: 0.5rem;
+		gap: 0.7rem;
 		align-items: center;
-		margin-bottom: 0.6rem;
+		margin-bottom: 0.7rem;
 		flex-wrap: wrap;
 	}
 	.edit-link {
 		margin-left: auto;
-		font-weight: 600;
+		font-weight: 700;
 		font-size: 0.9rem;
 	}
 	h1 {
-		font-size: clamp(2rem, 5vw, 3rem);
-		margin-bottom: 0.5rem;
+		font-size: clamp(1.9rem, 4.8vw, 2.8rem);
+		margin-bottom: 0.35rem;
 	}
-	.byline {
-		font-size: 0.95rem;
-		margin-bottom: 1rem;
+	.story-byline {
+		font-size: 0.98rem;
+		margin: 0 0 1rem;
 		overflow-wrap: anywhere;
+		border-bottom: 1px solid var(--rule);
+		padding-bottom: 0.7rem;
 	}
-	.preview-image {
+	.figure {
+		margin-bottom: 1.2rem;
+	}
+	.figure img {
 		aspect-ratio: 1200 / 630;
 		width: 100%;
 		height: auto;
 		object-fit: cover;
-		border-radius: var(--radius);
-		border: 1px solid var(--border);
-		background: var(--surface-2);
-		margin-bottom: 1.3rem;
+		background: var(--paper-shade);
 	}
 	.summary {
-		font-size: 1.2rem;
-		color: var(--muted);
-		font-style: italic;
+		font-size: 1.18rem;
 		overflow-wrap: anywhere;
 	}
+	.hashes {
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
 	.external {
-		margin-top: 1.5rem;
 		text-align: center;
+		margin-bottom: 0.5rem;
+	}
+	.continues {
+		font-style: italic;
+		color: var(--muted);
+		font-size: 0.9rem;
+		margin-bottom: 0.9rem;
 	}
 </style>

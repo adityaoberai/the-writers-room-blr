@@ -5,15 +5,12 @@
 	const year = new Date().getFullYear();
 </script>
 
-<footer class="site-footer">
+<footer class="colophon">
 	<div class="container">
 		<div class="footer-grid">
 			<div>
-				<a class="brand" href="/">
-					<img src="/logo-mark.png" alt="" width="30" height="30" style="border-radius: 22%" />
-					<span>The Writers' Room <strong>BLR</strong></span>
-				</a>
-				<p class="muted tag">{SITE.tagline}</p>
+				<a class="brand" href="/">The Writers&rsquo; Room BLR</a>
+				<p class="tag">{SITE.tagline}</p>
 			</div>
 			<nav aria-label="Footer: Explore">
 				<h4>Explore</h4>
@@ -27,7 +24,7 @@
 				<h4>Community</h4>
 				<ul>
 					{#if !user}
-						<li><a href="/signin">Join the room</a></li>
+						<li><a class="join" href="/signin">Join the room</a></li>
 					{/if}
 					<li>
 						<a href="https://x.com/blrwritersroom" target="_blank" rel="noopener noreferrer">
@@ -37,19 +34,39 @@
 				</ul>
 			</nav>
 		</div>
+
+		<div class="pressline" aria-hidden="true">
+			<span class="presslbl">Press proof</span>
+			<span class="dot" style="background:#00aeef"></span>
+			<span class="dot" style="background:#ec008c"></span>
+			<span class="dot" style="background:#fff200"></span>
+			<span class="dot" style="background:#1b1812"></span>
+			<span class="reg"></span>
+			<span class="presslbl">C&nbsp;·&nbsp;M&nbsp;·&nbsp;Y&nbsp;·&nbsp;K</span>
+		</div>
+
 		<div class="footer-bottom">
-			<p>© {year} {SITE.name}. Made in Bengaluru.</p>
-			<p class="muted">Sessions are calm, focused and phone-down.</p>
+			<p>© {year} {SITE.name}. Printed nightly in Bengaluru.</p>
+			<p class="note">Sessions are calm, focused and phone-down.</p>
 		</div>
 	</div>
 </footer>
 
 <style>
-	.site-footer {
-		background: var(--navy);
-		color: #cbd5e1;
-		margin-top: 4rem;
-		padding-block: 3rem 1.5rem;
+	.colophon {
+		margin-top: 3.5rem;
+		border-top: 4px solid var(--rule);
+		position: relative;
+		padding-block: 2.2rem 1.4rem;
+		background: var(--paper);
+	}
+	.colophon::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 6px;
+		border-top: 1px solid var(--rule);
 	}
 	.footer-grid {
 		display: grid;
@@ -57,27 +74,30 @@
 		gap: 2rem;
 	}
 	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.55rem;
-		color: #f8fafc;
-		font-family: var(--font-sans);
-		font-size: 1.1rem;
+		font-weight: 700;
+		font-size: 1.4rem;
+		letter-spacing: -0.01em;
+		color: var(--ink);
 		text-decoration: none;
 	}
-	.brand strong {
-		color: var(--accent-2);
+	.brand:hover {
+		color: var(--ink);
 	}
 	.tag {
-		max-width: 30ch;
-		margin-top: 0.8rem;
-		color: #94a3b8;
+		max-width: 32ch;
+		margin: 0.6rem 0 0;
+		font-style: italic;
+		color: var(--muted);
+		font-size: 0.95rem;
 	}
 	h4 {
-		color: #f8fafc;
-		font-family: var(--font-sans);
-		font-size: 0.85rem;
+		font-size: 0.72rem;
+		font-weight: 700;
 		text-transform: uppercase;
+		letter-spacing: 0.16em;
+		color: var(--ink);
+		border-bottom: 1px solid var(--rule);
+		padding-bottom: 0.4rem;
 		margin: 0 0 0.8rem;
 	}
 	ul {
@@ -85,31 +105,89 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: 0.5rem;
+		gap: 0.45rem;
+		font-size: 0.95rem;
 	}
 	a {
-		color: #cbd5e1;
+		color: var(--ink-soft);
 		text-decoration: none;
 	}
 	a:hover {
-		color: #fff;
+		color: var(--cta);
 		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
+	a.join {
+		color: var(--cta);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		font-weight: 700;
+	}
+
+	.pressline {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.9rem;
+		border-top: 1px solid var(--rule);
+		margin-top: 2.1rem;
+		padding-top: 1rem;
+	}
+	.dot {
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		border: 1px solid rgba(27, 24, 18, 0.3);
+	}
+	.reg {
+		width: 18px;
+		height: 18px;
+		border: 1px solid var(--ink);
+		border-radius: 50%;
+		position: relative;
+		margin-inline: 0.3rem;
+	}
+	.reg::before,
+	.reg::after {
+		content: '';
+		position: absolute;
+		background: var(--ink);
+	}
+	.reg::before {
+		left: 50%;
+		top: -3px;
+		bottom: -3px;
+		width: 1px;
+	}
+	.reg::after {
+		top: 50%;
+		left: -3px;
+		right: -3px;
+		height: 1px;
+	}
+	.presslbl {
+		font-size: 0.66rem;
+		text-transform: uppercase;
+		letter-spacing: 0.2em;
+		color: var(--muted);
+	}
+
 	.footer-bottom {
 		display: flex;
 		justify-content: space-between;
 		flex-wrap: wrap;
 		gap: 0.5rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.12);
-		margin-top: 2.5rem;
-		padding-top: 1.5rem;
+		border-top: 1px solid var(--hairline);
+		margin-top: 0.9rem;
+		padding-top: 0.8rem;
 		font-size: 0.85rem;
 	}
 	.footer-bottom p {
 		margin: 0;
 	}
-	.footer-bottom .muted {
-		color: #94a3b8;
+	.footer-bottom .note {
+		color: var(--muted);
+		font-style: italic;
 	}
 	@media (max-width: 720px) {
 		.footer-grid {

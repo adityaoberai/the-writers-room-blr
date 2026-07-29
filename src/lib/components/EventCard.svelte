@@ -1,32 +1,31 @@
 <script>
-	import Icon from './Icon.svelte';
 	import { formatDate, formatTime } from '$lib/format.js';
 	let { event } = $props();
 </script>
 
-<article class="card event">
+<article class="adbox-double ad">
 	{#if event.status === 'ongoing'}
-		<span class="live">Happening now</span>
+		<span class="live-marker"><i></i> Happening now</span>
+	{:else}
+		<span class="no">Advt. — Meetup</span>
 	{/if}
-	<div class="when">
-		<Icon name="calendar" size={20} />
-		<span>{event.start_at ? formatDate(event.start_at) : 'Date to be announced'}</span>
-		{#if event.start_at}
-			<span class="muted">
-				· {formatTime(event.start_at)}{#if event.end_at}–{formatTime(event.end_at)}{/if}
-			</span>
-		{/if}
-	</div>
+	<div class="date">{event.start_at ? formatDate(event.start_at) : 'Date to be announced'}</div>
+	{#if event.start_at}
+		<div class="time">
+			{formatTime(event.start_at)}{#if event.end_at}&nbsp;—&nbsp;{formatTime(event.end_at)}{/if}
+		</div>
+	{/if}
 	<h3>{event.title}</h3>
 	{#if event.location}
-		<p class="loc muted">{event.location}</p>
+		<div class="venue">{event.location}</div>
 	{/if}
+	<hr class="rulehr" />
 	{#if event.description}
-		<p class="desc">{event.description}</p>
+		<p class="line">{event.description}</p>
 	{/if}
 	{#if event.external_url}
 		<a
-			class="btn btn-secondary btn-sm"
+			class="btn btn-primary btn-sm"
 			href={event.external_url}
 			target="_blank"
 			rel="noopener noreferrer"
@@ -37,55 +36,62 @@
 </article>
 
 <style>
-	.event {
+	.ad {
+		padding: 1.1rem 1.2rem;
+		text-align: center;
 		display: flex;
 		flex-direction: column;
-		gap: 0.55rem;
-		height: 100%;
+		gap: 0.3rem;
+		height: calc(100% - 6px);
 	}
-	.live {
-		align-self: flex-start;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.15rem 0.6rem;
-		border-radius: 999px;
-		font-size: 0.72rem;
-		font-weight: 700;
+	.no {
+		font-size: 0.64rem;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: #fff;
-		background: var(--accent-strong);
-	}
-	.live::before {
-		content: '';
-		width: 0.5rem;
-		height: 0.5rem;
-		border-radius: 50%;
-		background: currentColor;
-	}
-	.when {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		color: var(--accent-strong);
-		font-weight: 600;
-		font-size: 0.9rem;
-	}
-	h3 {
-		margin: 0.2rem 0 0;
-		font-size: 1.3rem;
-	}
-	.loc {
-		margin: 0;
-		font-size: 0.9rem;
-	}
-	.desc {
-		margin: 0.2rem 0 0.6rem;
+		letter-spacing: 0.22em;
 		color: var(--muted);
 	}
+	.live-marker {
+		justify-content: center;
+	}
+	.date {
+		font-weight: 700;
+		font-size: 1.02rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		margin-top: 0.2rem;
+	}
+	.time {
+		font-variant: small-caps;
+		letter-spacing: 0.06em;
+		font-size: 0.92rem;
+		color: var(--ink-soft);
+	}
+	h3 {
+		margin: 0.3rem 0 0.1rem;
+		font-size: 1.4rem;
+		line-height: 1.1;
+	}
+	.venue {
+		font-variant: small-caps;
+		letter-spacing: 0.05em;
+		color: var(--ink-soft);
+		font-size: 0.95rem;
+	}
+	.rulehr {
+		border: none;
+		border-top: 1px solid var(--hairline);
+		margin: 0.4rem 1.5rem;
+		width: auto;
+		align-self: stretch;
+	}
+	.line {
+		font-size: 0.86rem;
+		font-style: italic;
+		color: var(--muted);
+		margin: 0 0 0.6rem;
+	}
 	.btn {
-		align-self: flex-start;
 		margin-top: auto;
+		align-self: center;
 	}
 </style>

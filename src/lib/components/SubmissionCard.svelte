@@ -1,163 +1,95 @@
 <script>
 	let { submission, compact = false } = $props();
 	const tags = $derived((submission.tags ?? []).slice(0, 3));
-	const image = $derived(submission.preview_image || '/og.png');
-
-	function useFallbackImage(event) {
-		event.currentTarget.src = '/og.png';
-	}
 </script>
 
-<a class="card card-hover sub" class:compact href={`/writing/${submission.id}`}>
-	<div class="preview" aria-hidden="true">
-		<img src={image} alt="" loading="lazy" decoding="async" onerror={useFallbackImage} />
-	</div>
-	<div class="content">
-		<div class="top">
-			<span class="chip chip-accent"
-				>{submission.content_type_label ?? submission.content_type}</span
-			>
-			{#if submission.status === 'featured'}
-				<span class="pill pill-amber">★ Featured</span>
-			{/if}
-		</div>
-		<h3>{submission.title}</h3>
-		{#if submission.summary}
-			<p class="summary">{submission.summary}</p>
-		{/if}
-		<div class="foot">
-			{#if submission.author}
-				<span class="by muted">by {submission.author.display_name ?? submission.author}</span>
-			{/if}
-			<span class="read">Read →</span>
-		</div>
-		{#if tags.length}
-			<ul class="tag-list">
-				{#each tags as t (t)}
-					<li class="chip">#{t}</li>
-				{/each}
-			</ul>
-		{/if}
-	</div>
+<a class="slot" class:compact href={`/writing/${submission.id}`}>
+	{#if submission.status === 'featured'}
+		<span class="stamp st-featured fstamp">★ Featured</span>
+	{/if}
+	<span class="type">{submission.content_type_label ?? submission.content_type}</span>
+	<h3>{submission.title}</h3>
+	{#if submission.author}
+		<span class="by">by {submission.author.display_name ?? submission.author}</span>
+	{/if}
+	{#if submission.summary && !compact}
+		<p class="sum">{submission.summary}</p>
+	{/if}
+	{#if tags.length && !compact}
+		<span class="hashes">{tags.map((t) => `#${t}`).join('  ')}</span>
+	{/if}
+	<span class="read">Read ↗</span>
 </a>
 
 <style>
-	.sub {
+	/* A classified slot — designed to sit inside a shared-rule .classifieds grid. */
+	.slot {
+		background: var(--paper);
+		padding: 0.85rem 0.95rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.7rem;
+		gap: 0.25rem;
+		position: relative;
 		text-decoration: none;
 		color: inherit;
-		height: 100%;
-	}
-	.sub:hover {
-		text-decoration: none;
-	}
-	.content {
-		display: flex;
-		flex-direction: column;
-		gap: 0.7rem;
-		flex: 1;
 		min-width: 0;
 	}
-	/* Default (banner) preview: full-width image on top, bleeding to the card edges. */
-	.preview {
-		aspect-ratio: 1200 / 630;
-		margin: -1.4rem -1.4rem 0;
-		overflow: hidden;
-		border-radius: var(--radius) var(--radius) 0 0;
-		border-bottom: 1px solid var(--border);
-		background: var(--surface-2);
+	.slot:hover {
+		background: var(--paper-shade);
+		color: inherit;
 	}
-	.preview img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform 0.2s ease;
+	.fstamp {
+		position: absolute;
+		top: 0.55rem;
+		right: 0.55rem;
+		font-size: 0.6rem;
+		padding: 0.14rem 0.45rem;
 	}
-	.sub:hover .preview img {
-		transform: scale(1.03);
-	}
-	.top {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
+	.type {
+		font-size: 0.62rem;
+		text-transform: uppercase;
+		letter-spacing: 0.2em;
+		color: var(--muted);
 	}
 	h3 {
 		margin: 0;
-		font-size: 1.25rem;
+		font-size: 1.12rem;
+		line-height: 1.18;
 		overflow-wrap: anywhere;
-	}
-	.summary {
-		margin: 0;
-		color: var(--muted);
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-	.foot {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
-		margin-top: auto;
-	}
-	.read {
-		color: var(--accent-strong);
-		font-weight: 600;
-		font-size: 0.9rem;
-		flex-shrink: 0;
+		padding-right: 4.5rem;
 	}
 	.by {
-		font-size: 0.9rem;
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		font-variant: small-caps;
+		letter-spacing: 0.04em;
+		font-size: 0.88rem;
+		color: var(--ink-soft);
 	}
-
-	/* Compact: small horizontal card with the image alongside the title. */
-	.sub.compact {
-		flex-direction: row;
-		align-items: stretch;
-		gap: 0;
-		padding: 0;
-		overflow: hidden;
-		height: 150px;
-	}
-	.sub.compact .preview {
-		aspect-ratio: auto;
-		width: 116px;
-		flex-shrink: 0;
+	.sum {
+		font-size: 0.84rem;
+		font-style: italic;
+		color: var(--muted);
 		margin: 0;
-		border-radius: 0;
-		border-bottom: none;
-		border-right: 1px solid var(--border);
-	}
-	.sub.compact .content {
-		padding: 0.85rem 1rem;
-		gap: 0.35rem;
-		overflow: hidden;
-	}
-	.sub.compact h3 {
-		font-size: 1.05rem;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
-	/* Keep compact cards tight: drop the summary and tag row. */
-	.sub.compact .summary,
-	.sub.compact .tag-list {
-		display: none;
+	.hashes {
+		font-size: 0.78rem;
+		color: var(--muted);
 	}
-	@media (max-width: 400px) {
-		.sub.compact .preview {
-			width: 92px;
-		}
+	.read {
+		margin-top: auto;
+		padding-top: 0.4rem;
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: var(--cta);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	.slot.compact .sum,
+	.slot.compact .hashes {
+		display: none;
 	}
 </style>

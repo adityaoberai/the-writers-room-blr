@@ -1,73 +1,78 @@
 <script>
-	import Avatar from './Avatar.svelte';
 	let { member } = $props();
 	const genres = $derived((member.genres ?? []).slice(0, 3));
 	const extra = $derived(Math.max(0, (member.genres ?? []).length - genres.length));
 </script>
 
-<a class="card card-hover member" href={`/members/${member.profile_id}`}>
-	<div class="head">
-		<Avatar src={member.photo_url} name={member.display_name} size={56} />
-		<div class="meta">
-			<h3>{member.display_name}</h3>
-			<p class="loc muted">{member.location || 'Bengaluru'}</p>
-		</div>
-		{#if member.is_featured}
-			<span class="pill pill-amber">★ Featured</span>
-		{/if}
-	</div>
-	{#if member.bio}
-		<p class="bio">{member.bio}</p>
-	{/if}
+<a class="person" href={`/members/${member.profile_id}`}>
+	<span class="line1">
+		<span class="nm">{member.display_name}</span>
+		{#if member.is_featured}<span class="star" title="Featured member">★</span>{/if}
+		<span class="leader"></span>
+		<span class="loc">{member.location || 'Bengaluru'}</span>
+	</span>
 	{#if genres.length}
-		<ul class="tag-list">
-			{#each genres as g (g)}
-				<li class="chip chip-accent">{g}</li>
-			{/each}
-			{#if extra}
-				<li class="chip">+{extra}</li>
-			{/if}
-		</ul>
+		<span class="line2">{genres.join(' · ')}{extra ? ` · +${extra}` : ''}</span>
+	{/if}
+	{#if member.bio}
+		<span class="bio">{member.bio}</span>
 	{/if}
 </a>
 
 <style>
-	.member {
-		display: flex;
-		flex-direction: column;
-		gap: 0.85rem;
-		text-decoration: none;
+	.person {
+		break-inside: avoid;
+		display: block;
 		color: inherit;
-		height: 100%;
-	}
-	.member:hover {
 		text-decoration: none;
+		border-bottom: 1px dotted var(--hairline);
+		padding: 0.6rem 0.1rem 0.65rem;
 	}
-	.head {
+	.person:hover {
+		color: inherit;
+	}
+	.person:hover .nm {
+		color: var(--cta);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	.line1 {
 		display: flex;
-		align-items: center;
-		gap: 0.85rem;
+		align-items: baseline;
+		gap: 0.5rem;
 	}
-	.meta {
-		flex: 1;
-		min-width: 0;
+	.nm {
+		font-weight: 700;
+		font-size: 1.05rem;
 		overflow-wrap: anywhere;
 	}
-	.meta h3 {
-		margin: 0;
-		font-size: 1.15rem;
+	.star {
+		font-size: 0.8rem;
 	}
 	.loc {
-		margin: 0.1rem 0 0;
-		font-size: 0.85rem;
+		font-variant: small-caps;
+		letter-spacing: 0.04em;
+		color: var(--muted);
+		font-size: 0.9rem;
+		white-space: nowrap;
+	}
+	.line2 {
+		display: block;
+		margin-top: 0.15rem;
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--ink-soft);
 	}
 	.bio {
-		margin: 0;
-		color: var(--muted);
 		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+		font-style: italic;
+		color: var(--muted);
+		font-size: 0.86rem;
+		margin-top: 0.12rem;
 	}
 </style>
