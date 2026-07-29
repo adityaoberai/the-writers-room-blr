@@ -120,7 +120,7 @@
 									onclick={() => go(i)}
 									aria-label={`Show photo ${i + 1} of ${count}`}
 								>
-									<img class="print-photo" src={order[i]} alt="" loading="lazy" use:develop />
+									<img src={order[i]} alt="" loading="lazy" />
 								</button>
 							{/each}
 						</div>
@@ -273,6 +273,9 @@
 		height: 100%;
 		object-fit: cover;
 		display: block;
+		/* The contact sheet always prints black and white — only the main
+		   plate develops into color. */
+		filter: grayscale(1) contrast(1.04);
 	}
 	@media (max-width: 800px) {
 		.spread {
