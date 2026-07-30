@@ -1,0 +1,80 @@
+name: Bug report
+description: Report something on the website that is broken or behaving unexpectedly
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve The Writers' Room BLR website! Please fill in as much detail as you can.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What went wrong?
+      description: A clear and concise description of the bug.
+      placeholder: Submitting the writing form shows an error even though all fields are filled.
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Where did it happen?
+      description: The page URL or route where you saw the problem.
+      placeholder: /submit
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we see the bug ourselves?
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See the error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area of the site
+      description: Which part of the site is affected?
+      options:
+        - Homepage
+        - Sign in / onboarding
+        - Profile (me)
+        - Member directory / member profiles
+        - Writing / submissions
+        - Events
+        - Rewards & badges
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      description: Browser, version and device you were using.
+      placeholder: Chrome 130 on Android / Safari 18 on macOS
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or additional context
+      description: Screenshots, console errors or anything else that helps.
+    validations:
+      required: false
