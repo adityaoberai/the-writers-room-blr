@@ -1,7 +1,7 @@
 /**
  * Editable site content stored as key/value rows in `site_settings`. Admins edit
  * these from the dashboard; public pages read them for hero copy, the Luma embed
- * and JSON blocks like benefits and testimonials.
+ * and JSON blocks like benefits.
  */
 import { createRow, listAllRows, updateRow } from './data.js';
 import { TABLES } from '$lib/constants.js';

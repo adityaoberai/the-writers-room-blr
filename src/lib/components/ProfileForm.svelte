@@ -241,17 +241,13 @@
 	.genre-picker {
 		display: grid;
 		gap: 0.6rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
+		background: var(--paper);
+		border: 1px solid var(--rule);
 		padding: 0.7rem;
-		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
+		transition: border-color 0.15s ease;
 	}
 	.genre-picker:focus-within {
-		border-color: var(--accent);
-		box-shadow: 0 0 0 3px rgba(47, 111, 176, 0.2);
+		border-color: var(--cta);
 	}
 	.selected-genres {
 		display: flex;
@@ -262,12 +258,13 @@
 		padding: 0;
 	}
 	.selected-genre {
-		background: var(--accent-strong);
-		border-color: var(--accent-strong);
-		color: #fff;
+		background: var(--ink);
+		border-color: var(--ink);
+		color: var(--paper);
 	}
 	.selected-genre:hover {
-		background: #173a63;
+		background: var(--ink-soft);
+		color: var(--paper);
 	}
 	.remove-mark {
 		font-weight: 700;
@@ -283,6 +280,8 @@
 	}
 	.genre-picker input:focus {
 		box-shadow: none;
+		border: 0;
+		margin-bottom: 0;
 	}
 	.suggestions {
 		display: flex;
@@ -290,33 +289,43 @@
 		gap: 0.4rem;
 		margin-top: 0.5rem;
 	}
+	.genre-suggestion {
+		border-style: dashed;
+		color: var(--muted);
+	}
 	.genre-suggestion.is-active {
-		background: #eaf1f9;
-		color: var(--accent-strong);
-		border-color: var(--accent-2);
+		background: var(--paper-shade);
+		color: var(--ink);
+		border-style: solid;
+		border-color: var(--rule);
 	}
 	.links {
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
+		border: 1px solid var(--rule);
 		padding: 1rem;
 	}
 	.links legend {
-		font-weight: 600;
-		color: var(--navy);
+		font-weight: 700;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		color: var(--ink);
 		padding: 0 0.4rem;
 	}
 	.link-row {
 		display: grid;
 		grid-template-columns: 1fr 1.4fr;
-		gap: 0.5rem;
+		gap: 0.5rem 1rem;
 		margin-bottom: 0.5rem;
 	}
 	.check {
 		display: flex;
 		align-items: flex-start;
 		gap: 0.6rem;
-		font-weight: 500;
 		cursor: pointer;
+		text-transform: none;
+		letter-spacing: 0;
+		font-weight: 400;
+		font-size: 0.95rem;
 	}
 	.check input {
 		width: auto;

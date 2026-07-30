@@ -1,5 +1,5 @@
 <script>
-	import { reveal } from '$lib/actions/reveal.js';
+	import { develop } from '$lib/actions/develop.js';
 
 	// Photo URLs are resolved server-side from static/events-gallery (see
 	// $lib/server/gallery.js). The section hides itself when there are none.
@@ -11,6 +11,14 @@
 
 	const order = $derived(shuffledOrder ?? photos);
 	const count = $derived(order.length);
+
+	// Up to two other plates shown as the contact sheet — they share the main
+	// plate's height, so two keeps them at a natural crop.
+	const sheet = $derived(
+		count > 1
+			? Array.from({ length: Math.min(2, count - 1) }, (_, k) => (index + k + 1) % count)
+			: []
+	);
 
 	// Shuffle on the client so each visit shows photos in a different order.
 	// SSR / no-JS keeps the server order, so there is no hydration mismatch.
@@ -46,89 +54,90 @@
 </script>
 
 {#if count}
-	<section class="section moments reveal" use:reveal aria-label="Moments from past meetups">
-		<div class="container">
-			<p class="eyebrow">From past meetups</p>
-			<h2>Moments from the room</h2>
-
-			<div
-				class="carousel"
-				role="group"
-				aria-roledescription="carousel"
-				aria-label="Past meetup photos"
-				onmouseenter={() => (paused = true)}
-				onmouseleave={() => (paused = false)}
-				onfocusin={() => (paused = true)}
-				onfocusout={() => (paused = false)}
-			>
-				<div class="frame">
-					{#each order as src, i (src)}
-						<img
-							class="slide"
-							class:active={i === index}
-							{src}
-							alt={`Past Writers' Room BLR meetup, photo ${i + 1} of ${count}`}
-							loading={i === 0 ? 'eager' : 'lazy'}
-							aria-hidden={i === index ? undefined : 'true'}
-						/>
-					{/each}
-
-					{#if count > 1}
+	<div
+		class="spread"
+		role="group"
+		aria-roledescription="carousel"
+		aria-label="Past meetup photos"
+		onmouseenter={() => (paused = true)}
+		onmouseleave={() => (paused = false)}
+		onfocusin={() => (paused = true)}
+		onfocusout={() => (paused = false)}
+	>
+		<figure class="plate-fig">
+			<div class="plate" use:develop>
+				{#each order as src, i (src)}
+					<img
+						class="slide print-photo"
+						class:active={i === index}
+						{src}
+						alt={`Past Writers' Room BLR meetup, photo ${i + 1} of ${count}`}
+						loading={i === 0 ? 'eager' : 'lazy'}
+						aria-hidden={i === index ? undefined : 'true'}
+					/>
+				{/each}
+			</div>
+			<figcaption class="capbar">
+				<span class="cap">
+					<b>PHOTO: THE WRITERS&rsquo; ROOM</b>
+				</span>
+				{#if count > 1}
+					<span class="plateno">Plate {index + 1} of {count}</span>
+					<span class="arrows">
 						<button
-							class="nav prev"
+							class="arr"
 							type="button"
 							aria-label="Previous photo"
-							onclick={() => go(index - 1)}
+							onclick={() => go(index - 1)}>‹</button
 						>
-							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-								><path
-									d="M15 6l-6 6 6 6"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								/></svg
-							>
-						</button>
+						<button class="arr" type="button" aria-label="Next photo" onclick={() => go(index + 1)}
+							>›</button
+						>
+					</span>
+				{/if}
+			</figcaption>
+		</figure>
+
+		{#if sheet.length}
+			<!-- The contact sheet borrows its height from the plate: the wrapper adds
+					     no height of its own, and the thumbs split whatever the plate sets. -->
+			<div class="contactwrap">
+				<div class="contact">
+					{#each sheet as i (order[i])}
 						<button
-							class="nav next"
+							class="thumb"
 							type="button"
-							aria-label="Next photo"
-							onclick={() => go(index + 1)}
+							onclick={() => go(i)}
+							aria-label={`Show photo ${i + 1} of ${count}`}
 						>
-							<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-								><path
-									d="M9 6l6 6-6 6"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								/></svg
-							>
+							<img src={order[i]} alt="" loading="lazy" />
 						</button>
-					{/if}
+					{/each}
 				</div>
 			</div>
-		</div>
-	</section>
+		{/if}
+	</div>
 {/if}
 
 <style>
-	.moments {
-		background: var(--surface-2);
-		border-block: 1px solid var(--border);
+	.spread {
+		display: grid;
+		grid-template-columns: 2.3fr 1fr;
+		gap: 0 1.4rem;
 	}
-	.carousel {
-		margin-top: 1.5rem;
+	/* The figure dissolves into the grid so the plate (row 1) and the caption
+	   bar (row 2) size their rows independently — the contact sheet then
+	   aligns to the plate alone. */
+	.plate-fig {
+		display: contents;
 	}
-	.frame {
+	.plate {
+		grid-area: 1 / 1;
 		position: relative;
 		aspect-ratio: 16 / 9;
-		border-radius: var(--radius-lg);
 		overflow: hidden;
-		border: 1px solid var(--border);
-		box-shadow: var(--shadow);
-		background: var(--navy);
+		border: 1px solid var(--rule);
+		background: var(--paper-shade);
 	}
 	.slide {
 		position: absolute;
@@ -137,35 +146,116 @@
 		height: 100%;
 		object-fit: cover;
 		opacity: 0;
-		transition: opacity 0.8s ease;
+		transition:
+			opacity 0.8s ease,
+			filter 0.6s ease;
 	}
 	.slide.active {
 		opacity: 1;
 	}
-	.nav {
-		position: absolute;
-		top: 50%;
-		transform: translateY(-50%);
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 44px;
-		height: 44px;
-		border-radius: 999px;
-		border: none;
-		background: rgba(255, 255, 255, 0.86);
-		color: var(--navy);
+	/* Each plate develops into color as it takes the frame. (.developed is
+	   added at runtime by the develop action, so it needs :global to survive
+	   the compiler's unused-selector pruning.) */
+	.plate:global(.developed) .slide.active {
+		filter: none;
+	}
+	.capbar {
+		grid-area: 2 / 1;
+		display: flex;
+		align-items: flex-end;
+		gap: 1rem;
+		border-top: 1px solid var(--rule);
+		margin-top: 0.45rem;
+		padding-top: 0.35rem;
+	}
+	.capbar .cap {
+		font-size: 0.82rem;
+		font-style: italic;
+		color: var(--muted);
+		flex: 1;
+	}
+	.capbar .cap b {
+		font-style: normal;
+		text-transform: uppercase;
+		font-size: 0.72rem;
+		letter-spacing: 0.1em;
+	}
+	.plateno {
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		color: var(--muted);
+		white-space: nowrap;
+	}
+	.arrows {
+		display: flex;
+		gap: 0.35rem;
+	}
+	.arr {
+		width: 26px;
+		height: 26px;
+		border: 1px solid var(--rule);
+		background: var(--paper);
+		display: grid;
+		place-items: center;
+		font-family: var(--serif);
+		font-size: 0.95rem;
+		line-height: 1;
+		color: var(--ink);
 		cursor: pointer;
-		box-shadow: var(--shadow-sm);
+		padding: 0;
 	}
-	.nav:hover {
-		background: #fff;
+	.arr:hover {
+		background: var(--ink);
+		color: var(--paper);
 	}
-	.prev {
-		left: 0.8rem;
+	.contactwrap {
+		grid-area: 1 / 2;
+		position: relative;
+		min-width: 0;
 	}
-	.next {
-		right: 0.8rem;
+	.contact {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		grid-auto-rows: 1fr;
+		gap: 0.7rem;
+		min-height: 0;
+	}
+	.thumb {
+		border: 1px solid var(--hairline);
+		background: var(--paper);
+		padding: 0;
+		cursor: pointer;
+		display: block;
+		min-height: 0;
+		overflow: hidden;
+	}
+	.thumb:hover {
+		border-color: var(--rule);
+	}
+	.thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		/* The contact sheet always prints black and white — only the main
+		   plate develops into color. */
+		filter: grayscale(1) contrast(1.04);
+	}
+	@media (max-width: 800px) {
+		.spread {
+			grid-template-columns: 1fr;
+		}
+		.plate,
+		.capbar {
+			grid-area: auto;
+		}
+		/* The arrows drive the carousel on small screens; the contact sheet
+		   would only push the page down. */
+		.contactwrap {
+			display: none;
+		}
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.slide {

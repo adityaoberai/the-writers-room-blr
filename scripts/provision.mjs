@@ -451,27 +451,15 @@ async function seedData() {
 		await seedRow(TABLES.badges, `badge_${id}`, { ...data, is_active: true });
 	}
 
-	const testimonials = JSON.stringify([
-		{
-			quote: 'I finally have a standing time to write, and people who get it.',
-			name: 'Ananya R.',
-			role: 'Essayist'
-		},
-		{
-			quote: 'Two hours of focused, phone-down writing every week changed my output completely.',
-			name: 'Karthik V.',
-			role: 'Newsletter writer'
-		},
-		{
-			quote: 'The feedback is gentle but honest. It is the most useful room in my week.',
-			name: 'Meera S.',
-			role: 'Long-form nonfiction'
-		}
-	]);
 	const benefits = JSON.stringify([
 		{
 			title: 'Focused writing sessions',
 			body: 'Phones down, timers on. Three hours of distraction-free writing with fellow writers.',
+			icon: 'pen'
+		},
+		{
+			title: 'Work first, network second',
+			body: 'The session is for quiet writing on your own; introductions wait for the show-and-tell.',
 			icon: 'pen'
 		},
 		{
@@ -483,11 +471,6 @@ async function seedData() {
 			title: 'Share your work',
 			body: 'Publish blogs, essays and excerpts to a directory of people who actually read.',
 			icon: 'book'
-		},
-		{
-			title: 'Earn recognition',
-			body: 'Points, badges and milestones for showing up and contributing.',
-			icon: 'star'
 		}
 	]);
 
@@ -496,30 +479,15 @@ async function seedData() {
 		{
 			key: 'hero_subtitle',
 			value:
-				'A focused writing community to create, connect, and grow together, one quiet, phones-down session at a time.'
+				'A writing community to create, connect, and grow together, one quiet, phones-down session at a time.'
 		},
 		{
 			key: 'mission',
 			value:
-				'The Writers’ Room is a calm, focused space for writers in Bengaluru. We meet to write together, share work, and build the kind of steady community that makes the writing life less lonely.'
-		},
-		{
-			key: 'meetup_format',
-			value:
-				'The priority of this meetup is to create space for quiet co-working, so every accepted attendee must carry their writing tools. Introductions only happen during the show-and-tell.'
-		},
-		{
-			key: 'meetup_note',
-			value:
-				"Please only apply if you're happy to spend the session quietly writing on your own. We keep introductions to the show-and-tell, so the focus stays on the work."
-		},
-		{
-			key: 'readers_room',
-			value: 'Same calm, phones-down format, but you bring a book and read instead of write.'
+				'The Writers’ Room BLR is a calm, focused space for writers in Bengaluru. We meet for quiet co-working, each of us carrying our own writing tools, to write together, share work, and build the kind of steady community that makes the writing life less lonely.'
 		},
 		{ key: 'luma_url', value: 'https://luma.com/the-writers-room' },
-		{ key: 'benefits', value: benefits },
-		{ key: 'testimonials', value: testimonials }
+		{ key: 'benefits', value: benefits }
 	];
 	for (const s of settings) {
 		await seedRow(TABLES.siteSettings, `setting_${s.key}`, s);

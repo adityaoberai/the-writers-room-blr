@@ -61,14 +61,15 @@
 	.file-btn {
 		display: inline-flex;
 		align-items: center;
-		font-weight: 500;
-		font-size: 0.9rem;
-		border: 1px dashed var(--border);
-		border-radius: var(--radius-sm);
+		font-weight: 400;
+		font-size: 0.88rem;
+		text-transform: none;
+		letter-spacing: 0;
+		border: 1px dashed var(--rule);
 		padding: 0.5rem 0.8rem;
 		cursor: pointer;
 		color: var(--muted);
-		background: var(--surface-2);
+		background: var(--paper);
 		max-width: 16rem;
 		overflow: hidden;
 		white-space: nowrap;

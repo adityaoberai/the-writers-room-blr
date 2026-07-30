@@ -26,33 +26,52 @@
 
 		<FormFeedback {form} />
 
-		<div class="block">
-			<h2>Profile photo</h2>
-			<PhotoUpload photoUrl={data.profile.photo_url} name={data.profile.display_name} />
-		</div>
-
-		<div class="block">
-			<h2>About you</h2>
-			<ProfileForm profile={data.profile} action="?/save" submitLabel="Save & continue" />
+		<div class="paperform">
+			<div class="pf-bar">
+				<span>Form 1 - New member record</span><span>The Writers&rsquo; Room BLR</span>
+			</div>
+			<div class="pf-inner">
+				<div class="block">
+					<h2>Profile photo</h2>
+					<PhotoUpload photoUrl={data.profile.photo_url} name={data.profile.display_name} />
+				</div>
+				<div class="block">
+					<h2>About you</h2>
+					<ProfileForm profile={data.profile} action="?/save" submitLabel="Save & continue" />
+				</div>
+			</div>
 		</div>
 	</div>
 </section>
 
 <style>
 	.narrow {
-		max-width: 720px;
+		max-width: 760px;
 	}
 	.page-head {
-		margin-bottom: 1.5rem;
+		margin-bottom: 1.4rem;
 	}
 	.page-head h1 {
-		margin-bottom: 0.4rem;
+		margin-bottom: 0.3rem;
 	}
 	.block {
-		margin-bottom: 2rem;
+		margin-bottom: 1.6rem;
+	}
+	.block:last-child {
+		margin-bottom: 0;
 	}
 	.block h2 {
-		font-size: 1.3rem;
-		margin-bottom: 0.8rem;
+		font-size: 0.85rem;
+		text-transform: uppercase;
+		letter-spacing: 0.2em;
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		margin-bottom: 0.9rem;
+	}
+	.block h2::after {
+		content: '';
+		flex: 1;
+		border-top: 3px double var(--rule);
 	}
 </style>

@@ -1,4 +1,6 @@
 <script>
+	import { develop } from '$lib/actions/develop.js';
+
 	let { src = '', name = '', size = 48 } = $props();
 
 	const initials = $derived(
@@ -20,6 +22,7 @@
 		height={size}
 		style="width:{size}px;height:{size}px"
 		loading="lazy"
+		use:develop
 	/>
 {:else}
 	<span

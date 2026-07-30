@@ -10,7 +10,7 @@ export async function load() {
 	const [ongoing, upcoming, past, settings] = await Promise.all([
 		listOngoingEvents(12),
 		listUpcomingEvents(12),
-		listPastEvents(24),
+		listPastEvents(Infinity),
 		getAllSettings()
 	]);
 	return {

@@ -3,6 +3,7 @@ import { getProfileById, serializeProfile, getAuthorsForUserIds } from './profil
 import { listPublicSubmissionsByUser, serializeSubmission } from './submissions.js';
 import { withSubmissionPreviewImages } from './link-preview.js';
 import { getPublicRewards } from './rewards.js';
+import { getAppUser } from './users.js';
 
 /**
  * Returns the public view of a member, or `{ found:false }` / `{ visible:false }`.
@@ -19,9 +20,10 @@ export async function getMemberPublicData(profileId, { viewerId = null, isAdmin 
 	if (!visible)
 		return { found: true, visible: false, profile: { display_name: profile.display_name } };
 
-	const [subs, rewards] = await Promise.all([
+	const [subs, rewards, appUser] = await Promise.all([
 		listPublicSubmissionsByUser(profile.user_id),
-		getPublicRewards(profile.user_id)
+		getPublicRewards(profile.user_id),
+		getAppUser(profile.user_id)
 	]);
 	const authors = await getAuthorsForUserIds([profile.user_id]);
 	const submissions = await withSubmissionPreviewImages(
@@ -32,7 +34,11 @@ export async function getMemberPublicData(profileId, { viewerId = null, isAdmin 
 		found: true,
 		visible: true,
 		listed: surfaced,
-		profile: serializeProfile(profile),
+		// Admins run the room, so they read as organizers on the public record.
+		profile: {
+			...serializeProfile(profile),
+			role: appUser?.role === 'admin' ? 'Organizer' : 'Member'
+		},
 		submissions,
 		badges: rewards.badges,
 		points: rewards.total_points

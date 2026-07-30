@@ -2,9 +2,8 @@ import { env } from '$env/dynamic/public';
 
 export const SITE = {
 	name: "The Writers' Room BLR",
-	short: "Writers' Room BLR",
-	tagline:
-		'A focused writing community for Bengaluru writers to create, connect, and grow together.',
+	short: "Writers' Room",
+	tagline: 'A writing community for Bengaluru writers to create, connect, and grow together.',
 	locale: 'en_IN'
 };
 

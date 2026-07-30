@@ -1,35 +1,53 @@
 /* ============================================================
-   The Writers' Room BLR design system
-   Warm, editorial, calm. A single clean sans typeface (Inter)
-   used throughout. WCAG-AA contrast throughout.
+   The Writers' Room BLR — newspaper edition
+   One sheet of textured newsprint, one typeface (Times New
+   Roman stack), ink rules instead of cards and shadows, and
+   brilliant blue reserved for actions. WCAG-AA throughout.
+
+   Legacy token names (--navy, --accent, --surface, --radius…)
+   are kept and remapped so older scoped styles print in the
+   new palette automatically.
    ============================================================ */
 
 :root {
-	--navy: #0f172a;
-	--navy-soft: #1e293b;
-	--accent: #2f6fb0; /* steel blue, from the logo */
-	--accent-strong: #1f4e82; /* deep steel blue, AA text-on-fill */
-	--accent-2: #9dbbd8; /* light steel */
-	--highlight: #f59e0b;
-	--bg: #f6f3ec; /* warm ivory paper, from the logo tray */
-	--surface: #ffffff;
-	--surface-2: #efece3; /* warm sand */
-	--border: #e6e0d3; /* warm border */
-	--text: #0f172a;
-	--muted: #475569;
-	--muted-2: #64748b;
-	--danger: #b91c1c;
-	--success: #15803d;
+	/* Newspaper tokens */
+	--ink: #1b1812;
+	--ink-soft: #3a352c;
+	--paper: #f9f7f0;
+	--paper-shade: #efebdf;
+	--hairline: #c9c2b0;
+	--rule: #1b1812;
+	--cta: #001f9c; /* dark brilliant blue — the one bright color */
+	--cta-deep: #001670;
+	--ledger: #1e5c34;
 
-	--font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+	/* Legacy names, remapped */
+	--navy: var(--ink);
+	--navy-soft: var(--ink-soft);
+	--accent: var(--cta);
+	--accent-strong: var(--cta);
+	--accent-2: #b9c1e2;
+	--highlight: #8a6d1a;
+	--bg: var(--paper);
+	--surface: var(--paper);
+	--surface-2: var(--paper-shade);
+	--border: var(--hairline);
+	--text: var(--ink);
+	--muted: #5b554a;
+	--muted-2: #736c5e;
+	--danger: #8f1d12;
+	--success: var(--ledger);
 
-	--radius: 14px;
-	--radius-sm: 10px;
-	--radius-lg: 22px;
-	--shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-	--shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
-	--shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.14);
-	--maxw: 1140px;
+	--serif: 'Times New Roman', Times, 'Liberation Serif', Georgia, serif;
+	--font-sans: var(--serif); /* single-family rule: everything sets in Times */
+
+	--radius: 0px;
+	--radius-sm: 0px;
+	--radius-lg: 0px;
+	--shadow-sm: none;
+	--shadow: none;
+	--shadow-lg: none;
+	--maxw: 1080px;
 	--space: 1rem;
 }
 
@@ -46,46 +64,55 @@ html {
 
 body {
 	margin: 0;
-	font-family: var(--font-sans);
-	color: var(--text);
-	background: var(--bg);
-	line-height: 1.6;
+	font-family: var(--serif);
+	color: var(--ink);
+	background: var(--paper);
+	line-height: 1.55;
 	font-size: 1.0625rem;
-	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
-	/* Sticky-footer layout: every page fills at least the viewport. */
 	min-height: 100vh;
 	min-height: 100svh;
 	display: flex;
 	flex-direction: column;
 }
 
-/* The skip-link, header and footer size to content; main grows to fill, so the
-   footer sits at the bottom even on short pages. */
+/* The whole site prints under a 6% newsprint grain. */
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 9999;
+	mix-blend-mode: multiply;
+	opacity: 0.16;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
+}
+
 main {
 	flex: 1 0 auto;
 }
 
+/* ---------- Type ---------- */
 h1,
 h2,
 h3,
 h4 {
-	font-family: var(--font-sans);
-	line-height: 1.15;
-	color: var(--navy);
+	font-family: var(--serif);
+	line-height: 1.08;
+	color: var(--ink);
 	margin: 0 0 0.5em;
 	font-weight: 700;
 	letter-spacing: -0.01em;
 }
 
 h1 {
-	font-size: clamp(2.2rem, 5vw, 3.4rem);
+	font-size: clamp(2rem, 4.5vw, 2.9rem);
 }
 h2 {
-	font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+	font-size: clamp(1.5rem, 3vw, 2rem);
 }
 h3 {
-	font-size: 1.3rem;
+	font-size: 1.25rem;
 }
 
 p {
@@ -93,11 +120,12 @@ p {
 }
 
 a {
-	color: var(--accent-strong);
-	text-decoration: none;
+	color: var(--cta);
+	text-decoration: underline;
+	text-underline-offset: 2px;
 }
 a:hover {
-	text-decoration: underline;
+	color: var(--cta-deep);
 }
 
 img {
@@ -113,7 +141,7 @@ ol {
 
 hr {
 	border: none;
-	border-top: 1px solid var(--border);
+	border-top: 1px solid var(--rule);
 	margin: 2rem 0;
 }
 
@@ -121,11 +149,66 @@ small {
 	font-size: 0.85rem;
 }
 
+/* Kicker (kept under its old .eyebrow name) */
+.eyebrow,
+.kicker {
+	text-transform: uppercase;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	color: var(--ink);
+	margin: 0 0 0.5rem;
+}
+
+/* Deck (kept under its old .lead name) */
+.lead,
+.deck {
+	font-size: 1.15rem;
+	font-style: italic;
+	color: var(--muted);
+	line-height: 1.45;
+}
+
+.byline {
+	font-variant: small-caps;
+	letter-spacing: 0.06em;
+	color: var(--ink-soft);
+}
+
+.muted {
+	color: var(--muted);
+}
+
+.center {
+	text-align: center;
+}
+
+.j,
+.prose {
+	text-align: justify;
+	hyphens: auto;
+	-webkit-hyphens: auto;
+}
+.prose {
+	color: var(--ink);
+	line-height: 1.65;
+}
+.prose p {
+	margin: 0 0 1rem;
+}
+
+.dropcap::first-letter {
+	font-weight: 700;
+	float: left;
+	font-size: 3.05em;
+	line-height: 0.83;
+	padding: 0.04em 0.1em 0 0;
+}
+
 /* ---------- Focus & a11y ---------- */
 :focus-visible {
-	outline: 3px solid var(--accent);
+	outline: 3px solid var(--cta);
 	outline-offset: 2px;
-	border-radius: 4px;
 }
 
 .visually-hidden {
@@ -143,12 +226,15 @@ small {
 .skip-link {
 	position: absolute;
 	left: 1rem;
-	top: -3rem;
-	background: var(--navy);
-	color: #fff;
+	top: -3.5rem;
+	background: var(--ink);
+	color: var(--paper);
 	padding: 0.6rem 1rem;
-	border-radius: 8px;
-	z-index: 200;
+	z-index: 10000;
+	text-decoration: none;
+	text-transform: uppercase;
+	font-size: 0.78rem;
+	letter-spacing: 0.1em;
 	transition: top 0.15s ease;
 }
 .skip-link:focus {
@@ -164,7 +250,7 @@ small {
 }
 
 .section {
-	padding-block: clamp(2.5rem, 6vw, 5rem);
+	padding-block: clamp(2rem, 4.5vw, 3.25rem);
 }
 
 .stack > * + * {
@@ -173,7 +259,7 @@ small {
 
 .grid {
 	display: grid;
-	gap: 1.25rem;
+	gap: 1.1rem;
 }
 .grid-2 {
 	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -185,47 +271,175 @@ small {
 	grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
-.eyebrow {
+/* Folio — page furniture */
+.folio {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	font-size: 0.68rem;
 	text-transform: uppercase;
-	font-size: 0.78rem;
-	font-weight: 600;
-	color: var(--accent-strong);
-	margin: 0 0 0.6rem;
-}
-
-.lead {
-	font-size: 1.2rem;
+	letter-spacing: 0.14em;
 	color: var(--muted);
+	border-block: 1px solid var(--rule);
+	padding: 0.28rem 0;
 }
 
-.muted {
-	color: var(--muted);
+/* Section heads — title seated in the rule */
+.sechead {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin: 0 0 1.1rem;
+}
+.sechead > h2 {
+	margin: 0;
+	white-space: nowrap;
+}
+.sechead::before,
+.sechead::after {
+	content: '';
+	flex: 1;
+	border-top: 3px double var(--rule);
+}
+/* Narrow paper: long titles must wrap and stay centered, or they swallow
+   the flanking rules and sit off-balance. */
+@media (max-width: 640px) {
+	.sechead > h2 {
+		white-space: normal;
+		text-align: center;
+	}
+}
+.sechead-left {
+	display: flex;
+	align-items: baseline;
+	gap: 1rem;
+	border-top: 3px solid var(--rule);
+	padding-top: 0.45rem;
+	margin: 0 0 1.1rem;
+	flex-wrap: wrap;
+}
+.sechead-left > h2 {
+	margin: 0;
+}
+.sechead-left .more {
+	margin-left: auto;
+	font-size: 0.85rem;
+	white-space: nowrap;
 }
 
-.center {
+/* Rules */
+.rule-hair {
+	border: none;
+	border-top: 1px solid var(--hairline);
+}
+.rule-ink {
+	border: none;
+	border-top: 1px solid var(--rule);
+}
+.rule-bold {
+	border: none;
+	border-top: 3px solid var(--rule);
+}
+.rule-double {
+	border: none;
+	border-top: 3px double var(--rule);
+}
+.dinkus {
 	text-align: center;
+	letter-spacing: 0.9em;
+	padding-left: 0.9em;
+	font-weight: 700;
+	margin: 1.2rem 0;
 }
 
-/* ---------- Buttons ---------- */
+/* Word-marks — bold words where icons would go */
+.wordmarks {
+	display: flex;
+	border-block: 1px solid var(--rule);
+	flex-wrap: wrap;
+}
+.wm {
+	flex: 1 1 10rem;
+	padding: 0.8rem 1rem;
+}
+.wm + .wm {
+	border-left: 1px solid var(--hairline);
+}
+.wm b {
+	display: block;
+	font-size: 1.15rem;
+	line-height: 1.1;
+}
+.wm span {
+	display: block;
+	font-size: 0.85rem;
+	color: var(--muted);
+	margin-top: 0.15rem;
+}
+/* Stacked word-marks: wrapped flex rows leave stray left borders, so on
+   narrow paper they become ruled rows instead. */
+@media (max-width: 600px) {
+	.wordmarks {
+		flex-direction: column;
+	}
+	.wm {
+		flex-basis: auto; /* the 10rem basis is a height in column direction */
+	}
+	.wm + .wm {
+		border-left: none;
+		border-top: 1px solid var(--hairline);
+	}
+}
+
+/* Dotted leaders */
+.leader {
+	flex: 1;
+	border-bottom: 1px dotted var(--muted-2);
+	transform: translateY(-4px);
+	min-width: 1.5rem;
+}
+
+/* Emphasis — sparing */
+.rev {
+	display: inline-block;
+	background: var(--ink);
+	color: var(--paper);
+	padding: 0.28rem 0.65rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 0.8rem;
+}
+.tint-box {
+	display: inline-block;
+	background: var(--paper-shade);
+	border: 1px solid var(--hairline);
+	padding: 0.3rem 0.7rem;
+	font-weight: 700;
+}
+
+/* ---------- Buttons — classified CTAs ---------- */
 .btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
 	font: inherit;
-	font-weight: 600;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	font-size: 0.78rem;
 	line-height: 1;
-	padding: 0.8rem 1.3rem;
-	border-radius: 999px;
+	padding: 0.78rem 1.3rem;
 	border: 1px solid transparent;
+	border-radius: 0;
 	cursor: pointer;
-	transition:
-		transform 0.08s ease,
-		background 0.15s ease,
-		box-shadow 0.15s ease,
-		border-color 0.15s ease;
 	text-decoration: none;
 	white-space: nowrap;
+	transition:
+		background 0.15s ease,
+		border-color 0.15s ease,
+		color 0.15s ease;
 }
 .btn:hover {
 	text-decoration: none;
@@ -234,144 +448,264 @@ small {
 	transform: translateY(1px);
 }
 .btn-primary {
-	background: var(--accent-strong);
+	background: var(--cta);
 	color: #fff;
-	box-shadow: var(--shadow-sm);
+	border-color: var(--cta);
 }
 .btn-primary:hover {
-	background: #173a63;
+	background: var(--cta-deep);
+	border-color: var(--cta-deep);
+	color: #fff;
 }
 .btn-secondary {
-	background: var(--surface);
-	color: var(--navy);
-	border-color: var(--border);
+	background: var(--paper);
+	color: var(--ink);
+	border-color: var(--rule);
 }
 .btn-secondary:hover {
-	border-color: var(--accent-2);
-	background: #fff;
+	background: var(--paper-shade);
+	color: var(--ink);
 }
 .btn-ghost {
 	background: transparent;
-	color: var(--navy);
+	color: var(--ink);
+	border-color: transparent;
 }
 .btn-ghost:hover {
-	background: var(--surface-2);
+	background: var(--paper-shade);
+	color: var(--ink);
 }
 .btn-danger {
-	background: #fff;
+	background: var(--paper);
 	color: var(--danger);
-	border-color: #fecaca;
+	border-color: var(--danger);
 }
 .btn-danger:hover {
-	background: #fef2f2;
+	background: #f6e7e4;
+	color: var(--danger);
 }
 .btn-sm {
 	padding: 0.5rem 0.85rem;
-	font-size: 0.9rem;
+	font-size: 0.7rem;
 }
 .btn-block {
 	width: 100%;
 }
 .btn:disabled {
-	opacity: 0.55;
+	opacity: 0.45;
 	cursor: not-allowed;
 	transform: none;
 }
 
-/* ---------- Cards ---------- */
+/* ---------- Boxes — panels drawn with rules ---------- */
 .card {
-	background: var(--surface);
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	box-shadow: var(--shadow-sm);
-	padding: 1.4rem;
+	background: var(--paper);
+	border: 1px solid var(--rule);
+	border-radius: 0;
+	box-shadow: none;
+	padding: 1.2rem 1.3rem;
 }
 .card-hover {
 	transition:
-		transform 0.12s ease,
-		box-shadow 0.15s ease,
-		border-color 0.15s ease;
+		outline-color 0.15s ease,
+		background 0.15s ease;
+	outline: 1px solid transparent;
+	outline-offset: 2px;
 }
 .card-hover:hover {
-	transform: translateY(-3px);
-	box-shadow: var(--shadow);
-	border-color: var(--accent-2);
+	transform: none;
+	box-shadow: none;
+	outline-color: var(--rule);
 }
 
-/* ---------- Chips, tags, badges ---------- */
+.adbox-double {
+	border: 1px solid var(--rule);
+	outline: 1px solid var(--rule);
+	outline-offset: 2px;
+	margin: 3px;
+	background: var(--paper);
+}
+.adbox-bar {
+	background: var(--ink);
+	color: var(--paper);
+	text-transform: uppercase;
+	letter-spacing: 0.16em;
+	font-size: 0.68rem;
+	font-weight: 700;
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 0.1rem 1rem;
+	padding: 0.4rem 0.9rem;
+}
+
+.tolet {
+	border: 1px dashed var(--rule);
+	padding: 1.6rem 1.2rem;
+	text-align: center;
+	background: var(--paper);
+}
+.tolet .tolet-head {
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.2em;
+	font-size: 0.78rem;
+	margin-bottom: 0.3rem;
+}
+.tolet p {
+	margin: 0;
+	font-size: 0.92rem;
+	color: var(--muted);
+	font-style: italic;
+}
+
+/* ---------- Chips, tags, stamps ---------- */
 .chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
-	padding: 0.3rem 0.7rem;
-	border-radius: 999px;
-	background: var(--surface-2);
-	color: var(--muted);
-	border: 1px solid var(--border);
-	font-size: 0.82rem;
-	font-weight: 500;
+	padding: 0.18rem 0.55rem;
+	border-radius: 0;
+	background: var(--paper);
+	color: var(--ink);
+	border: 1px solid var(--rule);
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
 	cursor: default;
+	text-decoration: none;
 }
 button.chip,
 a.chip {
 	cursor: pointer;
 }
+button.chip:hover,
+a.chip:hover {
+	background: var(--paper-shade);
+	color: var(--ink);
+}
 .chip-accent {
-	background: #eaf1f9;
-	color: var(--accent-strong);
-	border-color: #d8e5f2;
+	background: var(--paper);
+	color: var(--ink);
+	border-color: var(--rule);
 }
 .chip[aria-pressed='true'],
 .chip.is-active {
-	background: var(--accent-strong);
-	color: #fff;
-	border-color: var(--accent-strong);
+	background: var(--ink);
+	color: var(--paper);
+	border-color: var(--ink);
 }
 
 .pill {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
-	padding: 0.2rem 0.6rem;
-	border-radius: 999px;
-	font-size: 0.74rem;
-	font-weight: 600;
+	padding: 0.16rem 0.5rem;
+	border-radius: 0;
+	font-size: 0.66rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	border: 1px solid currentColor;
+	background: transparent;
 }
 .pill-amber {
-	background: #fef3c7;
-	color: #92400e;
+	color: var(--ink);
 }
 .pill-green {
-	background: #dcfce7;
-	color: #166534;
+	color: var(--ledger);
 }
 .pill-red {
-	background: #fee2e2;
-	color: #991b1b;
+	color: var(--danger);
 }
 .pill-gray {
-	background: var(--surface-2);
 	color: var(--muted);
 }
 .pill-purple {
-	background: #eaf1f9;
-	color: var(--accent-strong);
+	color: var(--ink);
 }
 
-/* ---------- Forms ---------- */
+/* Rubber stamps */
+.stamp {
+	display: inline-block;
+	padding: 0.24rem 0.6rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.16em;
+	font-size: 0.66rem;
+	border: 2px solid currentColor;
+	box-shadow:
+		inset 0 0 0 1px var(--paper),
+		inset 0 0 0 2px currentColor;
+	transform: rotate(-2deg);
+	background: transparent;
+	color: var(--ink);
+}
+.st-approved {
+	color: var(--ledger);
+}
+.st-pending {
+	color: var(--muted);
+}
+.st-rejected {
+	color: var(--danger);
+	transform: rotate(-5deg);
+}
+.st-featured {
+	color: var(--ink);
+	transform: rotate(2deg);
+}
+
+.live-marker {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.16em;
+	color: var(--ledger);
+}
+.live-marker i {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--ledger);
+	animation: live-pulse 1.6s infinite;
+}
+@keyframes live-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.25;
+	}
+}
+
+/* ---------- Forms — written on rules ---------- */
 label {
-	font-weight: 600;
-	font-size: 0.92rem;
-	color: var(--navy);
+	font-weight: 700;
+	font-size: 0.72rem;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	color: var(--ink);
 	display: block;
-	margin-bottom: 0.35rem;
+	margin-bottom: 0.3rem;
+}
+label .optional {
+	font-weight: 400;
+	color: var(--muted);
+	letter-spacing: 0.08em;
 }
 .field {
 	margin-bottom: 1.1rem;
 }
 .field .hint {
-	color: var(--muted-2);
-	font-size: 0.85rem;
+	color: var(--muted);
+	font-size: 0.82rem;
+	font-style: italic;
 	margin-top: 0.3rem;
 }
 input[type='text'],
@@ -380,77 +714,204 @@ input[type='url'],
 input[type='search'],
 input[type='datetime-local'],
 input[type='number'],
+input[type='password'],
 select,
 textarea {
 	width: 100%;
 	font: inherit;
-	color: var(--text);
-	background: var(--surface);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-sm);
-	padding: 0.7rem 0.85rem;
-	transition:
-		border-color 0.15s ease,
-		box-shadow 0.15s ease;
+	color: var(--ink);
+	background: transparent;
+	border: 0;
+	border-bottom: 1px solid var(--rule);
+	border-radius: 0;
+	padding: 0.35rem 0.1rem;
+	transition: border-color 0.15s ease;
 }
-/* Custom dropdown arrow so the gap between the chevron and the border is ours to set. */
+input::placeholder,
+textarea::placeholder {
+	color: var(--muted-2);
+	font-style: italic;
+}
 select {
 	appearance: none;
 	-webkit-appearance: none;
 	-moz-appearance: none;
-	background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%2364748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%231b1812' stroke-width='2'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
-	background-position: right 0.9rem center;
-	background-size: 0.75rem;
-	padding-right: 2.4rem;
+	background-position: right 0.2rem center;
+	background-size: 0.8rem;
+	padding-right: 1.6rem;
 }
 textarea {
 	resize: vertical;
-	min-height: 7rem;
-	line-height: 1.55;
+	min-height: 108px;
+	line-height: 27px;
+	padding: 0 0.1rem;
+	background-image: repeating-linear-gradient(
+		180deg,
+		transparent 0,
+		transparent 26px,
+		var(--hairline) 26px,
+		var(--hairline) 27px
+	);
 }
 input:focus,
 select:focus,
 textarea:focus {
 	outline: none;
-	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(47, 111, 176, 0.2);
-}
-/* ---------- Alerts ---------- */
-.alert {
-	border-radius: var(--radius-sm);
-	padding: 0.85rem 1rem;
-	font-size: 0.95rem;
-	border: 1px solid transparent;
-}
-.alert-error {
-	background: #fef2f2;
-	color: #991b1b;
-	border-color: #fecaca;
-}
-.alert-success {
-	background: #f0fdf4;
-	color: #166534;
-	border-color: #bbf7d0;
-}
-.alert-info {
-	background: #eaf1f9;
-	color: var(--accent-strong);
-	border-color: #cfe0f0;
+	border-bottom: 2px solid var(--cta);
+	margin-bottom: -1px;
+	box-shadow: none;
 }
 
-/* Server-rendered form feedback is a no-JS fallback only; once JS is active,
-   the same messages are surfaced as toasts instead. */
+/* Ballot boxes */
+input[type='checkbox'] {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 17px;
+	height: 17px;
+	border: 1px solid var(--rule);
+	border-radius: 0;
+	background: var(--paper);
+	display: inline-grid;
+	place-items: center;
+	cursor: pointer;
+	vertical-align: -3px;
+	margin: 0 0.15rem 0 0;
+	flex: none;
+}
+input[type='checkbox']:checked::before {
+	content: '✕';
+	font-family: var(--serif);
+	font-weight: 700;
+	font-size: 0.85rem;
+	line-height: 1;
+	color: var(--ink);
+}
+input[type='checkbox']:focus-visible {
+	outline: 3px solid var(--cta);
+	outline-offset: 2px;
+}
+
+/* OTP cells */
+.cells {
+	display: flex;
+	gap: 0.45rem;
+}
+.cells input {
+	width: 2.3rem;
+	height: 2.7rem;
+	text-align: center;
+	font-size: 1.3rem;
+	font-weight: 700;
+	border: 1px solid var(--rule);
+	background: var(--paper);
+	padding: 0;
+}
+
+/* Paper-form chrome */
+.paperform {
+	border: 1px solid var(--rule);
+	outline: 1px solid var(--rule);
+	outline-offset: 2px;
+	margin: 3px;
+	background: var(--paper);
+	padding: 0;
+}
+.pf-bar {
+	background: var(--ink);
+	color: var(--paper);
+	text-transform: uppercase;
+	letter-spacing: 0.16em;
+	font-size: 0.68rem;
+	font-weight: 700;
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap; /* long form titles must wrap, not widen the page */
+	gap: 0.1rem 1rem;
+	padding: 0.4rem 0.9rem;
+}
+.pf-inner {
+	padding: 1.2rem 1.4rem 1.3rem;
+}
+.pf-intro {
+	font-size: 0.88rem;
+	font-style: italic;
+	color: var(--muted);
+	margin: 0 0 1rem;
+}
+.pf-foot {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	border-top: 1px solid var(--rule);
+	padding: 0.9rem 1.4rem;
+}
+.pf-foot .small-print {
+	font-size: 0.75rem;
+	font-style: italic;
+	color: var(--muted);
+	margin: 0;
+}
+.pf-office {
+	margin: 0 1.4rem 1rem;
+	border: 1px dashed var(--rule);
+	padding: 0.55rem 0.8rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+}
+.pf-office .k {
+	font-size: 0.62rem;
+	text-transform: uppercase;
+	letter-spacing: 0.2em;
+	color: var(--muted);
+}
+
+/* ---------- Notices ---------- */
+.alert {
+	border-radius: 0;
+	padding: 0.85rem 1rem;
+	font-size: 0.95rem;
+	border: 1px solid var(--rule);
+	outline: 1px solid var(--rule);
+	outline-offset: 2px;
+	margin: 3px;
+	background: var(--paper);
+	text-align: center;
+}
+.alert-error {
+	background: var(--paper);
+	color: var(--danger);
+	border-color: var(--danger);
+	outline-color: var(--danger);
+}
+.alert-success {
+	background: var(--paper);
+	color: var(--ledger);
+	border-color: var(--ledger);
+	outline-color: var(--ledger);
+}
+.alert-info {
+	background: var(--paper);
+	color: var(--ink);
+	border-color: var(--rule);
+	outline-color: var(--rule);
+}
+
 html.js .nojs-flash {
 	display: none;
 }
 
-/* ---------- Tables ---------- */
+/* ---------- Ledger tables ---------- */
 .table-wrap {
 	overflow-x: auto;
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	background: var(--surface);
+	border: 1px solid var(--rule);
+	border-radius: 0;
+	background: var(--paper);
 }
 table.data {
 	width: 100%;
@@ -460,37 +921,95 @@ table.data {
 table.data th,
 table.data td {
 	text-align: left;
-	padding: 0.8rem 1rem;
-	border-bottom: 1px solid var(--border);
+	padding: 0.6rem 0.85rem;
+	border-bottom: 1px solid var(--hairline);
 	vertical-align: top;
-	font-size: 0.94rem;
+	font-size: 0.92rem;
 }
 table.data th {
-	background: var(--surface-2);
-	font-weight: 600;
-	color: var(--muted);
+	background: var(--paper);
+	font-weight: 700;
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	color: var(--ink);
 	white-space: nowrap;
+	border-bottom: 3px double var(--rule);
+}
+table.data tbody tr:nth-child(even) td {
+	background: var(--paper-shade);
 }
 table.data tr:last-child td {
 	border-bottom: none;
 }
 
-/* ---------- Avatar ---------- */
+/* ---------- Avatar — portraits print square and gray ---------- */
 .avatar {
-	border-radius: 999px;
+	border-radius: 0;
 	object-fit: cover;
-	background: var(--surface-2);
-	border: 1px solid var(--border);
+	background: var(--paper-shade);
+	border: 1px solid var(--rule);
+}
+/* Grayscale only with JS on: the `develop` action colors portraits as they
+   come into focus; without JS they print in color from the start. :where()
+   keeps this gate at zero extra specificity so `.avatar.developed` can win. */
+html.js :where(.avatar) {
+	filter: grayscale(1) contrast(1.04);
+	transition: filter 0.4s ease;
+}
+.avatar.developed,
+a:hover .avatar,
+.avatar:hover {
+	filter: none;
 }
 .avatar-fallback {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 999px;
-	background: linear-gradient(135deg, var(--navy), var(--accent));
-	color: #fff;
-	font-family: var(--font-sans);
+	border-radius: 0;
+	background: var(--ink);
+	color: var(--paper);
+	border: 1px solid var(--rule);
+	font-family: var(--serif);
 	font-weight: 700;
+}
+
+/* ---------- Figures — every picture carries a caption ---------- */
+/* Photos print grayscale and develop into color as they come into focus
+   (the `develop` action adds .developed on viewport entry; hover still
+   works as an early develop). No JS → color from the start. :where() keeps
+   the html.js gate at zero extra specificity so .developed/:hover can win. */
+html.js :where(.print-photo) {
+	filter: grayscale(1) contrast(1.04);
+	transition: filter 0.6s ease;
+}
+.print-photo.developed,
+a:hover .print-photo,
+.print-photo:hover {
+	filter: none;
+}
+figure.figure {
+	margin: 0;
+}
+figure.figure img {
+	width: 100%;
+	border: 1px solid var(--rule);
+}
+figure.figure figcaption,
+.figcap {
+	border-top: 1px solid var(--rule);
+	margin-top: 0.4rem;
+	padding-top: 0.35rem;
+	font-size: 0.8rem;
+	font-style: italic;
+	color: var(--muted);
+}
+.figcap b,
+figure.figure figcaption b {
+	font-style: normal;
+	text-transform: uppercase;
+	font-size: 0.72rem;
+	letter-spacing: 0.1em;
 }
 
 /* ---------- Misc ---------- */
@@ -498,15 +1017,17 @@ table.data tr:last-child td {
 	display: flex;
 	align-items: center;
 	gap: 1rem;
-	color: var(--muted-2);
-	font-size: 0.85rem;
+	color: var(--muted);
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
 	margin: 1.25rem 0;
 }
 .divider-label::before,
 .divider-label::after {
 	content: '';
 	flex: 1;
-	border-top: 1px solid var(--border);
+	border-top: 1px solid var(--rule);
 }
 
 .tag-list {
@@ -518,18 +1039,32 @@ table.data tr:last-child td {
 	margin: 0;
 }
 
-.prose p {
-	margin: 0 0 1rem;
+/* ---------- Shared listing containers ---------- */
+/* People column — directory-style entries in two ruled columns */
+.people {
+	columns: 2;
+	column-gap: 2.2rem;
+	column-rule: 1px solid var(--hairline);
 }
-.prose {
-	color: var(--text);
-	line-height: 1.75;
+@media (max-width: 760px) {
+	.people {
+		columns: 1;
+	}
 }
 
-/* ---------- Scroll reveal (added by the `reveal` action) ---------- */
+/* Classified block — slots share 1px rules like an ad page */
+.classifieds {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1px;
+	background: var(--rule);
+	border: 1px solid var(--rule);
+}
+
+/* ---------- Scroll reveal ---------- */
 .reveal-hidden {
 	opacity: 0;
-	transform: translateY(18px);
+	transform: translateY(14px);
 }
 .reveal-hidden.reveal-shown {
 	opacity: 1;
@@ -537,4 +1072,44 @@ table.data tr:last-child td {
 	transition:
 		opacity 0.6s ease,
 		transform 0.6s ease;
+}
+
+/* ---------- Page turn between pages (View Transitions) ----------
+   Kept deliberately quiet: only the outgoing sheet lifts a little at its
+   spine and fades; the incoming page lies still beneath it and settles.
+   Rotating both layers reads as seasick — don't. */
+@media (prefers-reduced-motion: no-preference) {
+	::view-transition-old(root) {
+		animation: 240ms cubic-bezier(0.3, 0, 0.6, 1) both page-turn-away;
+		transform-origin: left center;
+	}
+	::view-transition-new(root) {
+		animation: 240ms ease both page-settle;
+	}
+}
+@keyframes page-turn-away {
+	to {
+		transform: perspective(2600px) rotateY(-8deg) translateX(-1.5%);
+		opacity: 0;
+	}
+}
+@keyframes page-settle {
+	from {
+		opacity: 0.55;
+	}
+}
+/* Backwards through the paper: leaving a member record for the directory
+   (html[data-turn='back'], set during the navigation) turns the sheet from
+   its right edge — the mirror of the forward turn. */
+@media (prefers-reduced-motion: no-preference) {
+	html[data-turn='back']::view-transition-old(root) {
+		animation-name: page-turn-back-away;
+		transform-origin: right center;
+	}
+}
+@keyframes page-turn-back-away {
+	to {
+		transform: perspective(2600px) rotateY(8deg) translateX(1.5%);
+		opacity: 0;
+	}
 }
