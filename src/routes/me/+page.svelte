@@ -82,7 +82,7 @@
 			<div class="edit">
 				<div class="paperform">
 					<div class="pf-bar">
-						<span>Form 2 — Member record</span>
+						<span>Form 2 - Member record</span>
 						<button type="button" class="pf-check" onclick={() => (showChecklist = true)}>
 							Profile checklist
 						</button>

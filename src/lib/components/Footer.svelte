@@ -24,7 +24,7 @@
 				<h4>Community</h4>
 				<ul>
 					{#if !user}
-						<li><a class="join" href="/signin">Join the room</a></li>
+						<li><a href="/signin">Join the room</a></li>
 					{/if}
 					<li>
 						<a href="https://x.com/blrwritersroom" target="_blank" rel="noopener noreferrer">
@@ -42,7 +42,6 @@
 			<span class="dot" style="background:#fff200"></span>
 			<span class="dot" style="background:#1b1812"></span>
 			<span class="reg"></span>
-			<span class="presslbl">C&nbsp;·&nbsp;M&nbsp;·&nbsp;Y&nbsp;·&nbsp;K</span>
 		</div>
 
 		<div class="footer-bottom">
@@ -117,13 +116,6 @@
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}
-	a.join {
-		color: var(--cta);
-		text-decoration: underline;
-		text-underline-offset: 2px;
-		font-weight: 700;
-	}
-
 	.pressline {
 		display: flex;
 		align-items: center;

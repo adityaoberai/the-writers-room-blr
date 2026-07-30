@@ -27,10 +27,10 @@
 
 		<header class="page-head">
 			<p class="eyebrow">Meetups</p>
-			<div class="headrow">
-				<h1>Events</h1>
+			<h1>Events</h1>
+			<p class="calrow">
 				<a href={data.luma_url} target="_blank" rel="noopener noreferrer">Events calendar ↗</a>
-			</div>
+			</p>
 			<p class="lead">
 				Reserve your spot on Luma. Sessions are calm and phone-down. Bring whatever you're working
 				on.
@@ -48,7 +48,7 @@
 				</div>
 				{#if bill.start_at}
 					<div class="times">
-						{formatTime(bill.start_at)}{#if bill.end_at}&nbsp;—&nbsp;{formatTime(bill.end_at)}{/if}
+						{formatTime(bill.start_at)}{#if bill.end_at}&nbsp;-&nbsp;{formatTime(bill.end_at)}{/if}
 					</div>
 				{/if}
 				<h2>{bill.title}</h2>
@@ -61,14 +61,14 @@
 				{/if}
 				{#if bill.external_url}
 					<a class="ticket" href={bill.external_url} target="_blank" rel="noopener noreferrer">
-						Admit one — Register on Luma
+						Admit one - Register on Luma
 					</a>
 				{/if}
 			</div>
 		{:else}
 			<div class="tolet billspace">
 				<div class="tolet-head">This space to let</div>
-				<p>No meetups are scheduled right now — check back soon for the next session.</p>
+				<p>No meetups are scheduled right now - check back soon for the next session.</p>
 			</div>
 		{/if}
 
@@ -103,19 +103,15 @@
 		margin-bottom: 1.2rem;
 	}
 	.page-head {
-		max-width: 680px;
 		margin-bottom: 1.4rem;
 	}
-	.headrow {
-		display: flex;
-		align-items: baseline;
-		gap: 1rem;
-		flex-wrap: wrap;
-	}
-	.headrow h1 {
+	.page-head h1 {
 		margin-bottom: 0.3rem;
 	}
-	.headrow a {
+	.calrow {
+		margin: 0 0 0.5rem;
+	}
+	.calrow a {
 		font-size: 0.9rem;
 		white-space: nowrap;
 	}

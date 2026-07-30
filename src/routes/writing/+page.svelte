@@ -184,7 +184,7 @@
 					<select id="w-sort" bind:value={sort} onchange={applyFilters} disabled={loading}>
 						<option value="newest">Newest first</option>
 						<option value="oldest">Oldest first</option>
-						<option value="title">Title A–Z</option>
+						<option value="title">Title A-Z</option>
 					</select>
 				</div>
 			</div>
@@ -327,12 +327,6 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		columns: 2;
-		column-gap: 2.4rem;
-		column-rule: 1px solid var(--hairline);
-	}
-	.ix li {
-		break-inside: avoid;
 	}
 	.ixrow {
 		display: flex;
@@ -386,9 +380,6 @@
 		max-width: 42rem;
 	}
 	@media (max-width: 760px) {
-		.ix {
-			columns: 1;
-		}
 		.folio-mid {
 			display: none;
 		}

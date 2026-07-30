@@ -21,7 +21,7 @@
 
 <form method="POST" enctype="multipart/form-data" use:enhance={onSubmit} class="paperform">
 	<div class="pf-bar">
-		<span>Form 7 — Submission slip</span><span>The Writers&rsquo; Room BLR</span>
+		<span>Form 7 - Submission slip</span><span>The Writers&rsquo; Room BLR</span>
 	</div>
 
 	<div class="pf-inner">
@@ -50,7 +50,7 @@
 			</div>
 
 			<div class="field">
-				<label for="external_url">Link <span class="optional">— optional</span></label>
+				<label for="external_url">Link <span class="optional">- optional</span></label>
 				<input
 					id="external_url"
 					name="external_url"
@@ -62,7 +62,7 @@
 		</div>
 
 		<div class="field">
-			<label for="summary">Summary <span class="optional">— optional</span></label>
+			<label for="summary">Summary <span class="optional">- optional</span></label>
 			<textarea
 				id="summary"
 				name="summary"
@@ -73,7 +73,7 @@
 		</div>
 
 		<div class="field" style="margin-bottom:0">
-			<label for="image">Cover image <span class="optional">— optional</span></label>
+			<label for="image">Cover image <span class="optional">- optional</span></label>
 			{#if currentImage}
 				<img class="current-cover print-photo" src={currentImage} alt="Current cover" use:develop />
 			{/if}
@@ -86,7 +86,7 @@
 					onchange={(e) => (imageName = e.currentTarget.files?.[0]?.name ?? '')}
 				/>
 				<span
-					>Affix an image here — <b
+					>Affix an image here - <b
 						>{imageName || (currentImage ? 'replace the file' : 'choose a file')}</b
 					></span
 				>

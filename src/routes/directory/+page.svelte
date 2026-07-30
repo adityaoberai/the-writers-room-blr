@@ -42,7 +42,7 @@
 <section class="section">
 	<div class="container">
 		<div class="folio">
-			<span>The Writers&rsquo; Room BLR — Directory</span>
+			<span>The Writers&rsquo; Room BLR - Directory</span>
 			<span class="folio-mid">{members.length} member{members.length === 1 ? '' : 's'} listed</span>
 			<span>Page D1</span>
 		</div>

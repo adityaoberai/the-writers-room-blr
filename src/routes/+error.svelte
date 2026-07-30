@@ -12,7 +12,7 @@
 <section class="section">
 	<div class="container center err">
 		<div class="notice">
-			<p class="head">— Correction —</p>
+			<p class="head">- Correction -</p>
 			<p class="code">{status}</p>
 			<h1>{title}</h1>
 			<p class="lead">

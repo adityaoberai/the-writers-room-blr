@@ -35,7 +35,7 @@
 				<div class="big">{formatNumber(s.total_points)}<small>PTS</small></div>
 				<div class="serial">Ticket No. {serial}</div>
 				<p class="fine">
-					Points accrue for showing up and sharing work — {s.metrics.submissions}
+					Points accrue for showing up and sharing work - {s.metrics.submissions}
 					piece{s.metrics.submissions === 1 ? '' : 's'} shared · {s.metrics.attendance}
 					session{s.metrics.attendance === 1 ? '' : 's'} attended · profile
 					{s.metrics.profile_complete ? 'complete' : 'incomplete'}.
@@ -78,7 +78,7 @@
 								<tr>
 									<td class="mut">{formatDate(log.created_at)}</td>
 									<td><b>{log.label}</b></td>
-									<td class="mut">{log.notes || '—'}</td>
+									<td class="mut">{log.notes || '-'}</td>
 									<td class="num credit">+{log.points_awarded}</td>
 								</tr>
 							{/each}

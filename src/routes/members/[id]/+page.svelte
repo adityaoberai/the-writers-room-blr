@@ -97,7 +97,7 @@
 						</a>
 					{/each}
 				{:else}
-					<p class="none">No published writing yet — the presses await.</p>
+					<p class="none">No published writing yet - the presses await.</p>
 				{/if}
 			</div>
 		</div>

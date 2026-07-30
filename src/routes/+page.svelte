@@ -63,7 +63,7 @@
 			<figure class="figure">
 				<img class="print-photo" src="/logo.jpg" alt="" width="440" height="440" use:develop />
 				<figcaption>
-					The room&rsquo;s plate — laptops, notebooks and the occasional typewriter.
+					The room&rsquo;s plate - laptops, notebooks and the occasional typewriter.
 					<b>THE WRITERS&rsquo; ROOM</b>
 				</figcaption>
 			</figure>
@@ -137,7 +137,7 @@
 			<div class="tolet">
 				<div class="tolet-head">This space to let</div>
 				<p>
-					No meetups are scheduled right now — check back soon, or <a href="/events"
+					No meetups are scheduled right now - check back soon, or <a href="/events"
 						>browse past sessions</a
 					>.
 				</p>

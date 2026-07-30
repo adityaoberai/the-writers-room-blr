@@ -28,7 +28,7 @@
 
 		<div class="paperform">
 			<div class="pf-bar">
-				<span>Form 1 — New member record</span><span>The Writers&rsquo; Room BLR</span>
+				<span>Form 1 - New member record</span><span>The Writers&rsquo; Room BLR</span>
 			</div>
 			<div class="pf-inner">
 				<div class="block">

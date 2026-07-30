@@ -7,12 +7,12 @@
 	{#if event.status === 'ongoing'}
 		<span class="live-marker"><i></i> Happening now</span>
 	{:else}
-		<span class="no">Advt. — Meetup</span>
+		<span class="no">Upcoming meetup</span>
 	{/if}
 	<div class="date">{event.start_at ? formatDate(event.start_at) : 'Date to be announced'}</div>
 	{#if event.start_at}
 		<div class="time">
-			{formatTime(event.start_at)}{#if event.end_at}&nbsp;—&nbsp;{formatTime(event.end_at)}{/if}
+			{formatTime(event.start_at)}{#if event.end_at}&nbsp;-&nbsp;{formatTime(event.end_at)}{/if}
 		</div>
 	{/if}
 	<h3>{event.title}</h3>

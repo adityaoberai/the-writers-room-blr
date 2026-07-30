@@ -85,7 +85,7 @@
 					</div>
 					<figcaption class="capbar">
 						<span class="cap">
-							The room at work — from a past session. <b>PHOTO: THE WRITERS&rsquo; ROOM</b>
+							The room at work - from a past session. <b>PHOTO: THE WRITERS&rsquo; ROOM</b>
 						</span>
 						{#if count > 1}
 							<span class="plateno">Plate {index + 1} of {count}</span>
