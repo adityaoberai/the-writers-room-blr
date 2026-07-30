@@ -1,0 +1,55 @@
+name: Website copy issue
+description: Report a typo, unclear wording or incorrect text on the website
+title: '[Copy]: '
+labels: ['copy']
+body:
+  - type: markdown
+    attributes:
+      value: Use this template for anything about the words on the site — typos, grammar, tone, outdated or misleading text.
+
+  - type: input
+    id: location
+    attributes:
+      label: Where is the copy?
+      description: The page URL or route, plus the section if helpful.
+      placeholder: / (homepage hero)
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current copy
+      description: Paste the exact text as it appears today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested copy
+      description: What should it say instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of copy issue
+      options:
+        - Typo or spelling
+        - Grammar or punctuation
+        - Unclear or confusing wording
+        - Outdated or incorrect information
+        - Tone or voice
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots or reasoning behind the suggested change.
+    validations:
+      required: false
