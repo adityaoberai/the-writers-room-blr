@@ -5,12 +5,8 @@
 	let { data } = $props();
 	const user = $derived(data.user);
 
-	// Filter state. Changing any of these re-queries page 1 server-side.
-	let type = $state('');
-	let tag = $state('');
-	let author = $state('');
+	// Search state. Typing re-queries page 1 server-side (debounced).
 	let search = $state('');
-	let sort = $state('newest');
 
 	// Result state, seeded from the server-rendered first page.
 	let items = $state(data.items);
@@ -44,11 +40,7 @@
 	function buildQuery(cursorParam) {
 		const parts = [];
 		const add = (k, v) => v && parts.push(`${k}=${encodeURIComponent(v)}`);
-		add('type', type);
-		add('tag', tag);
-		add('author', author);
 		add('search', search.trim());
-		if (sort !== 'newest') add('sort', sort);
 		add('cursor', cursorParam);
 		return parts.join('&');
 	}
@@ -117,9 +109,8 @@
 		</div>
 
 		<header class="page-head">
-			<p class="eyebrow">From the room</p>
 			<h1>Writings from the community</h1>
-			<p class="lead">Pieces shared and approved by members, indexed by kind.</p>
+			<p class="lead">A directory of the blogs and pieces members have written in the room.</p>
 		</header>
 
 		<div class="adbox-double deskad">
@@ -146,53 +137,12 @@
 						oninput={onSearchInput}
 					/>
 				</div>
-				{#if data.facets.types.length}
-					<div class="ctl">
-						<label for="w-type">Type</label>
-						<select id="w-type" bind:value={type} onchange={applyFilters} disabled={loading}>
-							<option value="">All types</option>
-							{#each data.facets.types as t (t.key)}
-								<option value={t.key}>{t.label}</option>
-							{/each}
-						</select>
-					</div>
-				{/if}
-				{#if data.facets.tags.length}
-					<div class="ctl">
-						<label for="w-tag">Tag</label>
-						<select id="w-tag" bind:value={tag} onchange={applyFilters} disabled={loading}>
-							<option value="">All tags</option>
-							{#each data.facets.tags as tg (tg)}
-								<option value={tg}>{tg}</option>
-							{/each}
-						</select>
-					</div>
-				{/if}
-				{#if data.facets.authors.length}
-					<div class="ctl">
-						<label for="w-author">Author</label>
-						<select id="w-author" bind:value={author} onchange={applyFilters} disabled={loading}>
-							<option value="">All authors</option>
-							{#each data.facets.authors as a (a.id)}
-								<option value={a.id}>{a.name}</option>
-							{/each}
-						</select>
-					</div>
-				{/if}
-				<div class="ctl">
-					<label for="w-sort">Order</label>
-					<select id="w-sort" bind:value={sort} onchange={applyFilters} disabled={loading}>
-						<option value="newest">Newest first</option>
-						<option value="oldest">Oldest first</option>
-						<option value="title">Title A-Z</option>
-					</select>
-				</div>
 			</div>
 
 			{#if failed}
 				<div class="tolet">
 					<div class="tolet-head">Presses jammed</div>
-					<p>Couldn't load writing. Change a filter to try again.</p>
+					<p>Couldn't load writing. Adjust your search to try again.</p>
 				</div>
 			{:else if items.length}
 				<p class="result-count">{total} piece{total === 1 ? '' : 's'} on record</p>
@@ -229,7 +179,7 @@
 			{:else}
 				<div class="tolet">
 					<div class="tolet-head">No entries under this heading</div>
-					<p>Try different filters or clear them.</p>
+					<p>Try a different search.</p>
 				</div>
 			{/if}
 		{:else}
@@ -279,15 +229,12 @@
 		align-items: flex-end;
 		flex-wrap: wrap;
 		border-bottom: 2px solid var(--rule);
+		margin-top: 2rem;
 		padding-bottom: 0.8rem;
 	}
 	.ctl {
 		flex: 1;
 		min-width: 8.5rem;
-	}
-	.ctl.grow {
-		flex: 2.4;
-		min-width: 14rem;
 	}
 	.ctl label {
 		font-size: 0.64rem;
@@ -328,23 +275,35 @@
 		padding: 0;
 		list-style: none;
 	}
+	/* One entry per rule: a single title line, a single summary line, and a
+	   pointer anywhere over the entry tints the whole slot. */
+	.ix li {
+		border-bottom: 1px dotted var(--hairline);
+		padding: 0.2rem 0.35rem 0.3rem;
+		transition: background-color 0.18s ease;
+	}
+	.ix li:hover {
+		background: var(--paper-shade);
+	}
 	.ixrow {
 		display: flex;
 		align-items: baseline;
 		gap: 0.5rem;
-		padding: 0.42rem 0;
+		padding: 0.42rem 0 0.1rem;
 		color: inherit;
 		text-decoration: none;
-		border-bottom: 1px dotted var(--hairline);
 	}
-	.ixrow:hover .t {
+	.ix li:hover .t {
 		color: var(--cta);
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}
 	.t {
 		font-weight: 700;
-		overflow-wrap: anywhere;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.star {
 		font-size: 0.8rem;
@@ -369,7 +328,9 @@
 		font-style: italic;
 		color: var(--muted);
 		margin: 0.1rem 0 0.3rem;
-		padding-right: 1rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.load-more {
 		display: flex;

@@ -55,10 +55,9 @@
 </script>
 
 {#if count}
-	<section class="section moments reveal" use:reveal aria-label="Moments from past meetups">
+	<section class="section moments reveal" use:reveal aria-label="Moments from the room">
 		<div class="container">
 			<div class="sechead"><h2>Moments from the room</h2></div>
-			<p class="kick">From past meetups</p>
 
 			<div
 				class="spread"
@@ -112,7 +111,6 @@
 					     no height of its own, and the thumbs split whatever the plate sets. -->
 					<div class="contactwrap">
 						<div class="contact">
-							<div class="lbl">Contact sheet</div>
 							{#each sheet as i (order[i])}
 								<button
 									class="thumb"
@@ -135,15 +133,6 @@
 	.moments {
 		border-block: 1px solid var(--rule);
 		background: var(--paper);
-	}
-	.kick {
-		text-align: center;
-		text-transform: uppercase;
-		font-size: 0.68rem;
-		font-weight: 700;
-		letter-spacing: 0.2em;
-		color: var(--muted);
-		margin: -0.5rem 0 1.2rem;
 	}
 	.spread {
 		display: grid;
@@ -243,18 +232,9 @@
 		position: absolute;
 		inset: 0;
 		display: grid;
-		grid-template-rows: auto;
 		grid-auto-rows: 1fr;
 		gap: 0.7rem;
 		min-height: 0;
-	}
-	.contact .lbl {
-		font-size: 0.64rem;
-		text-transform: uppercase;
-		letter-spacing: 0.16em;
-		color: var(--muted);
-		border-bottom: 1px solid var(--rule);
-		padding-bottom: 0.3rem;
 	}
 	.thumb {
 		border: 1px solid var(--hairline);

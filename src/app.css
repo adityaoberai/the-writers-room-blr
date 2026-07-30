@@ -1098,3 +1098,18 @@ figure.figure figcaption b {
 		opacity: 0.55;
 	}
 }
+/* Backwards through the paper: leaving a member record for the directory
+   (html[data-turn='back'], set during the navigation) turns the sheet from
+   its right edge — the mirror of the forward turn. */
+@media (prefers-reduced-motion: no-preference) {
+	html[data-turn='back']::view-transition-old(root) {
+		animation-name: page-turn-back-away;
+		transform-origin: right center;
+	}
+}
+@keyframes page-turn-back-away {
+	to {
+		transform: perspective(2600px) rotateY(8deg) translateX(1.5%);
+		opacity: 0;
+	}
+}

@@ -26,12 +26,23 @@
 	});
 	const hasLetter = (L) => groups.some((g) => g.letter === L);
 
-	const chipHref = (g) => {
-		const parts = [];
-		if (data.search) parts.push(`search=${encodeURIComponent(data.search)}`);
-		if (g) parts.push(`genre=${encodeURIComponent(g)}`);
-		return parts.length ? `/directory?${parts.join('&')}` : '/directory';
-	};
+	// The search blank takes turns suggesting what to type: how to search, then
+	// the genres on file. Swaps every three seconds.
+	const prompts = $derived(
+		[
+			'Search by name, bio or genre…',
+			genres.length ? `Try a genre: ${genres.join(', ')}…` : null
+		].filter(Boolean)
+	);
+	let promptIndex = $state(0);
+	$effect(() => {
+		if (prompts.length < 2) return;
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		const timer = setInterval(() => {
+			promptIndex = (promptIndex + 1) % prompts.length;
+		}, 3000);
+		return () => clearInterval(timer);
+	});
 </script>
 
 <Seo
@@ -63,7 +74,7 @@
 					type="search"
 					id="dir-search"
 					name="search"
-					placeholder="Search by name, bio or genre…"
+					placeholder={prompts[promptIndex] ?? prompts[0]}
 					value={data.search}
 				/>
 			</div>
@@ -72,15 +83,6 @@
 			{/if}
 			<button class="btn btn-primary" type="submit">Search</button>
 		</form>
-
-		{#if genres.length}
-			<div class="chips" role="group" aria-label="Filter by genre">
-				<a class="chip" class:is-active={!data.genre} href={chipHref('')}>All genres</a>
-				{#each genres as g (g)}
-					<a class="chip" class:is-active={data.genre === g} href={chipHref(g)}>{g}</a>
-				{/each}
-			</div>
-		{/if}
 
 		{#if members.length}
 			<nav class="tabs" aria-label="Jump to name initial">
@@ -132,28 +134,21 @@
 		margin-bottom: 1.2rem;
 	}
 	.page-head {
-		max-width: 640px;
 		margin-bottom: 1.2rem;
 	}
 	.page-head h1 {
 		margin-bottom: 0.3rem;
 	}
+	/* Full measure: the blank grows and the Search button sits on the right margin. */
 	.search {
 		display: flex;
-		gap: 0.9rem;
-		margin-bottom: 1rem;
+		gap: 1.2rem;
+		margin: 2rem 0 1.2rem;
 		align-items: flex-end;
-		max-width: 34rem;
 	}
 	.search .blank {
 		flex: 1;
 		min-width: 220px;
-	}
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.45rem;
-		margin-bottom: 1.1rem;
 	}
 	.tabs {
 		display: flex;

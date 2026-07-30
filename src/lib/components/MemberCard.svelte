@@ -14,22 +14,35 @@
 	{#if genres.length}
 		<span class="line2">{genres.join(' · ')}{extra ? ` · +${extra}` : ''}</span>
 	{/if}
+	{#if member.seals != null}
+		<span class="sealsline">
+			{member.seals === 0
+				? 'No seals yet'
+				: `${member.seals} seal${member.seals === 1 ? '' : 's'} earned`}
+		</span>
+	{/if}
 	{#if member.bio}
 		<span class="bio">{member.bio}</span>
 	{/if}
 </a>
 
 <style>
+	/* A fixed slot in the column: every entry prints at the same depth, and a
+	   pointer over any part of it tints the whole slot. */
 	.person {
 		break-inside: avoid;
-		display: block;
+		display: flex;
+		flex-direction: column;
+		min-height: 8.4rem;
 		color: inherit;
 		text-decoration: none;
 		border-bottom: 1px dotted var(--hairline);
-		padding: 0.6rem 0.1rem 0.65rem;
+		padding: 0.6rem 0.35rem 0.65rem;
+		transition: background-color 0.18s ease;
 	}
 	.person:hover {
 		color: inherit;
+		background: var(--paper-shade);
 	}
 	.person:hover .nm {
 		color: var(--cta);
@@ -63,6 +76,14 @@
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
 		color: var(--ink-soft);
+	}
+	.sealsline {
+		display: block;
+		margin-top: 0.15rem;
+		font-variant: small-caps;
+		letter-spacing: 0.06em;
+		font-size: 0.85rem;
+		color: var(--ledger);
 	}
 	.bio {
 		display: -webkit-box;

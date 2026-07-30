@@ -25,7 +25,6 @@
 			<div class="head">
 				<figure class="portrait">
 					<Avatar src={m.photo_url} name={m.display_name} size={110} />
-					<figcaption>{m.display_name}, member.</figcaption>
 				</figure>
 				<div class="who">
 					<h1>{m.display_name}</h1>
@@ -37,6 +36,7 @@
 					{/if}
 				</div>
 				<div class="side">
+					<span class="role">{m.role ?? 'Member'}</span>
 					{#if m.is_featured}<span class="stamp st-featured">★ Featured</span>{/if}
 					{#if !data.listed}<span class="stamp st-pending">Not yet listed</span>{/if}
 					{#if data.isOwner}
@@ -72,21 +72,22 @@
 							<span class="pts">{formatNumber(data.points)}</span>
 						</div>
 					</div>
-					{#if data.badges.length}
-						<div>
-							<p class="k">Seals earned</p>
-							<div class="seals">
-								{#each data.badges as b (b.id)}
-									<BadgeMedal badge={b} />
-								{/each}
-							</div>
-						</div>
-					{/if}
 				</div>
 			</div>
 
+			{#if data.badges.length}
+				<div class="sealsec">
+					<p class="k">Seals earned</p>
+					<div class="seals">
+						{#each data.badges as b (b.id)}
+							<BadgeMedal badge={b} plain />
+						{/each}
+					</div>
+				</div>
+			{/if}
+
 			<div class="writing">
-				<p class="k">Writing on file</p>
+				<p class="k">Writing file</p>
 				{#if data.submissions.length}
 					{#each data.submissions as s (s.id)}
 						<a class="piece" href={`/writing/${s.id}`}>
@@ -127,14 +128,6 @@
 	.portrait {
 		margin: 0;
 	}
-	.portrait figcaption {
-		font-size: 0.66rem;
-		font-style: italic;
-		color: var(--muted);
-		border-top: 1px solid var(--rule);
-		margin-top: 0.3rem;
-		padding-top: 0.2rem;
-	}
 	.who h1 {
 		margin: 0 0 0.15rem;
 		font-size: 2rem;
@@ -150,6 +143,12 @@
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 0.7rem;
+	}
+	.role {
+		font-variant: small-caps;
+		letter-spacing: 0.14em;
+		font-weight: 700;
+		font-size: 0.95rem;
 	}
 	.k {
 		font-size: 0.68rem;
@@ -195,9 +194,16 @@
 	.pts {
 		font-weight: 700;
 	}
+	/* Seals run horizontally, pressed along the sheet like the writing file. */
+	.sealsec {
+		border-top: 1px solid var(--rule);
+		padding: 1rem 1.3rem 1.1rem;
+	}
 	.seals {
-		display: grid;
-		gap: 0.6rem;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.9rem 1.8rem;
 	}
 	.writing {
 		border-top: 1px solid var(--rule);

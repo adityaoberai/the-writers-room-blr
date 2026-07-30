@@ -62,17 +62,8 @@
 		<div class="fold-aside">
 			<figure class="figure">
 				<img class="print-photo" src="/logo.jpg" alt="" width="440" height="440" use:develop />
-				<figcaption>
-					The room&rsquo;s plate - laptops, notebooks and the occasional typewriter.
-					<b>THE WRITERS&rsquo; ROOM</b>
-				</figcaption>
+				<figcaption>The typewriter, emblem of The Writers&rsquo; Room.</figcaption>
 			</figure>
-			{#if siteCopy.readers_room}
-				<div class="sidebox">
-					<span class="rev">Readers&rsquo; Room</span>
-					<p class="j">{siteCopy.readers_room}</p>
-				</div>
-			{/if}
 		</div>
 	</div>
 </section>
@@ -247,32 +238,54 @@
 	.marks {
 		margin-top: 1.3rem;
 	}
-	.fold-aside {
+	/* The plate fills the aside so both fold columns finish on the same line;
+	   the photo crops (object-fit) rather than distorts. */
+	.fold-aside .figure {
 		display: flex;
 		flex-direction: column;
-		gap: 1.1rem;
+		height: 100%;
 	}
 	.fold-aside img {
 		width: 100%;
-		height: auto;
+		height: 100%;
+		flex: 1;
+		min-height: 0;
+		object-fit: cover;
 	}
-	.sidebox {
-		border: 1px solid var(--rule);
-		padding: 0.75rem 0.9rem;
+	.fold-aside figcaption {
+		border-top: none;
 	}
-	.sidebox p {
-		margin: 0.5rem 0 0;
-		font-size: 0.88rem;
+	/* The three points read as plain entries, not a ruled box. */
+	.marks {
+		border-block: none;
+	}
+	.marks .wm {
+		padding-block: 0.4rem;
+	}
+	.marks .wm:first-child {
+		padding-left: 0;
+	}
+	.marks .wm + .wm {
+		border-left: none;
 	}
 
+	/* An explicit grid so all three columns set at exactly the same measure;
+	   the rules live inside the gaps and cost the tracks nothing. */
 	.below {
-		column-count: 3;
-		column-gap: 1.6rem;
-		column-rule: 1px solid var(--hairline);
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.6rem;
 	}
 	.blk {
-		break-inside: avoid;
-		margin-bottom: 0.8rem;
+		position: relative;
+	}
+	.blk + .blk::before {
+		content: '';
+		position: absolute;
+		left: -0.8rem;
+		top: 0;
+		bottom: 0;
+		border-left: 1px solid var(--hairline);
 	}
 	.blk h4 {
 		margin: 0 0 0.25rem;
@@ -328,8 +341,24 @@
 			padding-right: 0;
 			border-right: none;
 		}
+		/* Stacked: the plate returns to its natural crop. */
+		.fold-aside .figure {
+			height: auto;
+		}
+		.fold-aside img {
+			height: auto;
+			flex: none;
+		}
 		.below {
-			column-count: 1;
+			grid-template-columns: 1fr;
+		}
+		.blk + .blk::before {
+			left: 0;
+			right: 0;
+			top: -0.8rem;
+			bottom: auto;
+			border-left: none;
+			border-top: 1px solid var(--hairline);
 		}
 	}
 </style>

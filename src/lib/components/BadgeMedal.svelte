@@ -1,72 +1,127 @@
 <script>
-	let { badge } = $props();
+	let { badge, plain = false } = $props();
 	const earned = $derived(!!badge.earned);
 	const pct = $derived(Math.round((badge.progress ?? (earned ? 1 : 0)) * 100));
-	// A wax-seal monogram instead of an icon: "First Words" → FW.
-	const initials = $derived(
-		(badge.name ?? '')
-			.split(/\s+/)
-			.map((w) => w[0])
-			.slice(0, 2)
-			.join('')
-			.toUpperCase()
+	const name = $derived((badge.name ?? '').toUpperCase());
+	// The name sets along the top arc; long names take a smaller cut of type.
+	const nameSize = $derived(
+		Math.min(10.5, Math.max(6.5, Math.round(132 / Math.max(1, name.length))))
 	);
+	const year = $derived(badge.earned_at ? new Date(badge.earned_at).getFullYear() : '');
 </script>
 
-<div class="badge" class:earned title={badge.description}>
-	<span class="seal" aria-hidden="true">{initials}</span>
-	<div class="info">
-		<strong>{badge.name}</strong>
-		{#if badge.description}
-			<p class="desc">{badge.description}</p>
-		{/if}
-		{#if earned}
-			<span class="earned-mark">Seal pressed{badge.earned_at ? '' : ''}</span>
-		{:else if badge.target}
-			<div
-				class="bar"
-				role="progressbar"
-				aria-valuenow={pct}
-				aria-valuemin="0"
-				aria-valuemax="100"
-				aria-label={`${badge.name} progress`}
-			>
-				<span style="width:{pct}%"></span>
-			</div>
-			<small class="count">{badge.current ?? 0} / {badge.target}</small>
-		{/if}
+{#snippet seal()}
+	<svg class="sealsvg" class:earned viewBox="0 0 100 100" role="img" aria-label={badge.name}>
+		<defs>
+			<path id={`seal-top-${badge.id}`} d="M 16 50 A 34 34 0 0 1 84 50" />
+			<path id={`seal-bot-${badge.id}`} d="M 16 50 A 34 34 0 0 0 84 50" />
+		</defs>
+		<circle class="ring outer" cx="50" cy="50" r="48" />
+		<circle class="ring" cx="50" cy="50" r="43.5" />
+		<circle class="ring thin" cx="50" cy="50" r="25" />
+		<text class="arcname" style={`font-size:${nameSize}px`}>
+			<textPath href={`#seal-top-${badge.id}`} startOffset="50%">{name}</textPath>
+		</text>
+		<text class="arcorg">
+			<textPath href={`#seal-bot-${badge.id}`} startOffset="50%">
+				★ THE WRITERS&rsquo; ROOM BLR ★
+			</textPath>
+		</text>
+		<text class="star" x="50" y={year ? 48 : 55}>★</text>
+		{#if year}<text class="year" x="50" y="63">{year}</text>{/if}
+	</svg>
+{/snippet}
+
+{#if plain}
+	<span class="lone" title={badge.description}>{@render seal()}</span>
+{:else}
+	<div class="badge" title={badge.description}>
+		{@render seal()}
+		<div class="info">
+			<strong>{badge.name}</strong>
+			{#if badge.description}
+				<p class="desc">{badge.description}</p>
+			{/if}
+			{#if !earned && badge.target}
+				<div
+					class="bar"
+					role="progressbar"
+					aria-valuenow={pct}
+					aria-valuemin="0"
+					aria-valuemax="100"
+					aria-label={`${badge.name} progress`}
+				>
+					<span style="width:{pct}%"></span>
+				</div>
+				<small class="count">{badge.current ?? 0} / {badge.target}</small>
+			{/if}
+		</div>
 	</div>
-</div>
+{/if}
 
 <style>
 	.badge {
 		display: flex;
-		gap: 0.85rem;
+		gap: 1rem;
 		padding: 0.85rem 0.2rem;
 		border-bottom: 1px dotted var(--hairline);
 		background: transparent;
-		align-items: flex-start;
-	}
-	.seal {
-		flex-shrink: 0;
-		width: 52px;
-		height: 52px;
-		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		border: 1px dashed var(--muted-2);
-		color: var(--muted-2);
-		font-weight: 700;
-		font-size: 1rem;
-		letter-spacing: 0.04em;
 	}
-	.badge.earned .seal {
-		border: 1px solid var(--rule);
-		box-shadow:
-			inset 0 0 0 3px var(--paper),
-			inset 0 0 0 4px var(--rule);
-		color: var(--ink);
+	.lone {
+		display: inline-block;
+	}
+	/* An inked rubber seal: double outer ring, the badge name around the top,
+	   the room around the bottom — pressed at a slight angle. */
+	.sealsvg {
+		flex-shrink: 0;
+		width: 88px;
+		height: 88px;
+		display: block;
+		color: var(--muted-2);
+	}
+	.sealsvg.earned {
+		color: var(--ledger);
+		transform: rotate(-7deg);
+	}
+	.ring {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+	}
+	.ring.outer {
+		stroke-width: 2.6;
+	}
+	.ring.thin {
+		stroke-width: 0.9;
+	}
+	.sealsvg:not(.earned) .ring.outer {
+		stroke-dasharray: 3 2.4;
+	}
+	.sealsvg text {
+		fill: currentColor;
+	}
+	.arcname textPath,
+	.arcorg textPath,
+	.star,
+	.year {
+		text-anchor: middle;
+	}
+	.arcname {
+		font-weight: 700;
+		letter-spacing: 0.12em;
+	}
+	.arcorg {
+		font-size: 5.6px;
+		letter-spacing: 0.12em;
+	}
+	.star {
+		font-size: 12px;
+	}
+	.year {
+		font-size: 8px;
+		letter-spacing: 0.2em;
+		font-weight: 700;
 	}
 	.info {
 		min-width: 0;
@@ -82,13 +137,6 @@
 		font-size: 0.84rem;
 		font-style: italic;
 		color: var(--muted);
-	}
-	.earned-mark {
-		font-size: 0.68rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.16em;
-		color: var(--ledger);
 	}
 	.bar {
 		height: 5px;

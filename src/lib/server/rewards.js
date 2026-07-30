@@ -166,6 +166,16 @@ export async function getEarnedBadges(userId) {
 		.sort((a, b) => (a.earned_at < b.earned_at ? 1 : -1));
 }
 
+/** Map of user_id -> earned badge count, one query for a whole listing. */
+export async function getBadgeCountsForUsers(userIds) {
+	const unique = [...new Set(userIds.filter(Boolean))];
+	if (!unique.length) return {};
+	const rows = await listAllRows(TABLES.userBadges, [Query.equal('user_id', unique)]);
+	const counts = {};
+	for (const r of rows) counts[r.user_id] = (counts[r.user_id] ?? 0) + 1;
+	return counts;
+}
+
 export async function getPublicRewards(userId) {
 	const [total_points, badges] = await Promise.all([
 		getTotalPoints(userId),
