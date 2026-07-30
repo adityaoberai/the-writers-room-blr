@@ -82,7 +82,7 @@
 					accountOpen = false;
 				}}
 			>
-				{navOpen ? 'Close' : 'Menu'}
+				{navOpen ? 'Close' : 'Pages'}
 			</button>
 
 			<nav id="primary-nav" class="nav" class:open={navOpen} aria-label="Primary">
