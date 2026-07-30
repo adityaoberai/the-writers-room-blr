@@ -25,11 +25,15 @@
 		'research.',
 		'your next draft.'
 	];
+
+	// One ledger of what the room is and how it runs: the benefits copy carries
+	// the format and the house rule too (see the site_settings `benefits` JSON).
+	const marks = $derived(siteCopy.benefits ?? []);
 </script>
 
 <Seo
 	title="The Writers' Room BLR: a focused writing community in Bengaluru"
-	description="A focused writing community for Bengaluru writers to create, connect, and grow together. Join a meetup, build your profile, share your work and earn rewards."
+	description="A writing community for Bengaluru writers to create, connect, and grow together. Join a meetup, build your profile, share your work and earn rewards."
 />
 
 <!-- Above the fold: the lead story -->
@@ -68,47 +72,26 @@
 	</div>
 </section>
 
-<!-- Moments from past meetups (auto-populates from static/events-gallery) -->
-<Gallery photos={data.galleryPhotos} />
-
-<!-- Mission, set in columns below the fold -->
-<section class="section" use:reveal>
+<!-- The feature spread: the room in pictures, what you get, and how it runs.
+     (Photos auto-populate from static/events-gallery.) -->
+<section class="section feature" use:reveal>
 	<div class="container">
-		<div class="sechead-left"><h2>A standing time and place to do the work.</h2></div>
-		<div class="below">
-			<div class="blk">
-				<h4>The room</h4>
-				<p>{siteCopy.mission}</p>
-			</div>
-			{#if siteCopy.meetup_format}
-				<div class="blk">
-					<h4>The format</h4>
-					<p>{siteCopy.meetup_format}</p>
-				</div>
-			{/if}
-			{#if siteCopy.meetup_note}
-				<div class="blk">
-					<h4>Work first, <b>network second.</b></h4>
-					<p>{siteCopy.meetup_note}</p>
-				</div>
-			{/if}
+		<div class="sechead-left"><h2>A standing time and place to write.</h2></div>
+		{#if siteCopy.mission}
+			<p class="deck">{siteCopy.mission}</p>
+		{/if}
+		<div class="feature-art">
+			<Gallery photos={data.galleryPhotos} />
 		</div>
-	</div>
-</section>
-
-<!-- Benefits as word-marks -->
-{#if siteCopy.benefits?.length}
-	<section class="section benefits" use:reveal>
-		<div class="container">
-			<div class="sechead"><h2>Everything you need to keep writing.</h2></div>
-			<div class="wordmarks">
-				{#each siteCopy.benefits as b (b.title)}
+		{#if marks.length}
+			<div class="wordmarks featmarks">
+				{#each marks as b (b.title)}
 					<div class="wm"><b>{b.title}</b><span>{b.body}</span></div>
 				{/each}
 			</div>
-		</div>
-	</section>
-{/if}
+		{/if}
+	</div>
+</section>
 
 <!-- Upcoming events as display ads -->
 <section class="section" id="events" use:reveal>
@@ -238,18 +221,11 @@
 	.marks {
 		margin-top: 1.3rem;
 	}
-	/* The plate fills the aside so both fold columns finish on the same line;
-	   the photo crops (object-fit) rather than distorts. */
-	.fold-aside .figure {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-	}
+	/* A true square plate with its caption tight beneath it. */
 	.fold-aside img {
 		width: 100%;
-		height: 100%;
-		flex: 1;
-		min-height: 0;
+		height: auto;
+		aspect-ratio: 1 / 1;
 		object-fit: cover;
 	}
 	.fold-aside figcaption {
@@ -269,46 +245,21 @@
 		border-left: none;
 	}
 
-	/* An explicit grid so all three columns set at exactly the same measure;
-	   the rules live inside the gaps and cost the tracks nothing. */
-	.below {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1.6rem;
+	/* One feature: the room in a line, the artwork, then the ledger of marks.
+	   The deck runs the full measure, like the other page leads. */
+	.deck {
+		margin: -0.4rem 0 1.4rem;
+		font-size: 1.02rem;
 	}
-	.blk {
-		position: relative;
+	.feature-art {
+		margin-bottom: 1.6rem;
 	}
-	.blk + .blk::before {
-		content: '';
-		position: absolute;
-		left: -0.8rem;
-		top: 0;
-		bottom: 0;
-		border-left: 1px solid var(--hairline);
-	}
-	.blk h4 {
-		margin: 0 0 0.25rem;
-		font-size: 1rem;
-	}
-	.blk p {
-		margin: 0;
-		font-size: 0.94rem;
-		text-align: justify;
-		hyphens: auto;
-		-webkit-hyphens: auto;
-	}
-
-	.benefits {
-		background: var(--paper-shade);
-		border-block: 1px solid var(--rule);
-	}
-	.benefits .wm {
+	.featmarks .wm {
 		flex: 1 1 14rem;
 	}
 	@media (max-width: 600px) {
 		/* In the stacked layout the 14rem basis would become a row height. */
-		.benefits .wm {
+		.featmarks .wm {
 			flex-basis: auto;
 		}
 	}
@@ -340,25 +291,6 @@
 		.lead-story {
 			padding-right: 0;
 			border-right: none;
-		}
-		/* Stacked: the plate returns to its natural crop. */
-		.fold-aside .figure {
-			height: auto;
-		}
-		.fold-aside img {
-			height: auto;
-			flex: none;
-		}
-		.below {
-			grid-template-columns: 1fr;
-		}
-		.blk + .blk::before {
-			left: 0;
-			right: 0;
-			top: -0.8rem;
-			bottom: auto;
-			border-left: none;
-			border-top: 1px solid var(--hairline);
 		}
 	}
 </style>

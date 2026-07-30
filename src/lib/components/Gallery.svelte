@@ -1,5 +1,4 @@
 <script>
-	import { reveal } from '$lib/actions/reveal.js';
 	import { develop } from '$lib/actions/develop.js';
 
 	// Photo URLs are resolved server-side from static/events-gallery (see
@@ -55,85 +54,72 @@
 </script>
 
 {#if count}
-	<section class="section moments reveal" use:reveal aria-label="Moments from the room">
-		<div class="container">
-			<div class="sechead"><h2>Moments from the room</h2></div>
-
-			<div
-				class="spread"
-				role="group"
-				aria-roledescription="carousel"
-				aria-label="Past meetup photos"
-				onmouseenter={() => (paused = true)}
-				onmouseleave={() => (paused = false)}
-				onfocusin={() => (paused = true)}
-				onfocusout={() => (paused = false)}
-			>
-				<figure class="plate-fig">
-					<div class="plate" use:develop>
-						{#each order as src, i (src)}
-							<img
-								class="slide print-photo"
-								class:active={i === index}
-								{src}
-								alt={`Past Writers' Room BLR meetup, photo ${i + 1} of ${count}`}
-								loading={i === 0 ? 'eager' : 'lazy'}
-								aria-hidden={i === index ? undefined : 'true'}
-							/>
-						{/each}
-					</div>
-					<figcaption class="capbar">
-						<span class="cap">
-							The room at work - from a past session. <b>PHOTO: THE WRITERS&rsquo; ROOM</b>
-						</span>
-						{#if count > 1}
-							<span class="plateno">Plate {index + 1} of {count}</span>
-							<span class="arrows">
-								<button
-									class="arr"
-									type="button"
-									aria-label="Previous photo"
-									onclick={() => go(index - 1)}>‹</button
-								>
-								<button
-									class="arr"
-									type="button"
-									aria-label="Next photo"
-									onclick={() => go(index + 1)}>›</button
-								>
-							</span>
-						{/if}
-					</figcaption>
-				</figure>
-
-				{#if sheet.length}
-					<!-- The contact sheet borrows its height from the plate: the wrapper adds
-					     no height of its own, and the thumbs split whatever the plate sets. -->
-					<div class="contactwrap">
-						<div class="contact">
-							{#each sheet as i (order[i])}
-								<button
-									class="thumb"
-									type="button"
-									onclick={() => go(i)}
-									aria-label={`Show photo ${i + 1} of ${count}`}
-								>
-									<img src={order[i]} alt="" loading="lazy" />
-								</button>
-							{/each}
-						</div>
-					</div>
-				{/if}
+	<div
+		class="spread"
+		role="group"
+		aria-roledescription="carousel"
+		aria-label="Past meetup photos"
+		onmouseenter={() => (paused = true)}
+		onmouseleave={() => (paused = false)}
+		onfocusin={() => (paused = true)}
+		onfocusout={() => (paused = false)}
+	>
+		<figure class="plate-fig">
+			<div class="plate" use:develop>
+				{#each order as src, i (src)}
+					<img
+						class="slide print-photo"
+						class:active={i === index}
+						{src}
+						alt={`Past Writers' Room BLR meetup, photo ${i + 1} of ${count}`}
+						loading={i === 0 ? 'eager' : 'lazy'}
+						aria-hidden={i === index ? undefined : 'true'}
+					/>
+				{/each}
 			</div>
-		</div>
-	</section>
+			<figcaption class="capbar">
+				<span class="cap">
+					<b>PHOTO: THE WRITERS&rsquo; ROOM</b>
+				</span>
+				{#if count > 1}
+					<span class="plateno">Plate {index + 1} of {count}</span>
+					<span class="arrows">
+						<button
+							class="arr"
+							type="button"
+							aria-label="Previous photo"
+							onclick={() => go(index - 1)}>‹</button
+						>
+						<button class="arr" type="button" aria-label="Next photo" onclick={() => go(index + 1)}
+							>›</button
+						>
+					</span>
+				{/if}
+			</figcaption>
+		</figure>
+
+		{#if sheet.length}
+			<!-- The contact sheet borrows its height from the plate: the wrapper adds
+					     no height of its own, and the thumbs split whatever the plate sets. -->
+			<div class="contactwrap">
+				<div class="contact">
+					{#each sheet as i (order[i])}
+						<button
+							class="thumb"
+							type="button"
+							onclick={() => go(i)}
+							aria-label={`Show photo ${i + 1} of ${count}`}
+						>
+							<img src={order[i]} alt="" loading="lazy" />
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
+	</div>
 {/if}
 
 <style>
-	.moments {
-		border-block: 1px solid var(--rule);
-		background: var(--paper);
-	}
 	.spread {
 		display: grid;
 		grid-template-columns: 2.3fr 1fr;

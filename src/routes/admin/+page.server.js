@@ -23,9 +23,6 @@ const EDITABLE_SETTINGS = [
 	{ key: 'hero_title', label: 'Hero title', type: 'text' },
 	{ key: 'hero_subtitle', label: 'Hero subtitle', type: 'textarea' },
 	{ key: 'mission', label: 'Mission statement', type: 'textarea' },
-	{ key: 'meetup_format', label: 'Meetup format', type: 'textarea' },
-	{ key: 'meetup_note', label: 'Work-first note', type: 'textarea' },
-	{ key: 'readers_room', label: "Readers' Room note", type: 'textarea' },
 	{ key: 'luma_url', label: 'Luma calendar URL', type: 'text' }
 ];
 

@@ -34,12 +34,8 @@ export async function getHomeData() {
 		upcomingEvents: upcomingEvents.map(serializeEvent),
 		siteCopy: {
 			mission: settings.mission || '',
-			meetup_format: settings.meetup_format || '',
-			meetup_note: settings.meetup_note || '',
-			readers_room: settings.readers_room || '',
 			luma_url: settings.luma_url || 'https://lu.ma',
-			benefits: parseJson(settings.benefits, []),
-			testimonials: parseJson(settings.testimonials, [])
+			benefits: parseJson(settings.benefits, [])
 		}
 	};
 }
