@@ -58,7 +58,6 @@ body:
         - Writing / submissions
         - Events
         - Rewards & badges
-        - Admin dashboard
         - Other / not sure
     validations:
       required: true
