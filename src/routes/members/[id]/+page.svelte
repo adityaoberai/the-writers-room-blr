@@ -232,7 +232,9 @@
 	}
 	@media (max-width: 760px) {
 		.head {
-			grid-template-columns: 84px 1fr;
+			/* Match the portrait's fixed 110px render size so it can't
+			   overhang the column. */
+			grid-template-columns: 110px 1fr;
 		}
 		.side {
 			grid-column: 1 / -1;

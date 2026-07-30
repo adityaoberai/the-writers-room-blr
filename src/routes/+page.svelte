@@ -199,7 +199,9 @@
 	}
 	.fold {
 		display: grid;
-		grid-template-columns: 1.9fr 1fr;
+		/* minmax(0, …) so the aside's 440px plate can't blow the track out
+		   past the viewport on small screens. */
+		grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
 		gap: 0 1.6rem;
 		padding-block: clamp(1.6rem, 4vw, 2.6rem);
 	}
@@ -291,6 +293,12 @@
 	.benefits .wm {
 		flex: 1 1 14rem;
 	}
+	@media (max-width: 600px) {
+		/* In the stacked layout the 14rem basis would become a row height. */
+		.benefits .wm {
+			flex-basis: auto;
+		}
+	}
 
 	.adrow {
 		align-items: stretch;
@@ -313,7 +321,7 @@
 
 	@media (max-width: 860px) {
 		.fold {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
 			gap: 1.5rem;
 		}
 		.lead-story {

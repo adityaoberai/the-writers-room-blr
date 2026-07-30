@@ -189,6 +189,19 @@
 		color: var(--muted-2);
 		border: 1px solid transparent;
 	}
+	/* On a phone the rail folds into two rows of thirteen tabs rather than
+	   cramming twenty-six into one line. */
+	@media (max-width: 640px) {
+		.tabs {
+			flex-wrap: wrap;
+			row-gap: 2px;
+			overflow-x: visible;
+		}
+		.tabs a,
+		.tabs .dead {
+			flex: 0 0 calc(100% / 13 - 2px);
+		}
+	}
 	.count {
 		font-size: 0.82rem;
 		font-style: italic;

@@ -47,7 +47,7 @@
 
 		<div class="footer-bottom">
 			<p>© {year} {SITE.name}.</p>
-			<p class="note">Printed monthly in Bengaluru.</p>
+			<p class="note">Hosted monthly in Bengaluru.</p>
 		</div>
 	</div>
 </footer>
@@ -128,10 +128,18 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		flex-wrap: wrap;
 		gap: 0.9rem;
 		border-top: 1px solid var(--rule);
 		margin-top: 2.1rem;
 		padding-top: 1rem;
+	}
+	/* On small paper the proof keeps its dots and loses its labels — the
+	   unwrapped line is wider than a phone and drags the whole page with it. */
+	@media (max-width: 560px) {
+		.presslbl {
+			display: none;
+		}
 	}
 	.dot {
 		width: 14px;

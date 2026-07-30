@@ -301,6 +301,14 @@ small {
 	flex: 1;
 	border-top: 3px double var(--rule);
 }
+/* Narrow paper: long titles must wrap and stay centered, or they swallow
+   the flanking rules and sit off-balance. */
+@media (max-width: 640px) {
+	.sechead > h2 {
+		white-space: normal;
+		text-align: center;
+	}
+}
 .sechead-left {
 	display: flex;
 	align-items: baseline;
@@ -367,6 +375,20 @@ small {
 	font-size: 0.85rem;
 	color: var(--muted);
 	margin-top: 0.15rem;
+}
+/* Stacked word-marks: wrapped flex rows leave stray left borders, so on
+   narrow paper they become ruled rows instead. */
+@media (max-width: 600px) {
+	.wordmarks {
+		flex-direction: column;
+	}
+	.wm {
+		flex-basis: auto; /* the 10rem basis is a height in column direction */
+	}
+	.wm + .wm {
+		border-left: none;
+		border-top: 1px solid var(--hairline);
+	}
 }
 
 /* Dotted leaders */
@@ -512,7 +534,8 @@ small {
 	font-weight: 700;
 	display: flex;
 	justify-content: space-between;
-	gap: 1rem;
+	flex-wrap: wrap;
+	gap: 0.1rem 1rem;
 	padding: 0.4rem 0.9rem;
 }
 
@@ -804,7 +827,8 @@ input[type='checkbox']:focus-visible {
 	font-weight: 700;
 	display: flex;
 	justify-content: space-between;
-	gap: 1rem;
+	flex-wrap: wrap; /* long form titles must wrap, not widen the page */
+	gap: 0.1rem 1rem;
 	padding: 0.4rem 0.9rem;
 }
 .pf-inner {

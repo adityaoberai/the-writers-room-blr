@@ -97,7 +97,7 @@ function ogSvg() {
 
   <!-- Bottom: colophon line + press proof -->
   <rect x="70" y="582" width="1060" height="1" fill="${INK}"/>
-  <text x="70" y="612" font-family="${SERIF}" font-size="16" letter-spacing="3" fill="${MUTED}">PRINTED MONTHLY IN BENGALURU</text>
+  <text x="70" y="612" font-family="${SERIF}" font-size="16" letter-spacing="3" fill="${MUTED}">HOSTED MONTHLY IN BENGALURU</text>
   <circle cx="1014" cy="604" r="7" fill="#00aeef"/>
   <circle cx="1036" cy="604" r="7" fill="#ec008c"/>
   <circle cx="1058" cy="604" r="7" fill="#fff200" stroke="${HAIRLINE}" stroke-width="0.5"/>
