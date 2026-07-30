@@ -262,6 +262,10 @@
 		.featmarks .wm {
 			flex-basis: auto;
 		}
+		/* Stacked marks are all "first": keep every row flush with the copy. */
+		.marks .wm {
+			padding-left: 0;
+		}
 	}
 
 	.adrow {

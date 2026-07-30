@@ -312,7 +312,9 @@ small {
 .sechead-left {
 	display: flex;
 	align-items: baseline;
-	gap: 1rem;
+	/* Tight row gap: a link that wraps below a long heading tucks under it
+	   instead of floating a full gap away. */
+	gap: 0.2rem 1rem;
 	border-top: 3px solid var(--rule);
 	padding-top: 0.45rem;
 	margin: 0 0 1.1rem;

@@ -162,8 +162,9 @@
 	.capbar {
 		grid-area: 2 / 1;
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-end;
-		gap: 1rem;
+		gap: 0.3rem 1rem;
 		border-top: 1px solid var(--rule);
 		margin-top: 0.45rem;
 		padding-top: 0.35rem;
@@ -172,7 +173,9 @@
 		font-size: 0.82rem;
 		font-style: italic;
 		color: var(--muted);
-		flex: 1;
+		/* The credit never breaks mid-line; the plate counter and arrows wrap
+		   below as a unit when the bar runs out of column. */
+		white-space: nowrap;
 	}
 	.capbar .cap b {
 		font-style: normal;
@@ -181,6 +184,7 @@
 		letter-spacing: 0.1em;
 	}
 	.plateno {
+		margin-left: auto;
 		font-size: 0.68rem;
 		text-transform: uppercase;
 		letter-spacing: 0.14em;
@@ -255,6 +259,21 @@
 		   would only push the page down. */
 		.contactwrap {
 			display: none;
+		}
+	}
+	@media (max-width: 480px) {
+		/* Tighter tracking so credit, plate counter, and arrows share one line
+		   on phone-width columns. */
+		.capbar {
+			column-gap: 0.7rem;
+		}
+		.capbar .cap b {
+			font-size: 0.66rem;
+			letter-spacing: 0.08em;
+		}
+		.plateno {
+			font-size: 0.64rem;
+			letter-spacing: 0.1em;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
