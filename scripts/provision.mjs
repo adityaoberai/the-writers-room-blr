@@ -8,7 +8,7 @@
  *
  * Run with:  node --env-file=.env scripts/provision.mjs
  */
-import { Client, TablesDB, Storage, Permission, Role, Query } from 'node-appwrite';
+import { Client, TablesDB, Storage, Permission, Role, Query, ID } from 'node-appwrite';
 import {
 	DATABASE_ID,
 	PHOTO_BUCKET_ID,
@@ -693,6 +693,53 @@ async function backfillSearchText() {
 	console.log(`  ✓ backfilled search_text on ${backfilled} submission(s)`);
 }
 
+/**
+ * Recompute badge awards for every member from raw data, mirroring the
+ * app's recomputeBadges. The app only grants badges when a reward event or
+ * moderation fires, so awards introduced by new badge definitions (or by
+ * moderation that happened before the app deploy) need this catch-up pass.
+ */
+async function backfillBadges() {
+	console.log('Backfilling badge awards');
+	const badges = (await scanAll(TABLES.badges)).filter((b) => b.is_active);
+	const earned = await scanAll(TABLES.userBadges);
+	const logs = await scanAll(TABLES.activityLogs);
+	const subs = await scanAll(TABLES.submissions);
+
+	const earnedSet = new Set(earned.map((r) => `${r.user_id}:${r.badge_id}`));
+	const users = new Set([...logs.map((l) => l.user_id), ...subs.map((s) => s.user_id)]);
+
+	let granted = 0;
+	for (const userId of users) {
+		const mine = subs.filter((s) => s.user_id === userId);
+		const visible = mine.filter((s) => s.status !== 'rejected');
+		const metrics = {
+			points: logs
+				.filter((l) => l.user_id === userId)
+				.reduce((t, l) => t + (l.points_awarded ?? 0), 0),
+			submissions: visible.length,
+			featured: mine.filter((s) => s.status === 'featured').length,
+			content_types: new Set(visible.map((s) => s.content_type).filter(Boolean)).size,
+			active_months: new Set(visible.map((s) => (s.$createdAt ?? '').slice(0, 7)).filter(Boolean))
+				.size
+		};
+		for (const badge of badges) {
+			if (earnedSet.has(`${userId}:${badge.$id}`)) continue;
+			if ((metrics[badge.criteria_type] ?? -1) < badge.criteria_value) continue;
+			await ensure(`award ${badge.$id} -> ${userId}`, () =>
+				tablesDB.createRow({
+					databaseId: DATABASE_ID,
+					tableId: TABLES.userBadges,
+					rowId: ID.unique(),
+					data: { user_id: userId, badge_id: badge.$id, earned_at: new Date().toISOString() }
+				})
+			);
+			granted++;
+		}
+	}
+	console.log(`  ✓ ${granted} badge award(s) backfilled`);
+}
+
 async function main() {
 	console.log(`Provisioning project "${project}" at ${endpoint}\n`);
 	await provisionDatabase();
@@ -700,6 +747,7 @@ async function main() {
 	await cleanupLegacySeeds();
 	await syncEnumColumns();
 	await seedData();
+	await backfillBadges();
 	await migrateContent();
 	console.log('\nDone. Schema, bucket and seed data are in place.');
 }
