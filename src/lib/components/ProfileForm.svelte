@@ -334,6 +334,14 @@
 	@media (max-width: 520px) {
 		.link-row {
 			grid-template-columns: 1fr;
+			gap: 0.35rem;
+			margin-bottom: 1.5rem;
+		}
+		.link-row:last-of-type {
+			margin-bottom: 0;
+		}
+		.link-row input[name='link_label'] {
+			font-weight: 600;
 		}
 	}
 </style>
