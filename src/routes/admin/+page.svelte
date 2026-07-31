@@ -17,6 +17,7 @@
 		{ id: 'members', label: 'Members' },
 		{ id: 'submissions', label: 'Submissions' },
 		{ id: 'featured', label: 'Featured' },
+		{ id: 'feedback', label: 'Feedback' },
 		{ id: 'rewards', label: 'Rewards' },
 		{ id: 'content', label: 'Site content' },
 		{ id: 'events', label: 'Events' }
@@ -28,6 +29,12 @@
 		featured: 'pill-amber',
 		rejected: 'pill-red',
 		pending: 'pill-gray'
+	};
+
+	const feedbackStatusClass = {
+		new: 'pill-amber',
+		reviewed: 'pill-gray',
+		resolved: 'pill-green'
 	};
 </script>
 
@@ -100,6 +107,9 @@
 						>Badges earned</span
 					>
 				</div>
+				<div class="card metric">
+					<span class="m-num">{d.feedbackCounts.new}</span><span class="muted">New feedback</span>
+				</div>
 			</div>
 			<div class="grid grid-2" style="margin-top:1.5rem">
 				<div class="card">
@@ -107,6 +117,7 @@
 					<ul class="bullets">
 						<li><strong>{d.queues.unlisted}</strong> members currently unlisted</li>
 						<li><strong>{d.submissionCounts.rejected}</strong> submissions currently unlisted</li>
+						<li><strong>{d.feedbackCounts.new}</strong> feedback notes awaiting review</li>
 					</ul>
 				</div>
 				<div class="card">
@@ -117,6 +128,9 @@
 						>
 						<button class="btn btn-secondary btn-sm" onclick={() => (tab = 'members')}
 							>Review members</button
+						>
+						<button class="btn btn-secondary btn-sm" onclick={() => (tab = 'feedback')}
+							>Read feedback</button
 						>
 						<button class="btn btn-secondary btn-sm" onclick={() => (tab = 'content')}
 							>Edit homepage</button
@@ -290,6 +304,83 @@
 					>Members</button
 				> tab.
 			</p>
+		{/if}
+
+		<!-- FEEDBACK -->
+		{#if tab === 'feedback'}
+			<h2>Member feedback</h2>
+			<p class="muted">
+				Notes sent through the feedback form: bugs, ideas and questions from members.
+			</p>
+			{#if d.queues.feedback.length}
+				<div class="table-wrap">
+					<table class="data">
+						<thead>
+							<tr
+								><th>Received</th><th>From</th><th>About</th><th>Note</th><th>Status</th><th
+								></th></tr
+							>
+						</thead>
+						<tbody>
+							{#each d.queues.feedback as f (f.id)}
+								<tr>
+									<td class="small">{formatDate(f.created_at)}</td>
+									<td>
+										{#if f.author}
+											<a href={`/members/${f.author.profile_id}`}>{f.author.display_name}</a>
+										{:else}
+											<span class="muted">Unknown</span>
+										{/if}
+										{#if f.email}<div class="muted small">{f.email}</div>{/if}
+									</td>
+									<td><span class="pill pill-gray">{f.category_label}</span></td>
+									<td class="fb-note">
+										{f.message}
+										{#if f.page}<div class="muted small">Where: {f.page}</div>{/if}
+										{#if f.attachment_url}
+											<div class="small">
+												<a href={f.attachment_url} target="_blank" rel="noopener noreferrer"
+													>View attachment ↗</a
+												>
+											</div>
+										{/if}
+									</td>
+									<td
+										><span class="pill {feedbackStatusClass[f.status] ?? 'pill-gray'}"
+											>{f.status}</span
+										></td
+									>
+									<td class="actions">
+										{#if f.status === 'new'}
+											<form method="POST" action="?/setFeedbackStatus" use:enhance>
+												<input type="hidden" name="id" value={f.id} />
+												<input type="hidden" name="status" value="reviewed" />
+												<button class="btn btn-secondary btn-sm" type="submit">Mark reviewed</button
+												>
+											</form>
+										{/if}
+										{#if f.status !== 'resolved'}
+											<form method="POST" action="?/setFeedbackStatus" use:enhance>
+												<input type="hidden" name="id" value={f.id} />
+												<input type="hidden" name="status" value="resolved" />
+												<button class="btn btn-ghost btn-sm" type="submit">Resolve</button>
+											</form>
+										{:else}
+											<form method="POST" action="?/setFeedbackStatus" use:enhance>
+												<input type="hidden" name="id" value={f.id} />
+												<input type="hidden" name="status" value="new" />
+												<button class="btn btn-ghost btn-sm" type="submit">Reopen</button>
+											</form>
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else}
+				<div class="card muted">No feedback yet.</div>
+			{/if}
 		{/if}
 
 		<!-- REWARDS -->
@@ -576,6 +667,12 @@
 	}
 	.small {
 		font-size: 0.82rem;
+	}
+	.fb-note {
+		max-width: 420px;
+		min-width: 220px;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
 	}
 	.mod-row {
 		display: flex;
