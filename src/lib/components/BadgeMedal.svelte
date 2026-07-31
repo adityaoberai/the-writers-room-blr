@@ -33,7 +33,13 @@
 {/snippet}
 
 {#if plain}
-	<span class="lone" title={badge.description}>{@render seal()}</span>
+	<span class="lone">
+		{@render seal()}
+		<span class="tip" role="tooltip">
+			<b>{badge.name}</b>
+			{#if badge.description}<i>{badge.description}</i>{/if}
+		</span>
+	</span>
 {:else}
 	<div class="badge" title={badge.description}>
 		{@render seal()}
@@ -70,6 +76,51 @@
 	}
 	.lone {
 		display: inline-block;
+		position: relative;
+	}
+	/* A small filing card pinned above the seal, shown on hover. */
+	.lone .tip {
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 10px);
+		transform: translateX(-50%);
+		width: max-content;
+		max-width: 230px;
+		background: var(--paper);
+		border: 1px solid var(--rule);
+		outline: 1px solid var(--rule);
+		outline-offset: 2px;
+		padding: 0.45rem 0.65rem;
+		text-align: center;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.12s ease;
+		pointer-events: none;
+		z-index: 6;
+	}
+	.lone .tip::after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 6px solid transparent;
+		border-top-color: var(--rule);
+	}
+	.lone .tip b {
+		display: block;
+		font-size: 0.8rem;
+		letter-spacing: 0.04em;
+	}
+	.lone .tip i {
+		display: block;
+		font-size: 0.74rem;
+		color: var(--muted);
+		margin-top: 0.15rem;
+	}
+	.lone:hover .tip {
+		opacity: 1;
+		visibility: visible;
 	}
 	/* An inked rubber seal: double outer ring, the badge name around the top,
 	   the room around the bottom — pressed at a slight angle. */

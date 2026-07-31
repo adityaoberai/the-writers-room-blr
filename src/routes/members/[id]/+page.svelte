@@ -2,7 +2,7 @@
 	import Seo from '$lib/components/Seo.svelte';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import BadgeMedal from '$lib/components/BadgeMedal.svelte';
-	import { formatDate, formatNumber } from '$lib/format.js';
+	import { formatDate } from '$lib/format.js';
 
 	let { data } = $props();
 	const m = $derived(data.member);
@@ -64,12 +64,9 @@
 									<a href={l.url} target="_blank" rel="noopener noreferrer nofollow">visit ↗</a>
 								</div>
 							{/each}
+						{:else}
+							<p class="none">Nothing filed yet.</p>
 						{/if}
-						<div class="row">
-							<span>Seals earned</span>
-							<span class="leader"></span>
-							<span class="pts">{formatNumber(data.badges.length)}</span>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -185,9 +182,6 @@
 		gap: 0.5rem;
 		font-size: 0.92rem;
 		padding: 0.2rem 0;
-	}
-	.pts {
-		font-weight: 700;
 	}
 	/* Seals run horizontally, pressed along the sheet like the writing file. */
 	.sealsec {
