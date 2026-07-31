@@ -40,17 +40,17 @@ export const SUBMISSION_STATUSES = ['pending', 'approved', 'rejected', 'featured
 
 export const EVENT_SOURCES = ['luma', 'manual'];
 
-export const REWARD_ACTIONS = [
-	'attendance',
-	'submission',
-	'profile_completion',
-	'referral',
-	'prompt_participation'
+export const REWARD_ACTIONS = ['submission', 'profile_completion'];
+
+export const ACTIVITY_SOURCE_TYPES = ['submission', 'profile'];
+
+export const BADGE_CRITERIA = [
+	'points',
+	'submissions',
+	'featured',
+	'content_types',
+	'active_months'
 ];
-
-export const ACTIVITY_SOURCE_TYPES = ['event', 'submission', 'profile', 'referral', 'prompt'];
-
-export const BADGE_CRITERIA = ['points', 'submissions', 'attendance', 'profile_completion'];
 
 export const FEEDBACK_CATEGORIES = ['bug', 'idea', 'question', 'other'];
 export const FEEDBACK_STATUSES = ['new', 'reviewed', 'resolved'];
@@ -76,11 +76,8 @@ export const CONTENT_TYPE_LABELS = {
 };
 
 export const REWARD_ACTION_LABELS = {
-	attendance: 'Attending an event',
 	submission: 'Submitting writing',
-	profile_completion: 'Completing your profile',
-	referral: 'Referring a member',
-	prompt_participation: 'Joining a community prompt'
+	profile_completion: 'Completing your profile'
 };
 
 /** A curated set of writing genres offered as suggestions during onboarding. */

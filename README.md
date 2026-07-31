@@ -141,5 +141,8 @@ Appwrite TablesDB database `main` with tables: `users`, `profiles`,
   can also approve a profile to list it, and feature members/pieces.
 - **Submissions:** support both on-site full text and external links.
 - **Rewards:** points and badges only (no redemption). Points are awarded for
-  submissions, profile completion, attendance, referrals and prompts, with duplicate
-  protection; badges unlock at point/submission/attendance/profile milestones.
+  submissions and profile completion, with duplicate protection; badges unlock at
+  milestones for points, submission count, getting featured, writing across
+  formats, and sharing in multiple months. Event attendance, referrals and prompts are
+  not rewarded because the site takes no event registrations and has no referral
+  or prompt mechanics.

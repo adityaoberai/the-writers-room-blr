@@ -35,35 +35,32 @@
 				<div class="big">{formatNumber(s.total_points)}<small>PTS</small></div>
 				<div class="serial">Ticket No. {serial}</div>
 				<p class="fine">
-					Points accrue for showing up and sharing work - {s.metrics.submissions}
-					piece{s.metrics.submissions === 1 ? '' : 's'} shared · {s.metrics.attendance}
-					session{s.metrics.attendance === 1 ? '' : 's'} attended · profile
+					Points accrue for sharing work and introducing yourself - {s.metrics.submissions}
+					piece{s.metrics.submissions === 1 ? '' : 's'} shared · profile
 					{s.metrics.profile_complete ? 'complete' : 'incomplete'}.
 				</p>
 			</div>
 		</div>
 
-		<div class="cols">
-			<section class="block">
-				<h2 class="k">The prize board</h2>
-				{#each data.rules as r (r.action)}
-					<div class="prize">
-						<span class="pts">+{r.points}</span>
-						<span class="for">{r.label}</span>
-						<span class="leader"></span>
-					</div>
-				{/each}
-			</section>
-
-			<section class="block">
-				<h2 class="k">Seals &amp; milestones</h2>
-				<div class="seals">
-					{#each s.badges as b (b.id)}
-						<BadgeMedal badge={b} />
-					{/each}
+		<section class="block board">
+			<h2 class="k">The prize board</h2>
+			{#each data.rules as r (r.action)}
+				<div class="prize">
+					<span class="pts">+{r.points}</span>
+					<span class="for">{r.label}</span>
+					<span class="leader"></span>
 				</div>
-			</section>
-		</div>
+			{/each}
+		</section>
+
+		<section class="block">
+			<h2 class="k">Seals &amp; milestones</h2>
+			<div class="seals">
+				{#each s.badges as b (b.id)}
+					<BadgeMedal badge={b} />
+				{/each}
+			</div>
+		</section>
 
 		<section class="block history">
 			<h2 class="k">Activity history</h2>
@@ -189,14 +186,11 @@
 		padding-top: 0.5rem;
 	}
 
-	.cols {
-		display: grid;
-		grid-template-columns: 1fr 1.2fr;
-		gap: 2rem;
-		align-items: start;
-	}
 	.block {
 		margin-bottom: 2rem;
+	}
+	.board .prize {
+		max-width: 720px;
 	}
 	.k {
 		font-size: 0.8rem;
@@ -228,6 +222,8 @@
 	}
 	.seals {
 		display: grid;
+		grid-template-columns: 1fr 1fr;
+		column-gap: 2.5rem;
 	}
 	.history .num {
 		text-align: right;
@@ -242,9 +238,9 @@
 		color: var(--muted);
 	}
 	@media (max-width: 860px) {
-		.cols {
+		.seals {
 			grid-template-columns: 1fr;
-			gap: 0;
+			column-gap: 0;
 		}
 	}
 	@media (max-width: 560px) {

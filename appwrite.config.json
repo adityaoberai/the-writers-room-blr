@@ -561,13 +561,7 @@
 					"array": false,
 					"default": null,
 					"format": "enum",
-					"elements": [
-						"attendance",
-						"submission",
-						"profile_completion",
-						"referral",
-						"prompt_participation"
-					]
+					"elements": ["submission", "profile_completion"]
 				},
 				{
 					"key": "points",
@@ -638,7 +632,7 @@
 					"array": false,
 					"default": null,
 					"format": "enum",
-					"elements": ["event", "submission", "profile", "referral", "prompt"]
+					"elements": ["submission", "profile"]
 				},
 				{
 					"key": "source_id",
@@ -718,7 +712,7 @@
 					"array": false,
 					"default": null,
 					"format": "enum",
-					"elements": ["points", "submissions", "attendance", "profile_completion"]
+					"elements": ["points", "submissions", "featured", "content_types", "active_months"]
 				},
 				{
 					"key": "criteria_value",

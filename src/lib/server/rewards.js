@@ -9,13 +9,32 @@
  */
 import { createRow, listAllRows, updateRow, Query } from './data.js';
 import { ID } from './appwrite.js';
-import { TABLES, REWARD_ACTION_LABELS, REWARD_ACTIONS } from '$lib/constants.js';
-import { countVisibleSubmissionsByUser } from './submissions.js';
+import { TABLES, REWARD_ACTION_LABELS, REWARD_ACTIONS, BADGE_CRITERIA } from '$lib/constants.js';
+import { listSubmissionsByUser } from './submissions.js';
 import { getProfileByUserId, isProfileComplete } from './profiles.js';
+
+/**
+ * Badge inputs derived from a member's submissions: visible (non-rejected)
+ * count, featured count, distinct content types and distinct calendar months
+ * (both over visible pieces only, so rejected work never counts toward seals).
+ */
+function submissionMetrics(rows) {
+	const visible = rows.filter((r) => r.status !== 'rejected');
+	return {
+		submissions: visible.length,
+		featured: rows.filter((r) => r.status === 'featured').length,
+		content_types: new Set(visible.map((r) => r.content_type).filter(Boolean)).size,
+		active_months: new Set(visible.map((r) => (r.$createdAt ?? '').slice(0, 7)).filter(Boolean))
+			.size
+	};
+}
 
 export async function getRewardRules() {
 	const rows = await listAllRows(TABLES.rewardsRules);
-	return rows.sort((a, b) => a.action_key.localeCompare(b.action_key));
+	// Legacy rows for retired actions may linger in the database; hide them.
+	return rows
+		.filter((r) => REWARD_ACTIONS.includes(r.action_key))
+		.sort((a, b) => a.action_key.localeCompare(b.action_key));
 }
 
 /** Create or update the reward rule for an action (one rule per action_key). */
@@ -101,17 +120,15 @@ export async function awardProfileCompletion(userId, profile) {
 
 /** Re-evaluate badge milestones for a user and grant any newly earned badges. */
 export async function recomputeBadges(userId) {
-	const [badges, earned, logs, submissionCount, profile] = await Promise.all([
+	const [badges, earned, logs, submissionRows] = await Promise.all([
 		listAllRows(TABLES.badges, [Query.equal('is_active', true)]),
 		listAllRows(TABLES.userBadges, [Query.equal('user_id', userId)]),
 		getActivityLogs(userId, 1000),
-		countVisibleSubmissionsByUser(userId),
-		getProfileByUserId(userId)
+		listSubmissionsByUser(userId)
 	]);
 
 	const points = logs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
-	const attendance = logs.filter((l) => l.source_type === 'event').length;
-	const complete = isProfileComplete(profile);
+	const sub = submissionMetrics(submissionRows);
 	const earnedIds = new Set(earned.map((b) => b.badge_id));
 
 	const meets = (badge) => {
@@ -119,11 +136,10 @@ export async function recomputeBadges(userId) {
 			case 'points':
 				return points >= badge.criteria_value;
 			case 'submissions':
-				return submissionCount >= badge.criteria_value;
-			case 'attendance':
-				return attendance >= badge.criteria_value;
-			case 'profile_completion':
-				return complete;
+			case 'featured':
+			case 'content_types':
+			case 'active_months':
+				return sub[badge.criteria_type] >= badge.criteria_value;
 			default:
 				return false;
 		}
@@ -186,17 +202,17 @@ export async function getPublicRewards(userId) {
 
 /** Rich rewards summary: totals, earned + all badges (for progress), and history. */
 export async function getRewardsSummary(userId) {
-	const [allBadges, earned, logs, submissionCount, profile, rules] = await Promise.all([
+	const [allBadges, earned, logs, submissionRows, profile, rules] = await Promise.all([
 		listAllRows(TABLES.badges, [Query.equal('is_active', true)]),
 		listAllRows(TABLES.userBadges, [Query.equal('user_id', userId)]),
 		getActivityLogs(userId, 100),
-		countVisibleSubmissionsByUser(userId),
+		listSubmissionsByUser(userId),
 		getProfileByUserId(userId),
 		getRewardRules()
 	]);
 
 	const total_points = logs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
-	const attendance = logs.filter((l) => l.source_type === 'event').length;
+	const sub = submissionMetrics(submissionRows);
 	const complete = isProfileComplete(profile);
 	const earnedMap = new Map(earned.map((b) => [b.badge_id, b]));
 	const ruleLabel = new Map(
@@ -208,17 +224,18 @@ export async function getRewardsSummary(userId) {
 			case 'points':
 				return { current: total_points, target: badge.criteria_value };
 			case 'submissions':
-				return { current: submissionCount, target: badge.criteria_value };
-			case 'attendance':
-				return { current: attendance, target: badge.criteria_value };
-			case 'profile_completion':
-				return { current: complete ? 1 : 0, target: 1 };
+			case 'featured':
+			case 'content_types':
+			case 'active_months':
+				return { current: sub[badge.criteria_type], target: badge.criteria_value };
 			default:
 				return { current: 0, target: badge.criteria_value };
 		}
 	};
 
-	const badges = allBadges.map((b) => {
+	// Legacy badge definitions (e.g. attendance milestones) may linger; hide them.
+	const visibleBadges = allBadges.filter((b) => BADGE_CRITERIA.includes(b.criteria_type));
+	const badges = visibleBadges.map((b) => {
 		const earnedRow = earnedMap.get(b.$id);
 		const { current, target } = progressFor(b);
 		return {
@@ -250,6 +267,6 @@ export async function getRewardsSummary(userId) {
 		badges,
 		earned_badges: badges.filter((b) => b.earned),
 		activity_logs,
-		metrics: { submissions: submissionCount, attendance, profile_complete: complete }
+		metrics: { submissions: sub.submissions, profile_complete: complete }
 	};
 }

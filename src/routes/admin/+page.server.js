@@ -10,7 +10,7 @@ import {
 	serializeSubmission
 } from '$lib/server/submissions.js';
 import { getAuthorsForUserIds } from '$lib/server/profiles.js';
-import { upsertRewardRule } from '$lib/server/rewards.js';
+import { upsertRewardRule, recomputeBadges } from '$lib/server/rewards.js';
 import { setFeedbackStatus } from '$lib/server/feedback.js';
 import {
 	listAllEvents,
@@ -95,11 +95,12 @@ export const actions = {
 		requireAdmin(locals);
 		const fd = await request.formData();
 		try {
-			await moderateSubmission(String(fd.get('id')), {
+			const row = await moderateSubmission(String(fd.get('id')), {
 				status: String(fd.get('status')),
 				note: String(fd.get('moderation_note') || ''),
 				adminId: locals.user.$id
 			});
+			await recomputeBadges(row.user_id);
 			return ok('Submission moderated.');
 		} catch (err) {
 			return fail(400, { error: err.message });
@@ -110,10 +111,11 @@ export const actions = {
 		requireAdmin(locals);
 		const fd = await request.formData();
 		try {
-			await moderateSubmission(String(fd.get('id')), {
+			const row = await moderateSubmission(String(fd.get('id')), {
 				featured: fd.get('featured') === 'true',
 				adminId: locals.user.$id
 			});
+			await recomputeBadges(row.user_id);
 			return ok('Featured writing updated.');
 		} catch (err) {
 			return fail(400, { error: err.message });

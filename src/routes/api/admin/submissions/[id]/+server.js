@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { moderateSubmission, getSubmission, serializeSubmission } from '$lib/server/submissions.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 import { requireAdmin } from '$lib/server/guards.js';
 import { jsonError, readJson } from '$lib/server/respond.js';
 
@@ -15,6 +16,7 @@ export async function PATCH({ params, locals, request }) {
 			adminId: locals.user.$id
 		});
 		const updated = await getSubmission(params.id);
+		await recomputeBadges(updated.user_id);
 		return json({ submission: serializeSubmission(updated) });
 	} catch (err) {
 		return jsonError(err);

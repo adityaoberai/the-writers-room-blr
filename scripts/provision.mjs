@@ -389,15 +389,106 @@ async function seedRow(tableId, rowId, data) {
 	);
 }
 
+/** Delete a row if it exists, swallowing 404 so cleanup is idempotent. */
+async function removeRow(tableId, rowId) {
+	try {
+		await tablesDB.deleteRow({ databaseId: DATABASE_ID, tableId, rowId });
+		console.log(`  ✓ removed ${tableId}/${rowId}`);
+	} catch (err) {
+		if (err?.code === 404) {
+			console.log(`  • absent  ${tableId}/${rowId}`);
+		} else {
+			console.error(`  ✗ failed  remove ${tableId}/${rowId}: ${err?.message || err}`);
+			throw err;
+		}
+	}
+}
+
+/**
+ * Bring enum columns in line with the current constants. Appwrite keeps the
+ * element list from when a column was created, so retired values are dropped
+ * (cleanupLegacySeeds deletes their rows first) and newly added badge
+ * criteria become valid before seeding.
+ */
+async function syncEnumColumns() {
+	console.log('Syncing enum columns with current constants');
+	const enums = [
+		{ tableId: TABLES.rewardsRules, key: 'action_key', elements: REWARD_ACTIONS, required: true },
+		{
+			tableId: TABLES.activityLogs,
+			key: 'source_type',
+			elements: ACTIVITY_SOURCE_TYPES,
+			required: false,
+			xdefault: 'submission'
+		},
+		{
+			tableId: TABLES.badges,
+			key: 'criteria_type',
+			elements: BADGE_CRITERIA,
+			required: false,
+			xdefault: 'points'
+		}
+	];
+	for (const e of enums) {
+		try {
+			// The SDK requires xdefault to be passed explicitly; null for required columns.
+			await tablesDB.updateEnumColumn({
+				databaseId: DATABASE_ID,
+				tableId: e.tableId,
+				key: e.key,
+				elements: e.elements,
+				required: e.required,
+				xdefault: e.xdefault ?? null
+			});
+			console.log(`  ✓ synced  ${e.tableId}.${e.key}`);
+		} catch (err) {
+			console.error(`  ✗ failed  ${e.tableId}.${e.key}: ${err?.message || err}`);
+			throw err;
+		}
+	}
+	// Column updates settle asynchronously; give them a moment before seeding.
+	await sleep(1500);
+}
+
+/**
+ * Remove seeds from earlier versions that no longer apply: the site never
+ * takes event registrations and has no referral or prompt mechanics, so
+ * those reward rules (and the attendance badge) are unearnable. The
+ * "Fully Introduced" badge was merged into "Newcomer" (completing your
+ * profile awards 20 points, which is exactly the Newcomer threshold).
+ */
+async function cleanupLegacySeeds() {
+	console.log('Removing retired reward rules and badges');
+	for (const key of ['attendance', 'referral', 'prompt_participation']) {
+		await removeRow(TABLES.rewardsRules, `rule_${key}`);
+	}
+	const retiredBadges = ['badge_regular_attendee', 'badge_profile_complete'];
+	for (const id of retiredBadges) {
+		await removeRow(TABLES.badges, id);
+	}
+
+	// Drop earned rows pointing at retired badges so badge counts stay honest.
+	for (let i = 0; i < 100; i++) {
+		const res = await tablesDB.listRows({
+			databaseId: DATABASE_ID,
+			tableId: TABLES.userBadges,
+			queries: [Query.equal('badge_id', retiredBadges), Query.limit(100)]
+		});
+		const rows = res.rows ?? res.documents ?? [];
+		if (!rows.length) break;
+		for (const row of rows) {
+			await removeRow(TABLES.userBadges, row.$id);
+		}
+		if (rows.length < 100) break;
+	}
+}
+
 async function seedData() {
 	console.log('Seeding reward rules, badges, site copy and sample events');
 
 	const rules = [
-		{ action_key: 'attendance', points: 50 },
 		{ action_key: 'submission', points: 30 },
-		{ action_key: 'profile_completion', points: 20 },
-		{ action_key: 'referral', points: 40 },
-		{ action_key: 'prompt_participation', points: 25 }
+		{ action_key: 'profile_completion', points: 20 }
 	];
 	for (const r of rules) {
 		await seedRow(TABLES.rewardsRules, `rule_${r.action_key}`, { ...r, is_active: true });
@@ -429,14 +520,6 @@ async function seedData() {
 			description: 'Ten pieces and counting.'
 		},
 		{
-			id: 'profile_complete',
-			name: 'Fully Introduced',
-			icon: 'id',
-			criteria_type: 'profile_completion',
-			criteria_value: 1,
-			description: 'Completed your member profile.'
-		},
-		{
 			id: 'newcomer',
 			name: 'Newcomer',
 			icon: 'seedling',
@@ -461,12 +544,28 @@ async function seedData() {
 			description: 'A cornerstone of the room, at 300 points.'
 		},
 		{
-			id: 'regular_attendee',
-			name: 'Regular Attendee',
-			icon: 'calendar',
-			criteria_type: 'attendance',
+			id: 'front_page',
+			name: 'Front Page',
+			icon: 'laurel',
+			criteria_type: 'featured',
+			criteria_value: 1,
+			description: 'Had a piece featured by the room.'
+		},
+		{
+			id: 'range',
+			name: 'Range',
+			icon: 'palette',
+			criteria_type: 'content_types',
 			criteria_value: 3,
-			description: 'Showed up to three meetups.'
+			description: 'Shared work in three different formats.'
+		},
+		{
+			id: 'steady_pen',
+			name: 'Steady Pen',
+			icon: 'quill',
+			criteria_type: 'active_months',
+			criteria_value: 3,
+			description: 'Shared writing in three different months.'
 		}
 	];
 	for (const b of badges) {
@@ -598,6 +697,8 @@ async function main() {
 	console.log(`Provisioning project "${project}" at ${endpoint}\n`);
 	await provisionDatabase();
 	await provisionBuckets();
+	await cleanupLegacySeeds();
+	await syncEnumColumns();
 	await seedData();
 	await migrateContent();
 	console.log('\nDone. Schema, bucket and seed data are in place.');
