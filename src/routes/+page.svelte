@@ -43,7 +43,9 @@
 			<p class="eyebrow kicker-rule">From the room</p>
 			<h1>{hero.title}</h1>
 			<p class="typed-line">A focused room for <Typewriter words={typedWords} /></p>
-			<p class="lead">{hero.subtitle}</p>
+			{#if hero.subtitle}
+				<p class="lead">{hero.subtitle}</p>
+			{/if}
 			<div class="cta-row">
 				<a class="btn btn-primary" href={user ? '/submit' : '/signin'}>
 					{user ? 'Submit writing' : 'Join the room'}
@@ -56,11 +58,6 @@
 					<b>{stats.pieces}</b> piece{stats.pieces === 1 ? '' : 's'} so far.
 				</p>
 			{/if}
-			<div class="wordmarks marks">
-				<div class="wm"><b>3 hrs</b><span>of focused writing per session</span></div>
-				<div class="wm"><b>All genres</b><span>fiction, essays, newsletters, research</span></div>
-				<div class="wm"><b>Phones down</b><span>calm, distraction-free rooms</span></div>
-			</div>
 		</div>
 
 		<div class="fold-aside">
@@ -218,9 +215,6 @@
 		margin: 1rem 0 0;
 		font-size: 0.98rem;
 	}
-	.marks {
-		margin-top: 1.3rem;
-	}
 	/* A true square plate with its caption tight beneath it. */
 	.fold-aside img {
 		width: 100%;
@@ -231,20 +225,6 @@
 	.fold-aside figcaption {
 		border-top: none;
 	}
-	/* The three points read as plain entries, not a ruled box. */
-	.marks {
-		border-block: none;
-	}
-	.marks .wm {
-		padding-block: 0.4rem;
-	}
-	.marks .wm:first-child {
-		padding-left: 0;
-	}
-	.marks .wm + .wm {
-		border-left: none;
-	}
-
 	/* One feature: the room in a line, the artwork, then the ledger of marks.
 	   The deck runs the full measure, like the other page leads. */
 	.deck {
@@ -261,10 +241,6 @@
 		/* In the stacked layout the 14rem basis would become a row height. */
 		.featmarks .wm {
 			flex-basis: auto;
-		}
-		/* Stacked marks are all "first": keep every row flush with the copy. */
-		.marks .wm {
-			padding-left: 0;
 		}
 	}
 

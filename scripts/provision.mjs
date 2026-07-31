@@ -476,11 +476,9 @@ async function seedData() {
 
 	const settings = [
 		{ key: 'hero_title', value: "Where Bengaluru's writers gather." },
-		{
-			key: 'hero_subtitle',
-			value:
-				'A writing community to create, connect, and grow together, one quiet, phones-down session at a time.'
-		},
+		// The masthead tagline already says what the room is; the hero runs without
+		// a subtitle unless one is set from the dashboard.
+		{ key: 'hero_subtitle', value: '' },
 		{
 			key: 'mission',
 			value:
