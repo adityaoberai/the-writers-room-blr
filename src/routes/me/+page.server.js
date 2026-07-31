@@ -9,6 +9,7 @@ import {
 } from '$lib/server/profiles.js';
 import { listSubmissionsByUser } from '$lib/server/submissions.js';
 import { uploadProfilePhoto } from '$lib/server/storage.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 import { CONTENT_TYPE_LABELS } from '$lib/constants.js';
 
 export async function load({ locals }) {
@@ -47,6 +48,7 @@ export const actions = {
 		const fd = await request.formData();
 		try {
 			await saveProfileFromFormData(locals.user.$id, fd);
+			await recomputeBadges(locals.user.$id);
 		} catch (err) {
 			return fail(400, { error: err.message || 'Could not save profile.' });
 		}

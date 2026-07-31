@@ -7,6 +7,7 @@ import {
 	setProfilePhoto
 } from '$lib/server/profiles.js';
 import { uploadProfilePhoto } from '$lib/server/storage.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 
 function formProfile(p) {
 	return {
@@ -33,6 +34,7 @@ export const actions = {
 		const fd = await request.formData();
 		try {
 			await saveProfileFromFormData(locals.user.$id, fd);
+			await recomputeBadges(locals.user.$id);
 		} catch (err) {
 			return fail(400, { error: err.message || 'Could not save profile.' });
 		}

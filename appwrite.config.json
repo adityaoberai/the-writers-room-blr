@@ -713,6 +713,7 @@
                     "default": "submissions",
                     "format": "enum",
                     "elements": [
+                        "profile_completion",
                         "submissions",
                         "featured",
                         "content_types",
