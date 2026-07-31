@@ -186,12 +186,12 @@ small {
 .j,
 .prose {
 	text-align: justify;
-	hyphens: auto;
-	-webkit-hyphens: auto;
 }
 .prose {
 	color: var(--ink);
 	line-height: 1.65;
+	/* Keep the author's own line breaks and never split a word. */
+	white-space: pre-line;
 }
 .prose p {
 	margin: 0 0 1rem;
