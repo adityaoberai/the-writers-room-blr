@@ -19,8 +19,10 @@
 
 	const typedWords = [
 		'fiction.',
+		'journals.',
 		'essays.',
 		'poetry.',
+		'blogs.',
 		'newsletters.',
 		'research.',
 		'your next draft.'
