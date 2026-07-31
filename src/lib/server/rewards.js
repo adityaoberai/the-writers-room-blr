@@ -29,6 +29,24 @@ function submissionMetrics(rows) {
 	};
 }
 
+/**
+ * Awards only count while their source still stands: a submission award
+ * needs a live, non-rejected submission and a profile award needs the
+ * profile row. Orphaned log rows stay in the table as duplicate-protection
+ * tombstones (so a deleted-and-restored source cannot double-award) but are
+ * excluded from totals, seals and the ledger.
+ */
+function effectiveLogs(logs, submissionRows, profile) {
+	const visibleIds = new Set(
+		submissionRows.filter((r) => r.status !== 'rejected').map((r) => r.$id)
+	);
+	return logs.filter((l) => {
+		if (l.source_type === 'submission') return visibleIds.has(l.source_id);
+		if (l.source_type === 'profile') return !!profile && l.source_id === profile.$id;
+		return true;
+	});
+}
+
 export async function getRewardRules() {
 	const rows = await listAllRows(TABLES.rewardsRules);
 	// Legacy rows for retired actions may linger in the database; hide them.
@@ -69,8 +87,15 @@ export async function getActivityLogs(userId, limit = 50) {
 }
 
 export async function getTotalPoints(userId) {
-	const logs = await getActivityLogs(userId, 1000);
-	return logs.reduce((sum, l) => sum + (l.points_awarded ?? 0), 0);
+	const [logs, submissions, profile] = await Promise.all([
+		getActivityLogs(userId, 1000),
+		listSubmissionsByUser(userId),
+		getProfileByUserId(userId)
+	]);
+	return effectiveLogs(logs, submissions, profile).reduce(
+		(sum, l) => sum + (l.points_awarded ?? 0),
+		0
+	);
 }
 
 /**
@@ -120,14 +145,18 @@ export async function awardProfileCompletion(userId, profile) {
 
 /** Re-evaluate badge milestones for a user and grant any newly earned badges. */
 export async function recomputeBadges(userId) {
-	const [badges, earned, logs, submissionRows] = await Promise.all([
+	const [badges, earned, logs, submissionRows, profile] = await Promise.all([
 		listAllRows(TABLES.badges, [Query.equal('is_active', true)]),
 		listAllRows(TABLES.userBadges, [Query.equal('user_id', userId)]),
 		getActivityLogs(userId, 1000),
-		listSubmissionsByUser(userId)
+		listSubmissionsByUser(userId),
+		getProfileByUserId(userId)
 	]);
 
-	const points = logs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
+	const points = effectiveLogs(logs, submissionRows, profile).reduce(
+		(s, l) => s + (l.points_awarded ?? 0),
+		0
+	);
 	const sub = submissionMetrics(submissionRows);
 	const earnedIds = new Set(earned.map((b) => b.badge_id));
 
@@ -211,7 +240,8 @@ export async function getRewardsSummary(userId) {
 		getRewardRules()
 	]);
 
-	const total_points = logs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
+	const liveLogs = effectiveLogs(logs, submissionRows, profile);
+	const total_points = liveLogs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
 	const sub = submissionMetrics(submissionRows);
 	const complete = isProfileComplete(profile);
 	const earnedMap = new Map(earned.map((b) => [b.badge_id, b]));
@@ -253,7 +283,7 @@ export async function getRewardsSummary(userId) {
 		};
 	});
 
-	const activity_logs = logs.map((l) => ({
+	const activity_logs = liveLogs.map((l) => ({
 		id: l.$id,
 		points_awarded: l.points_awarded ?? 0,
 		source_type: l.source_type,

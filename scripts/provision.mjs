@@ -705,18 +705,27 @@ async function backfillBadges() {
 	const earned = await scanAll(TABLES.userBadges);
 	const logs = await scanAll(TABLES.activityLogs);
 	const subs = await scanAll(TABLES.submissions);
+	const profiles = await scanAll(TABLES.profiles);
 
 	const earnedSet = new Set(earned.map((r) => `${r.user_id}:${r.badge_id}`));
+	const profileByUser = new Map(profiles.map((p) => [p.user_id, p]));
 	const users = new Set([...logs.map((l) => l.user_id), ...subs.map((s) => s.user_id)]);
 
 	let granted = 0;
 	for (const userId of users) {
 		const mine = subs.filter((s) => s.user_id === userId);
 		const visible = mine.filter((s) => s.status !== 'rejected');
+		// Match the app: awards only count while their source still stands.
+		const visibleIds = new Set(visible.map((s) => s.$id));
+		const liveLogs = logs
+			.filter((l) => l.user_id === userId)
+			.filter((l) => {
+				if (l.source_type === 'submission') return visibleIds.has(l.source_id);
+				if (l.source_type === 'profile') return profileByUser.get(userId)?.$id === l.source_id;
+				return true;
+			});
 		const metrics = {
-			points: logs
-				.filter((l) => l.user_id === userId)
-				.reduce((t, l) => t + (l.points_awarded ?? 0), 0),
+			points: liveLogs.reduce((t, l) => t + (l.points_awarded ?? 0), 0),
 			submissions: visible.length,
 			featured: mine.filter((s) => s.status === 'featured').length,
 			content_types: new Set(visible.map((s) => s.content_type).filter(Boolean)).size,
