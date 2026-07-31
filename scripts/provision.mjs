@@ -693,39 +693,84 @@ async function backfillSearchText() {
 	console.log(`  ✓ backfilled search_text on ${backfilled} submission(s)`);
 }
 
+/** Mirror of the app's isProfileComplete. */
+function profileComplete(profile) {
+	if (!profile) return false;
+	return (
+		!!profile.display_name && (profile.bio ?? '').trim().length > 0 && (profile.genres ?? []).length >= 1
+	);
+}
+
 /**
- * Recompute badge awards for every member from raw data, mirroring the
- * app's recomputeBadges. The app only grants badges when a reward event or
- * moderation fires, so awards introduced by new badge definitions (or by
- * moderation that happened before the app deploy) need this catch-up pass.
+ * Recompute awards for every member from raw data, mirroring the app's
+ * recomputeBadges. The app only grants at the moment a reward event or
+ * moderation fires, so awards introduced by new badge definitions, by
+ * moderation that happened before the app deploy, or lost to an interrupted
+ * save (the profile-completion award) need this catch-up pass.
  */
-async function backfillBadges() {
-	console.log('Backfilling badge awards');
+async function backfillAwards() {
+	console.log('Backfilling profile awards and badges');
 	const badges = (await scanAll(TABLES.badges)).filter((b) => b.is_active);
 	const earned = await scanAll(TABLES.userBadges);
 	const logs = await scanAll(TABLES.activityLogs);
 	const subs = await scanAll(TABLES.submissions);
 	const profiles = await scanAll(TABLES.profiles);
+	const rules = await scanAll(TABLES.rewardsRules);
+	const profileRule = rules.find((r) => r.$id === 'rule_profile_completion');
 
 	const earnedSet = new Set(earned.map((r) => `${r.user_id}:${r.badge_id}`));
 	const profileByUser = new Map(profiles.map((p) => [p.user_id, p]));
-	const users = new Set([...logs.map((l) => l.user_id), ...subs.map((s) => s.user_id)]);
+	const users = new Set([
+		...logs.map((l) => l.user_id),
+		...subs.map((s) => s.user_id),
+		...profiles.map((p) => p.user_id)
+	]);
 
 	let granted = 0;
 	for (const userId of users) {
 		const mine = subs.filter((s) => s.user_id === userId);
 		const visible = mine.filter((s) => s.status !== 'rejected');
+		const profile = profileByUser.get(userId);
 		// Match the app: awards only count while their source still stands.
 		const visibleIds = new Set(visible.map((s) => s.$id));
 		const liveLogs = logs
 			.filter((l) => l.user_id === userId)
 			.filter((l) => {
 				if (l.source_type === 'submission') return visibleIds.has(l.source_id);
-				if (l.source_type === 'profile') return profileByUser.get(userId)?.$id === l.source_id;
+				if (l.source_type === 'profile') return profile?.$id === l.source_id;
 				return true;
 			});
+
+		// Missing profile-completion award: the app grants it on profile save,
+		// which can be lost when the runtime ends before the write finishes.
+		let profilePoints = 0;
+		if (
+			profileComplete(profile) &&
+			profileRule?.is_active &&
+			(profileRule.points ?? 0) > 0 &&
+			!liveLogs.some((l) => l.source_type === 'profile')
+		) {
+			await ensure(`award profile completion -> ${userId}`, () =>
+				tablesDB.createRow({
+					databaseId: DATABASE_ID,
+					tableId: TABLES.activityLogs,
+					rowId: ID.unique(),
+					data: {
+						user_id: userId,
+						reward_rule_id: profileRule.$id,
+						points_awarded: profileRule.points,
+						source_type: 'profile',
+						source_id: profile.$id,
+						notes: 'Completed profile'
+					}
+				})
+			);
+			profilePoints = profileRule.points;
+			granted++;
+		}
+
 		const metrics = {
-			points: liveLogs.reduce((t, l) => t + (l.points_awarded ?? 0), 0),
+			points: profilePoints + liveLogs.reduce((t, l) => t + (l.points_awarded ?? 0), 0),
 			submissions: visible.length,
 			featured: mine.filter((s) => s.status === 'featured').length,
 			content_types: new Set(visible.map((s) => s.content_type).filter(Boolean)).size,
@@ -746,7 +791,7 @@ async function backfillBadges() {
 			granted++;
 		}
 	}
-	console.log(`  ✓ ${granted} badge award(s) backfilled`);
+	console.log(`  ✓ ${granted} award(s) backfilled`);
 }
 
 async function main() {
@@ -756,7 +801,7 @@ async function main() {
 	await cleanupLegacySeeds();
 	await syncEnumColumns();
 	await seedData();
-	await backfillBadges();
+	await backfillAwards();
 	await migrateContent();
 	console.log('\nDone. Schema, bucket and seed data are in place.');
 }
