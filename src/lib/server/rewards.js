@@ -1,20 +1,19 @@
 /**
- * Activity-based rewards: point awards (with duplicate protection), badge
- * milestones, and the summary shown on the rewards page and profiles.
+ * Progression seals: badge milestones computed from a member's submissions,
+ * and the summaries shown on the rewards page and public profiles.
  *
- * Duplicate protection is enforced two ways: a unique index on
- * (user_id, source_type, source_id) for activity logs and (user_id, badge_id)
- * for badges, plus an existence check before insert. A 409 from the index is
- * treated as "already awarded".
+ * Duplicate protection is a unique index on (user_id, badge_id) plus an
+ * existence check before insert; a 409 from the index is treated as
+ * "already earned". Earned seals are never revoked, even if the member
+ * later drops back below a threshold (e.g. a piece is unfeatured).
  */
-import { createRow, listAllRows, updateRow, Query } from './data.js';
+import { createRow, listAllRows, Query } from './data.js';
 import { ID } from './appwrite.js';
-import { TABLES, REWARD_ACTION_LABELS, REWARD_ACTIONS, BADGE_CRITERIA } from '$lib/constants.js';
+import { TABLES, BADGE_CRITERIA } from '$lib/constants.js';
 import { listSubmissionsByUser } from './submissions.js';
-import { getProfileByUserId, isProfileComplete } from './profiles.js';
 
 /**
- * Badge inputs derived from a member's submissions: visible (non-rejected)
+ * Seal inputs derived from a member's submissions: visible (non-rejected)
  * count, featured count, distinct content types and distinct calendar months
  * (both over visible pieces only, so rejected work never counts toward seals).
  */
@@ -29,150 +28,19 @@ function submissionMetrics(rows) {
 	};
 }
 
-/**
- * Awards only count while their source still stands: a submission award
- * needs a live, non-rejected submission and a profile award needs the
- * profile row. Orphaned log rows stay in the table as duplicate-protection
- * tombstones (so a deleted-and-restored source cannot double-award) but are
- * excluded from totals, seals and the ledger.
- */
-function effectiveLogs(logs, submissionRows, profile) {
-	const visibleIds = new Set(
-		submissionRows.filter((r) => r.status !== 'rejected').map((r) => r.$id)
-	);
-	return logs.filter((l) => {
-		if (l.source_type === 'submission') return visibleIds.has(l.source_id);
-		if (l.source_type === 'profile') return !!profile && l.source_id === profile.$id;
-		return true;
-	});
-}
-
-export async function getRewardRules() {
-	const rows = await listAllRows(TABLES.rewardsRules);
-	// Legacy rows for retired actions may linger in the database; hide them.
-	return rows
-		.filter((r) => REWARD_ACTIONS.includes(r.action_key))
-		.sort((a, b) => a.action_key.localeCompare(b.action_key));
-}
-
-/** Create or update the reward rule for an action (one rule per action_key). */
-export async function upsertRewardRule({ action_key, points, is_active }) {
-	if (!REWARD_ACTIONS.includes(action_key)) {
-		throw Object.assign(new Error('Unknown reward action.'), { status: 400 });
-	}
-	const pts = Math.max(0, Math.round(Number(points) || 0));
-	const active = is_active === undefined ? true : !!is_active;
-	const id = `rule_${action_key}`;
-	const data = { action_key, points: pts, is_active: active };
-	try {
-		return await updateRow(TABLES.rewardsRules, id, { points: pts, is_active: active });
-	} catch (err) {
-		if (err?.code === 404) return createRow(TABLES.rewardsRules, id, data);
-		throw err;
-	}
-}
-
-async function getActiveRule(actionKey) {
-	const rows = await listAllRows(TABLES.rewardsRules, [Query.equal('action_key', actionKey)]);
-	const rule = rows[0];
-	return rule && rule.is_active ? rule : null;
-}
-
-export async function getActivityLogs(userId, limit = 50) {
-	return listAllRows(TABLES.activityLogs, [
-		Query.equal('user_id', userId),
-		Query.orderDesc('$createdAt'),
-		Query.limit(limit)
-	]);
-}
-
-export async function getTotalPoints(userId) {
-	const [logs, submissions, profile] = await Promise.all([
-		getActivityLogs(userId, 1000),
-		listSubmissionsByUser(userId),
-		getProfileByUserId(userId)
-	]);
-	return effectiveLogs(logs, submissions, profile).reduce(
-		(sum, l) => sum + (l.points_awarded ?? 0),
-		0
-	);
-}
-
-/**
- * Award points for an action, idempotent per (user, source_type, source_id).
- * Returns the points granted (0 if the rule is inactive or already awarded).
- */
-export async function awardPoints({ userId, actionKey, sourceType, sourceId, notes = '' }) {
-	const rule = await getActiveRule(actionKey);
-	if (!rule || (rule.points ?? 0) <= 0) return { awarded: 0 };
-
-	const existing = await listAllRows(TABLES.activityLogs, [
-		Query.equal('user_id', userId),
-		Query.equal('source_type', sourceType),
-		Query.equal('source_id', sourceId),
-		Query.limit(1)
-	]);
-	if (existing.length) return { awarded: 0, duplicate: true };
-
-	try {
-		await createRow(TABLES.activityLogs, ID.unique(), {
-			user_id: userId,
-			reward_rule_id: rule.$id,
-			points_awarded: rule.points,
-			source_type: sourceType,
-			source_id: sourceId,
-			notes
-		});
-	} catch (err) {
-		if (err?.code === 409) return { awarded: 0, duplicate: true };
-		throw err;
-	}
-
-	await recomputeBadges(userId);
-	return { awarded: rule.points };
-}
-
-export async function awardProfileCompletion(userId, profile) {
-	if (!profile?.$id || !isProfileComplete(profile)) return { awarded: 0 };
-	return awardPoints({
-		userId,
-		actionKey: 'profile_completion',
-		sourceType: 'profile',
-		sourceId: profile.$id,
-		notes: 'Completed profile'
-	});
-}
-
-/** Re-evaluate badge milestones for a user and grant any newly earned badges. */
+/** Re-evaluate seal milestones for a user and grant any newly earned ones. */
 export async function recomputeBadges(userId) {
-	const [badges, earned, logs, submissionRows, profile] = await Promise.all([
+	const [badges, earned, submissionRows] = await Promise.all([
 		listAllRows(TABLES.badges, [Query.equal('is_active', true)]),
 		listAllRows(TABLES.userBadges, [Query.equal('user_id', userId)]),
-		getActivityLogs(userId, 1000),
-		listSubmissionsByUser(userId),
-		getProfileByUserId(userId)
+		listSubmissionsByUser(userId)
 	]);
 
-	const points = effectiveLogs(logs, submissionRows, profile).reduce(
-		(s, l) => s + (l.points_awarded ?? 0),
-		0
-	);
 	const sub = submissionMetrics(submissionRows);
 	const earnedIds = new Set(earned.map((b) => b.badge_id));
-
-	const meets = (badge) => {
-		switch (badge.criteria_type) {
-			case 'points':
-				return points >= badge.criteria_value;
-			case 'submissions':
-			case 'featured':
-			case 'content_types':
-			case 'active_months':
-				return sub[badge.criteria_type] >= badge.criteria_value;
-			default:
-				return false;
-		}
-	};
+	const meets = (badge) =>
+		BADGE_CRITERIA.includes(badge.criteria_type) &&
+		sub[badge.criteria_type] >= badge.criteria_value;
 
 	const newlyEarned = [];
 	for (const badge of badges) {
@@ -221,53 +89,23 @@ export async function getBadgeCountsForUsers(userIds) {
 	return counts;
 }
 
-export async function getPublicRewards(userId) {
-	const [total_points, badges] = await Promise.all([
-		getTotalPoints(userId),
-		getEarnedBadges(userId)
-	]);
-	return { total_points, badges };
-}
-
-/** Rich rewards summary: totals, earned + all badges (for progress), and history. */
+/** Rich seals summary: every active seal with progress, plus the earned set. */
 export async function getRewardsSummary(userId) {
-	const [allBadges, earned, logs, submissionRows, profile, rules] = await Promise.all([
+	const [allBadges, earned, submissionRows] = await Promise.all([
 		listAllRows(TABLES.badges, [Query.equal('is_active', true)]),
 		listAllRows(TABLES.userBadges, [Query.equal('user_id', userId)]),
-		getActivityLogs(userId, 100),
-		listSubmissionsByUser(userId),
-		getProfileByUserId(userId),
-		getRewardRules()
+		listSubmissionsByUser(userId)
 	]);
 
-	const liveLogs = effectiveLogs(logs, submissionRows, profile);
-	const total_points = liveLogs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
 	const sub = submissionMetrics(submissionRows);
-	const complete = isProfileComplete(profile);
 	const earnedMap = new Map(earned.map((b) => [b.badge_id, b]));
-	const ruleLabel = new Map(
-		rules.map((r) => [r.$id, REWARD_ACTION_LABELS[r.action_key] ?? r.action_key])
-	);
 
-	const progressFor = (badge) => {
-		switch (badge.criteria_type) {
-			case 'points':
-				return { current: total_points, target: badge.criteria_value };
-			case 'submissions':
-			case 'featured':
-			case 'content_types':
-			case 'active_months':
-				return { current: sub[badge.criteria_type], target: badge.criteria_value };
-			default:
-				return { current: 0, target: badge.criteria_value };
-		}
-	};
-
-	// Legacy badge definitions (e.g. attendance milestones) may linger; hide them.
+	// Legacy badge definitions (e.g. points milestones) may linger; hide them.
 	const visibleBadges = allBadges.filter((b) => BADGE_CRITERIA.includes(b.criteria_type));
 	const badges = visibleBadges.map((b) => {
 		const earnedRow = earnedMap.get(b.$id);
-		const { current, target } = progressFor(b);
+		const current = sub[b.criteria_type] ?? 0;
+		const target = b.criteria_value;
 		return {
 			id: b.$id,
 			name: b.name,
@@ -283,20 +121,9 @@ export async function getRewardsSummary(userId) {
 		};
 	});
 
-	const activity_logs = liveLogs.map((l) => ({
-		id: l.$id,
-		points_awarded: l.points_awarded ?? 0,
-		source_type: l.source_type,
-		label: ruleLabel.get(l.reward_rule_id) ?? l.source_type,
-		notes: l.notes ?? '',
-		created_at: l.$createdAt
-	}));
-
 	return {
-		total_points,
 		badges,
 		earned_badges: badges.filter((b) => b.earned),
-		activity_logs,
-		metrics: { submissions: sub.submissions, profile_complete: complete }
+		metrics: sub
 	};
 }

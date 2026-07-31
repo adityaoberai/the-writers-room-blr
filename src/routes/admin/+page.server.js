@@ -10,7 +10,7 @@ import {
 	serializeSubmission
 } from '$lib/server/submissions.js';
 import { getAuthorsForUserIds } from '$lib/server/profiles.js';
-import { upsertRewardRule, recomputeBadges } from '$lib/server/rewards.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 import { setFeedbackStatus } from '$lib/server/feedback.js';
 import {
 	listAllEvents,
@@ -131,21 +131,6 @@ export const actions = {
 				adminId: locals.user.$id
 			});
 			return ok('Feedback updated.');
-		} catch (err) {
-			return fail(400, { error: err.message });
-		}
-	},
-
-	saveRule: async ({ request, locals }) => {
-		requireAdmin(locals);
-		const fd = await request.formData();
-		try {
-			await upsertRewardRule({
-				action_key: String(fd.get('action_key')),
-				points: fd.get('points'),
-				is_active: fd.get('is_active') === 'on'
-			});
-			return ok('Reward rule saved.');
 		} catch (err) {
 			return fail(400, { error: err.message });
 		}

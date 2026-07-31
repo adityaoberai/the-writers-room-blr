@@ -7,7 +7,6 @@ import {
 	setProfilePhoto
 } from '$lib/server/profiles.js';
 import { uploadProfilePhoto } from '$lib/server/storage.js';
-import { awardProfileCompletion } from '$lib/server/rewards.js';
 
 function formProfile(p) {
 	return {
@@ -32,15 +31,11 @@ export const actions = {
 	save: async ({ request, locals }) => {
 		requireUser(locals);
 		const fd = await request.formData();
-		let updated;
 		try {
-			updated = await saveProfileFromFormData(locals.user.$id, fd);
+			await saveProfileFromFormData(locals.user.$id, fd);
 		} catch (err) {
 			return fail(400, { error: err.message || 'Could not save profile.' });
 		}
-		void awardProfileCompletion(locals.user.$id, updated).catch((err) => {
-			console.error('Could not award profile completion points.', err);
-		});
 		throw redirect(303, '/me');
 	},
 

@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { requireUser } from '$lib/server/guards.js';
 import { createSubmission } from '$lib/server/submissions.js';
 import { uploadSubmissionImage } from '$lib/server/storage.js';
-import { awardPoints } from '$lib/server/rewards.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 import { CONTENT_TYPES, CONTENT_TYPE_LABELS } from '$lib/constants.js';
 
 export function load({ locals }) {
@@ -38,13 +38,7 @@ export const actions = {
 		} catch (err) {
 			return fail(400, { error: err.message || 'Could not submit.', values });
 		}
-		await awardPoints({
-			userId: locals.user.$id,
-			actionKey: 'submission',
-			sourceType: 'submission',
-			sourceId: submission.$id,
-			notes: submission.title
-		});
+		await recomputeBadges(locals.user.$id);
 		throw redirect(303, `/writing/${submission.$id}`);
 	}
 };

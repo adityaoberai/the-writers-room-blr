@@ -2,8 +2,7 @@
 	import { enhance } from '$app/forms';
 	import Seo from '$lib/components/Seo.svelte';
 	import FormFeedback from '$lib/components/FormFeedback.svelte';
-	import { REWARD_ACTION_LABELS } from '$lib/constants.js';
-	import { formatNumber, formatDate, toDateTimeLocal } from '$lib/format.js';
+	import { formatDate, toDateTimeLocal } from '$lib/format.js';
 
 	let { data, form } = $props();
 	const d = $derived(data.dashboard);
@@ -18,7 +17,6 @@
 		{ id: 'submissions', label: 'Submissions' },
 		{ id: 'featured', label: 'Featured' },
 		{ id: 'feedback', label: 'Feedback' },
-		{ id: 'rewards', label: 'Rewards' },
 		{ id: 'content', label: 'Site content' },
 		{ id: 'events', label: 'Events' }
 	];
@@ -40,7 +38,7 @@
 
 <Seo
 	title="Admin dashboard"
-	description="Manage members, submissions, rewards and content."
+	description="Manage members, submissions and content."
 	noindex={true}
 />
 
@@ -98,13 +96,8 @@
 					>
 				</div>
 				<div class="card metric">
-					<span class="m-num">{formatNumber(d.rewardStats.total_points_awarded)}</span><span
-						class="muted">Points awarded</span
-					>
-				</div>
-				<div class="card metric">
 					<span class="m-num">{d.rewardStats.badges_awarded}</span><span class="muted"
-						>Badges earned</span
+						>Seals earned</span
 					>
 				</div>
 				<div class="card metric">
@@ -381,31 +374,6 @@
 			{:else}
 				<div class="card muted">No feedback yet.</div>
 			{/if}
-		{/if}
-
-		<!-- REWARDS -->
-		{#if tab === 'rewards'}
-			<h2>Reward rules</h2>
-			<p class="muted">Set how many points each action earns. Toggle rules on or off.</p>
-			<div class="grid grid-2">
-				{#each d.rewardStats.rules as r (r.$id)}
-					<form method="POST" action="?/saveRule" use:enhance class="card rule-edit">
-						<h3>{REWARD_ACTION_LABELS[r.action_key] ?? r.action_key}</h3>
-						<input type="hidden" name="action_key" value={r.action_key} />
-						<div class="rule-fields">
-							<label>
-								Points
-								<input type="number" name="points" min="0" value={r.points} />
-							</label>
-							<label class="inline">
-								<input type="checkbox" name="is_active" checked={r.is_active} />
-								Active
-							</label>
-						</div>
-						<button class="btn btn-secondary btn-sm" type="submit">Save</button>
-					</form>
-				{/each}
-			</div>
 		{/if}
 
 		<!-- CONTENT -->
@@ -699,27 +667,6 @@
 	.mod-actions .btns {
 		display: flex;
 		gap: 0.4rem;
-	}
-	.rule-edit .rule-fields {
-		display: flex;
-		gap: 1rem;
-		align-items: flex-end;
-		margin-bottom: 0.8rem;
-	}
-	.rule-edit label {
-		display: block;
-	}
-	.rule-edit label.inline {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-weight: 500;
-	}
-	.rule-edit input[type='number'] {
-		width: 6rem;
-	}
-	.rule-edit input[type='checkbox'] {
-		width: auto;
 	}
 	.setting label {
 		margin-bottom: 0.4rem;

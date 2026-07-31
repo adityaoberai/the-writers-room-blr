@@ -12,7 +12,6 @@ export async function load({ params, locals }) {
 		member: data.profile,
 		submissions: data.submissions,
 		badges: data.badges,
-		points: data.points,
 		listed: data.listed,
 		isOwner: locals.user?.$id === data.profile.user_id
 	};

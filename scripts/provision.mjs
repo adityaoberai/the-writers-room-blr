@@ -2,9 +2,8 @@
  * Idempotent provisioning for The Writers' Room BLR.
  *
  * Creates the database, tables, columns and indexes described in the spec data
- * model, the profile-photo storage bucket, and seeds reward rules, badges,
- * site copy. Safe to run repeatedly; existing
- * resources (HTTP 409) are skipped.
+ * model, the storage buckets, and seeds badges and site copy. Safe to run
+ * repeatedly; existing resources (HTTP 409) are skipped.
  *
  * Run with:  node --env-file=.env scripts/provision.mjs
  */
@@ -20,8 +19,6 @@ import {
 	CONTENT_TYPES,
 	SUBMISSION_STATUSES,
 	EVENT_SOURCES,
-	REWARD_ACTIONS,
-	ACTIVITY_SOURCE_TYPES,
 	BADGE_CRITERIA,
 	FEEDBACK_CATEGORIES,
 	FEEDBACK_STATUSES
@@ -152,39 +149,13 @@ const SCHEMA = [
 		indexes: [{ key: 'idx_start', type: 'key', columns: ['start_at'] }]
 	},
 	{
-		id: TABLES.rewardsRules,
-		name: 'Rewards Rules',
-		columns: [
-			{ key: 'action_key', type: 'enum', elements: REWARD_ACTIONS, required: true },
-			{ key: 'points', type: 'integer', min: 0, default: 0 },
-			{ key: 'is_active', type: 'boolean', default: true }
-		],
-		indexes: [{ key: 'idx_action', type: 'unique', columns: ['action_key'] }]
-	},
-	{
-		id: TABLES.activityLogs,
-		name: 'Activity Logs',
-		columns: [
-			{ key: 'user_id', type: 'varchar', size: 64, required: true },
-			{ key: 'reward_rule_id', type: 'varchar', size: 64 },
-			{ key: 'points_awarded', type: 'integer', default: 0 },
-			{ key: 'source_type', type: 'enum', elements: ACTIVITY_SOURCE_TYPES, default: 'submission' },
-			{ key: 'source_id', type: 'varchar', size: 64 },
-			{ key: 'notes', type: 'varchar', size: 1024 }
-		],
-		indexes: [
-			{ key: 'idx_user', type: 'key', columns: ['user_id'] },
-			{ key: 'idx_dedupe', type: 'unique', columns: ['user_id', 'source_type', 'source_id'] }
-		]
-	},
-	{
 		id: TABLES.badges,
 		name: 'Badges',
 		columns: [
 			{ key: 'name', type: 'varchar', size: 128, required: true },
 			{ key: 'description', type: 'varchar', size: 512 },
 			{ key: 'icon', type: 'varchar', size: 64 },
-			{ key: 'criteria_type', type: 'enum', elements: BADGE_CRITERIA, default: 'points' },
+			{ key: 'criteria_type', type: 'enum', elements: BADGE_CRITERIA, default: 'submissions' },
 			{ key: 'criteria_value', type: 'integer', min: 0, default: 0 },
 			{ key: 'is_active', type: 'boolean', default: true }
 		],
@@ -413,20 +384,12 @@ async function removeRow(tableId, rowId) {
 async function syncEnumColumns() {
 	console.log('Syncing enum columns with current constants');
 	const enums = [
-		{ tableId: TABLES.rewardsRules, key: 'action_key', elements: REWARD_ACTIONS, required: true },
-		{
-			tableId: TABLES.activityLogs,
-			key: 'source_type',
-			elements: ACTIVITY_SOURCE_TYPES,
-			required: false,
-			xdefault: 'submission'
-		},
 		{
 			tableId: TABLES.badges,
 			key: 'criteria_type',
 			elements: BADGE_CRITERIA,
 			required: false,
-			xdefault: 'points'
+			xdefault: 'submissions'
 		}
 	];
 	for (const e of enums) {
@@ -451,18 +414,30 @@ async function syncEnumColumns() {
 }
 
 /**
- * Remove seeds from earlier versions that no longer apply: the site never
- * takes event registrations and has no referral or prompt mechanics, so
- * those reward rules (and the attendance badge) are unearnable. The
- * "Fully Introduced" badge was merged into "Newcomer" (completing your
- * profile awards 20 points, which is exactly the Newcomer threshold).
+ * Remove seeds from earlier versions that no longer apply. Points were
+ * retired entirely (seals now track progression directly), which removes
+ * the reward rules and every points-threshold badge; earlier rounds retired
+ * the attendance/referral/prompt rules and their badges. The activity_logs
+ * table is left untouched as a historical record.
  */
 async function cleanupLegacySeeds() {
 	console.log('Removing retired reward rules and badges');
-	for (const key of ['attendance', 'referral', 'prompt_participation']) {
+	for (const key of [
+		'attendance',
+		'referral',
+		'prompt_participation',
+		'submission',
+		'profile_completion'
+	]) {
 		await removeRow(TABLES.rewardsRules, `rule_${key}`);
 	}
-	const retiredBadges = ['badge_regular_attendee', 'badge_profile_complete'];
+	const retiredBadges = [
+		'badge_regular_attendee',
+		'badge_profile_complete',
+		'badge_newcomer',
+		'badge_regular',
+		'badge_pillar'
+	];
 	for (const id of retiredBadges) {
 		await removeRow(TABLES.badges, id);
 	}
@@ -484,15 +459,7 @@ async function cleanupLegacySeeds() {
 }
 
 async function seedData() {
-	console.log('Seeding reward rules, badges, site copy and sample events');
-
-	const rules = [
-		{ action_key: 'submission', points: 30 },
-		{ action_key: 'profile_completion', points: 20 }
-	];
-	for (const r of rules) {
-		await seedRow(TABLES.rewardsRules, `rule_${r.action_key}`, { ...r, is_active: true });
-	}
+	console.log('Seeding badges and site copy');
 
 	const badges = [
 		{
@@ -518,30 +485,6 @@ async function seedData() {
 			criteria_type: 'submissions',
 			criteria_value: 10,
 			description: 'Ten pieces and counting.'
-		},
-		{
-			id: 'newcomer',
-			name: 'Newcomer',
-			icon: 'seedling',
-			criteria_type: 'points',
-			criteria_value: 20,
-			description: 'Earned your first 20 points.'
-		},
-		{
-			id: 'regular',
-			name: 'Regular',
-			icon: 'star',
-			criteria_type: 'points',
-			criteria_value: 100,
-			description: 'Reached 100 community points.'
-		},
-		{
-			id: 'pillar',
-			name: 'Community Pillar',
-			icon: 'crown',
-			criteria_type: 'points',
-			criteria_value: 300,
-			description: 'A cornerstone of the room, at 300 points.'
 		},
 		{
 			id: 'front_page',
@@ -693,84 +636,26 @@ async function backfillSearchText() {
 	console.log(`  ✓ backfilled search_text on ${backfilled} submission(s)`);
 }
 
-/** Mirror of the app's isProfileComplete. */
-function profileComplete(profile) {
-	if (!profile) return false;
-	return (
-		!!profile.display_name && (profile.bio ?? '').trim().length > 0 && (profile.genres ?? []).length >= 1
-	);
-}
-
 /**
- * Recompute awards for every member from raw data, mirroring the app's
- * recomputeBadges. The app only grants at the moment a reward event or
- * moderation fires, so awards introduced by new badge definitions, by
- * moderation that happened before the app deploy, or lost to an interrupted
- * save (the profile-completion award) need this catch-up pass.
+ * Recompute seals for every member from their submissions, mirroring the
+ * app's recomputeBadges. The app only grants at the moment a submission or
+ * moderation event fires, so seals introduced by new badge definitions (or
+ * by moderation that happened before the app deploy) need this catch-up.
  */
 async function backfillAwards() {
-	console.log('Backfilling profile awards and badges');
+	console.log('Backfilling seals');
 	const badges = (await scanAll(TABLES.badges)).filter((b) => b.is_active);
 	const earned = await scanAll(TABLES.userBadges);
-	const logs = await scanAll(TABLES.activityLogs);
 	const subs = await scanAll(TABLES.submissions);
-	const profiles = await scanAll(TABLES.profiles);
-	const rules = await scanAll(TABLES.rewardsRules);
-	const profileRule = rules.find((r) => r.$id === 'rule_profile_completion');
 
 	const earnedSet = new Set(earned.map((r) => `${r.user_id}:${r.badge_id}`));
-	const profileByUser = new Map(profiles.map((p) => [p.user_id, p]));
-	const users = new Set([
-		...logs.map((l) => l.user_id),
-		...subs.map((s) => s.user_id),
-		...profiles.map((p) => p.user_id)
-	]);
+	const users = new Set(subs.map((s) => s.user_id));
 
 	let granted = 0;
 	for (const userId of users) {
 		const mine = subs.filter((s) => s.user_id === userId);
 		const visible = mine.filter((s) => s.status !== 'rejected');
-		const profile = profileByUser.get(userId);
-		// Match the app: awards only count while their source still stands.
-		const visibleIds = new Set(visible.map((s) => s.$id));
-		const liveLogs = logs
-			.filter((l) => l.user_id === userId)
-			.filter((l) => {
-				if (l.source_type === 'submission') return visibleIds.has(l.source_id);
-				if (l.source_type === 'profile') return profile?.$id === l.source_id;
-				return true;
-			});
-
-		// Missing profile-completion award: the app grants it on profile save,
-		// which can be lost when the runtime ends before the write finishes.
-		let profilePoints = 0;
-		if (
-			profileComplete(profile) &&
-			profileRule?.is_active &&
-			(profileRule.points ?? 0) > 0 &&
-			!liveLogs.some((l) => l.source_type === 'profile')
-		) {
-			await ensure(`award profile completion -> ${userId}`, () =>
-				tablesDB.createRow({
-					databaseId: DATABASE_ID,
-					tableId: TABLES.activityLogs,
-					rowId: ID.unique(),
-					data: {
-						user_id: userId,
-						reward_rule_id: profileRule.$id,
-						points_awarded: profileRule.points,
-						source_type: 'profile',
-						source_id: profile.$id,
-						notes: 'Completed profile'
-					}
-				})
-			);
-			profilePoints = profileRule.points;
-			granted++;
-		}
-
 		const metrics = {
-			points: profilePoints + liveLogs.reduce((t, l) => t + (l.points_awarded ?? 0), 0),
 			submissions: visible.length,
 			featured: mine.filter((s) => s.status === 'featured').length,
 			content_types: new Set(visible.map((s) => s.content_type).filter(Boolean)).size,
@@ -791,7 +676,7 @@ async function backfillAwards() {
 			granted++;
 		}
 	}
-	console.log(`  ✓ ${granted} award(s) backfilled`);
+	console.log(`  ✓ ${granted} seal(s) backfilled`);
 }
 
 async function main() {

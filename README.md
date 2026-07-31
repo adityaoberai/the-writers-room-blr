@@ -140,9 +140,9 @@ Appwrite TablesDB database `main` with tables: `users`, `profiles`,
   directory once the member has shared at least one (non-rejected) submission. Admins
   can also approve a profile to list it, and feature members/pieces.
 - **Submissions:** support both on-site full text and external links.
-- **Rewards:** points and badges only (no redemption). Points are awarded for
-  submissions and profile completion, with duplicate protection; badges unlock at
-  milestones for points, submission count, getting featured, writing across
-  formats, and sharing in multiple months. Event attendance, referrals and prompts are
+- **Rewards:** progression seals only, no points and no redemption. Seals unlock
+  at milestones computed from a member's submissions: pieces shared, getting
+  featured, writing across formats, and sharing in multiple months. Earned seals
+  are never revoked. Event attendance, referrals and prompts are
   not rewarded because the site takes no event registrations and has no referral
   or prompt mechanics.

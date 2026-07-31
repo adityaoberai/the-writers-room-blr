@@ -712,7 +712,7 @@
 					"array": false,
 					"default": null,
 					"format": "enum",
-					"elements": ["points", "submissions", "featured", "content_types", "active_months"]
+					"elements": ["submissions", "featured", "content_types", "active_months"]
 				},
 				{
 					"key": "criteria_value",

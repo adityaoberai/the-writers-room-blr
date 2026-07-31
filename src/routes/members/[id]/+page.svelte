@@ -66,9 +66,9 @@
 							{/each}
 						{/if}
 						<div class="row">
-							<span>Points on record</span>
+							<span>Seals earned</span>
 							<span class="leader"></span>
-							<span class="pts">{formatNumber(data.points)}</span>
+							<span class="pts">{formatNumber(data.badges.length)}</span>
 						</div>
 					</div>
 				</div>

@@ -1,7 +1,6 @@
 <script>
 	import Seo from '$lib/components/Seo.svelte';
 	import BadgeMedal from '$lib/components/BadgeMedal.svelte';
-	import { formatNumber, formatDate } from '$lib/format.js';
 
 	let { data } = $props();
 	const s = $derived(data.summary);
@@ -14,8 +13,8 @@
 </script>
 
 <Seo
-	title="Your rewards"
-	description="Track your points, badges and milestones in The Writers' Room BLR."
+	title="Your seals"
+	description="Track your seals and milestones in The Writers' Room BLR."
 	noindex={true}
 />
 
@@ -23,7 +22,7 @@
 	<div class="container">
 		<header class="page-head">
 			<p class="eyebrow">Recognition</p>
-			<h1>Your rewards</h1>
+			<h1>Your seals</h1>
 		</header>
 
 		<div class="ticket">
@@ -31,27 +30,17 @@
 				<span class="v">Keep this stub · {earnedCount} of {s.badges.length} seals pressed</span>
 			</div>
 			<div class="tbody">
-				<div class="thead">★ The Writers&rsquo; Room prize ledger ★</div>
-				<div class="big">{formatNumber(s.total_points)}<small>PTS</small></div>
+				<div class="thead">★ The Writers&rsquo; Room seal ledger ★</div>
+				<div class="big">{earnedCount}<small>of {s.badges.length} seals</small></div>
 				<div class="serial">Ticket No. {serial}</div>
 				<p class="fine">
-					Points accrue for sharing work and introducing yourself - {s.metrics.submissions}
-					piece{s.metrics.submissions === 1 ? '' : 's'} shared · profile
-					{s.metrics.profile_complete ? 'complete' : 'incomplete'}.
+					Seals press themselves as you share work - {s.metrics.submissions}
+					piece{s.metrics.submissions === 1 ? '' : 's'} shared · {s.metrics.content_types}
+					format{s.metrics.content_types === 1 ? '' : 's'} · active in {s.metrics.active_months}
+					month{s.metrics.active_months === 1 ? '' : 's'}.
 				</p>
 			</div>
 		</div>
-
-		<section class="block board">
-			<h2 class="k">The prize board</h2>
-			{#each data.rules as r (r.action)}
-				<div class="prize">
-					<span class="pts">+{r.points}</span>
-					<span class="for">{r.label}</span>
-					<span class="leader"></span>
-				</div>
-			{/each}
-		</section>
 
 		<section class="block">
 			<h2 class="k">Seals &amp; milestones</h2>
@@ -60,36 +49,6 @@
 					<BadgeMedal badge={b} />
 				{/each}
 			</div>
-		</section>
-
-		<section class="block history">
-			<h2 class="k">Activity history</h2>
-			{#if s.activity_logs.length}
-				<div class="table-wrap">
-					<table class="data">
-						<thead>
-							<tr><th>Date</th><th>Entry</th><th>Notes</th><th class="num">Points</th></tr>
-						</thead>
-						<tbody>
-							{#each s.activity_logs as log (log.id)}
-								<tr>
-									<td class="mut">{formatDate(log.created_at)}</td>
-									<td><b>{log.label}</b></td>
-									<td class="mut">{log.notes || '-'}</td>
-									<td class="num credit">+{log.points_awarded}</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{:else}
-				<div class="tolet">
-					<div class="tolet-head">No entries in the ledger yet</div>
-					<p>
-						<a href="/submit">Share a piece</a> or complete your <a href="/me">profile</a> to start earning.
-					</p>
-				</div>
-			{/if}
 		</section>
 	</div>
 </section>
@@ -168,8 +127,9 @@
 		font-size: 1.05rem;
 		font-weight: 700;
 		letter-spacing: 0.14em;
+		text-transform: uppercase;
 		vertical-align: 0.6em;
-		margin-left: 0.25rem;
+		margin-left: 0.45rem;
 	}
 	.serial {
 		font-size: 0.78rem;
@@ -189,9 +149,6 @@
 	.block {
 		margin-bottom: 2rem;
 	}
-	.board .prize {
-		max-width: 720px;
-	}
 	.k {
 		font-size: 0.8rem;
 		text-transform: uppercase;
@@ -206,36 +163,10 @@
 		flex: 1;
 		border-top: 3px double var(--rule);
 	}
-	.prize {
-		display: flex;
-		align-items: baseline;
-		gap: 0.6rem;
-		padding: 0.42rem 0;
-		border-bottom: 1px dotted var(--hairline);
-		font-size: 0.98rem;
-	}
-	.prize .pts {
-		font-weight: 700;
-		color: var(--ledger);
-		font-variant-numeric: tabular-nums;
-		min-width: 3rem;
-	}
 	.seals {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		column-gap: 2.5rem;
-	}
-	.history .num {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
-		white-space: nowrap;
-	}
-	.credit {
-		color: var(--ledger);
-		font-weight: 700;
-	}
-	.mut {
-		color: var(--muted);
 	}
 	@media (max-width: 860px) {
 		.seals {

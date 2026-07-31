@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { createSubmission } from '$lib/server/submissions.js';
 import { getWritingListing } from '$lib/server/writing.js';
-import { awardPoints } from '$lib/server/rewards.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 import { requireUser } from '$lib/server/guards.js';
 import { jsonError, readJson } from '$lib/server/respond.js';
 
@@ -29,13 +29,7 @@ export async function POST({ locals, request }) {
 		requireUser(locals);
 		const body = await readJson(request);
 		const submission = await createSubmission(locals.user.$id, body);
-		await awardPoints({
-			userId: locals.user.$id,
-			actionKey: 'submission',
-			sourceType: 'submission',
-			sourceId: submission.$id,
-			notes: submission.title
-		});
+		await recomputeBadges(locals.user.$id);
 		return json({ submission_id: submission.$id, status: submission.status }, { status: 201 });
 	} catch (err) {
 		return jsonError(err);

@@ -4,14 +4,12 @@ import {
 	getProfileById,
 	updateProfile,
 	getProfileByUserId,
-	isProfileComplete,
 	serializeProfile
 } from '$lib/server/profiles.js';
-import { awardPoints } from '$lib/server/rewards.js';
 import { requireUser } from '$lib/server/guards.js';
 import { jsonError, readJson } from '$lib/server/respond.js';
 
-// GET /api/members/{id} -> { profile, submissions, badges, points }
+// GET /api/members/{id} -> { profile, submissions, badges }
 export async function GET({ params, locals }) {
 	try {
 		const data = await getMemberPublicData(params.id, {
@@ -22,8 +20,7 @@ export async function GET({ params, locals }) {
 		return json({
 			profile: data.profile,
 			submissions: data.submissions,
-			badges: data.badges,
-			points: data.points
+			badges: data.badges
 		});
 	} catch (err) {
 		return jsonError(err);
@@ -42,16 +39,6 @@ export async function PATCH({ params, locals, request }) {
 		const body = await readJson(request);
 		await updateProfile(locals.user.$id, body);
 		const updated = await getProfileByUserId(locals.user.$id);
-
-		if (isProfileComplete(updated)) {
-			await awardPoints({
-				userId: locals.user.$id,
-				actionKey: 'profile_completion',
-				sourceType: 'profile',
-				sourceId: updated.$id,
-				notes: 'Completed profile'
-			});
-		}
 		return json({ profile: serializeProfile(updated) });
 	} catch (err) {
 		return jsonError(err);

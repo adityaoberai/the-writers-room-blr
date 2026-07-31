@@ -64,14 +64,14 @@
 				<span>submission{data.submissions.length === 1 ? '' : 's'} on file</span>
 			</div>
 			<a class="wm wm-link" href="/rewards">
-				<b>Rewards</b>
-				<span>view your prize ledger →</span>
+				<b>Seals</b>
+				<span>view your seal ledger →</span>
 			</a>
 		</div>
 
 		{#if !data.complete}
 			<Flash type="info">
-				Finish your profile to earn points.
+				Finish your profile so other writers can find you.
 				<button type="button" class="linklike" onclick={() => (showChecklist = true)}>
 					See what's needed →
 				</button>
@@ -137,7 +137,7 @@
 			</div>
 			<div class="pf-inner">
 				<p class="pf-intro">
-					A complete profile helps other writers get to know you and earns you points.
+					A complete profile helps other writers get to know you.
 				</p>
 				<ul class="checklist">
 					{#each criteria as c (c.label)}

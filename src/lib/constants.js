@@ -40,17 +40,7 @@ export const SUBMISSION_STATUSES = ['pending', 'approved', 'rejected', 'featured
 
 export const EVENT_SOURCES = ['luma', 'manual'];
 
-export const REWARD_ACTIONS = ['submission', 'profile_completion'];
-
-export const ACTIVITY_SOURCE_TYPES = ['submission', 'profile'];
-
-export const BADGE_CRITERIA = [
-	'points',
-	'submissions',
-	'featured',
-	'content_types',
-	'active_months'
-];
+export const BADGE_CRITERIA = ['submissions', 'featured', 'content_types', 'active_months'];
 
 export const FEEDBACK_CATEGORIES = ['bug', 'idea', 'question', 'other'];
 export const FEEDBACK_STATUSES = ['new', 'reviewed', 'resolved'];
@@ -73,11 +63,6 @@ export const CONTENT_TYPE_LABELS = {
 	research: 'Research',
 	book: 'Book',
 	other: 'Other'
-};
-
-export const REWARD_ACTION_LABELS = {
-	submission: 'Submitting writing',
-	profile_completion: 'Completing your profile'
 };
 
 /** A curated set of writing genres offered as suggestions during onboarding. */

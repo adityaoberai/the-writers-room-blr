@@ -3,7 +3,6 @@ import { countRows, listAllRows, Query } from './data.js';
 import { TABLES } from '$lib/constants.js';
 import { submissionCounts, listRecentSubmissions, serializeSubmission } from './submissions.js';
 import { listProfilesForModeration, getAuthorsForUserIds } from './profiles.js';
-import { getRewardRules } from './rewards.js';
 import { listAllFeedback, serializeFeedback } from './feedback.js';
 
 export async function getDashboardData() {
@@ -16,8 +15,6 @@ export async function getDashboardData() {
 		subCounts,
 		moderationProfiles,
 		recentSubs,
-		rules,
-		allLogs,
 		badgesEarned,
 		allUsers,
 		feedbackRows
@@ -30,8 +27,6 @@ export async function getDashboardData() {
 		submissionCounts(),
 		listProfilesForModeration(),
 		listRecentSubmissions(100),
-		getRewardRules(),
-		listAllRows(TABLES.activityLogs),
 		countRows(TABLES.userBadges),
 		listAllRows(TABLES.users),
 		listAllFeedback()
@@ -51,7 +46,6 @@ export async function getDashboardData() {
 		...recentSubs.map((s) => s.user_id),
 		...feedbackRows.map((f) => f.user_id)
 	]);
-	const totalPointsAwarded = allLogs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
 	const feedback = feedbackRows.map((f) =>
 		serializeFeedback(f, { author: authors[f.user_id] ?? null })
 	);
@@ -79,8 +73,6 @@ export async function getDashboardData() {
 			new: feedback.filter((f) => f.status === 'new').length
 		},
 		rewardStats: {
-			rules,
-			total_points_awarded: totalPointsAwarded,
 			badges_awarded: badgesEarned
 		}
 	};

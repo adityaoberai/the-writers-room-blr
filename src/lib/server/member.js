@@ -2,7 +2,7 @@
 import { getProfileById, serializeProfile, getAuthorsForUserIds } from './profiles.js';
 import { listPublicSubmissionsByUser, serializeSubmission } from './submissions.js';
 import { withSubmissionPreviewImages } from './link-preview.js';
-import { getPublicRewards } from './rewards.js';
+import { getEarnedBadges } from './rewards.js';
 import { getAppUser } from './users.js';
 
 /**
@@ -20,9 +20,9 @@ export async function getMemberPublicData(profileId, { viewerId = null, isAdmin 
 	if (!visible)
 		return { found: true, visible: false, profile: { display_name: profile.display_name } };
 
-	const [subs, rewards, appUser] = await Promise.all([
+	const [subs, badges, appUser] = await Promise.all([
 		listPublicSubmissionsByUser(profile.user_id),
-		getPublicRewards(profile.user_id),
+		getEarnedBadges(profile.user_id),
 		getAppUser(profile.user_id)
 	]);
 	const authors = await getAuthorsForUserIds([profile.user_id]);
@@ -40,7 +40,6 @@ export async function getMemberPublicData(profileId, { viewerId = null, isAdmin 
 			role: appUser?.role === 'admin' ? 'Organizer' : 'Member'
 		},
 		submissions,
-		badges: rewards.badges,
-		points: rewards.total_points
+		badges
 	};
 }
