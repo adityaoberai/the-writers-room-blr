@@ -4,16 +4,16 @@
 	const pct = $derived(Math.round((badge.progress ?? (earned ? 1 : 0)) * 100));
 	const name = $derived((badge.name ?? '').toUpperCase());
 	// The name sets along the top arc; long names take a smaller cut of type.
-	const nameSize = $derived(
-		Math.min(10.5, Math.max(6.5, Math.round(132 / Math.max(1, name.length))))
-	);
+	// The arc runs past the horizontal on both sides (~220°), so the type can
+	// sit a point or two larger and still clear the rings.
+	const nameSize = $derived(Math.min(11, Math.max(7, Math.floor(160 / Math.max(1, name.length)))));
 	const year = $derived(badge.earned_at ? new Date(badge.earned_at).getFullYear() : '');
 </script>
 
 {#snippet seal()}
 	<svg class="sealsvg" class:earned viewBox="0 0 100 100" role="img" aria-label={badge.name}>
 		<defs>
-			<path id={`seal-top-${badge.id}`} d="M 16 50 A 34 34 0 0 1 84 50" />
+			<path id={`seal-top-${badge.id}`} d="M 18.1 61.6 A 34 34 0 1 1 81.9 61.6" />
 			<path id={`seal-bot-${badge.id}`} d="M 16 50 A 34 34 0 0 0 84 50" />
 		</defs>
 		<circle class="ring outer" cx="50" cy="50" r="48" />
@@ -109,7 +109,7 @@
 	}
 	.arcname {
 		font-weight: 700;
-		letter-spacing: 0.12em;
+		letter-spacing: 0.1em;
 	}
 	.arcorg {
 		font-size: 5.6px;

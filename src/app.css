@@ -328,6 +328,19 @@ small {
 	font-size: 0.85rem;
 	white-space: nowrap;
 }
+/* Narrow paper: the link keeps its seat on the heading line; a long heading
+   wraps its own words rather than pushing the link below the rule. */
+@media (max-width: 640px) {
+	.sechead-left {
+		flex-wrap: nowrap;
+	}
+	.sechead-left > h2 {
+		min-width: 0;
+	}
+	.sechead-left .more {
+		flex-shrink: 0;
+	}
+}
 
 /* Rules */
 .rule-hair {
