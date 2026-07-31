@@ -476,9 +476,11 @@ async function seedData() {
 
 	const settings = [
 		{ key: 'hero_title', value: "Where Bengaluru's writers gather." },
-		// The masthead tagline already says what the room is; the hero runs without
-		// a subtitle unless one is set from the dashboard.
-		{ key: 'hero_subtitle', value: '' },
+		{
+			key: 'hero_subtitle',
+			value:
+				'For the novel in your drawer, the newsletter you keep postponing, the essay that needs one more pass.'
+		},
 		{
 			key: 'mission',
 			value:
