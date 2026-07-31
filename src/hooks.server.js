@@ -8,7 +8,7 @@ import { SESSION_COOKIE } from '$lib/server/appwrite.js';
 import { resolveSession } from '$lib/server/auth.js';
 import { authUserIsAdmin, getAppUser } from '$lib/server/users.js';
 
-const MEMBER_PREFIXES = ['/onboarding', '/me', '/submit', '/rewards', '/account'];
+const MEMBER_PREFIXES = ['/onboarding', '/me', '/submit', '/rewards', '/account', '/feedback'];
 const ADMIN_PREFIX = '/admin';
 
 async function loadSession(event) {

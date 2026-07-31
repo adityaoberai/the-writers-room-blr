@@ -4,6 +4,7 @@ import { TABLES } from '$lib/constants.js';
 import { submissionCounts, listRecentSubmissions, serializeSubmission } from './submissions.js';
 import { listProfilesForModeration, getAuthorsForUserIds } from './profiles.js';
 import { getRewardRules } from './rewards.js';
+import { listAllFeedback, serializeFeedback } from './feedback.js';
 
 export async function getDashboardData() {
 	const [
@@ -18,7 +19,8 @@ export async function getDashboardData() {
 		rules,
 		allLogs,
 		badgesEarned,
-		allUsers
+		allUsers,
+		feedbackRows
 	] = await Promise.all([
 		countRows(TABLES.users),
 		countRows(TABLES.users, [Query.equal('status', 'active')]),
@@ -31,7 +33,8 @@ export async function getDashboardData() {
 		getRewardRules(),
 		listAllRows(TABLES.activityLogs),
 		countRows(TABLES.userBadges),
-		listAllRows(TABLES.users)
+		listAllRows(TABLES.users),
+		listAllFeedback()
 	]);
 
 	// Admin authority is derived from the Auth `admin` label; the `users.role`
@@ -44,8 +47,14 @@ export async function getDashboardData() {
 	const listedCount = members.filter((m) => m.profile.is_public && m.listed).length;
 	const unlistedCount = members.filter((m) => !m.listed).length;
 
-	const authors = await getAuthorsForUserIds(recentSubs.map((s) => s.user_id));
+	const authors = await getAuthorsForUserIds([
+		...recentSubs.map((s) => s.user_id),
+		...feedbackRows.map((f) => f.user_id)
+	]);
 	const totalPointsAwarded = allLogs.reduce((s, l) => s + (l.points_awarded ?? 0), 0);
+	const feedback = feedbackRows.map((f) =>
+		serializeFeedback(f, { author: authors[f.user_id] ?? null })
+	);
 
 	return {
 		memberCounts: {
@@ -62,7 +71,12 @@ export async function getDashboardData() {
 			unlisted: unlistedCount,
 			submissions: recentSubs.map((s) =>
 				serializeSubmission(s, { author: authors[s.user_id] ?? null })
-			)
+			),
+			feedback
+		},
+		feedbackCounts: {
+			total: feedback.length,
+			new: feedback.filter((f) => f.status === 'new').length
 		},
 		rewardStats: {
 			rules,

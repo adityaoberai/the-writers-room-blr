@@ -7,6 +7,7 @@
 export const DATABASE_ID = 'main';
 export const PHOTO_BUCKET_ID = 'profile_photos';
 export const SUBMISSION_IMAGE_BUCKET_ID = 'submission_images';
+export const FEEDBACK_BUCKET_ID = 'feedback_uploads';
 
 export const TABLES = {
 	users: 'users',
@@ -18,7 +19,8 @@ export const TABLES = {
 	activityLogs: 'activity_logs',
 	badges: 'badges',
 	userBadges: 'user_badges',
-	siteSettings: 'site_settings'
+	siteSettings: 'site_settings',
+	feedback: 'feedback'
 };
 
 export const ROLES = ['member', 'admin'];
@@ -49,6 +51,17 @@ export const REWARD_ACTIONS = [
 export const ACTIVITY_SOURCE_TYPES = ['event', 'submission', 'profile', 'referral', 'prompt'];
 
 export const BADGE_CRITERIA = ['points', 'submissions', 'attendance', 'profile_completion'];
+
+export const FEEDBACK_CATEGORIES = ['bug', 'idea', 'question', 'other'];
+export const FEEDBACK_STATUSES = ['new', 'reviewed', 'resolved'];
+
+/** Plain-language labels so non-technical members recognise their situation. */
+export const FEEDBACK_CATEGORY_LABELS = {
+	bug: 'Something looks broken',
+	idea: 'An idea or suggestion',
+	question: 'A question',
+	other: 'Something else'
+};
 
 /** Human-friendly labels for content types, reused across the UI. */
 export const CONTENT_TYPE_LABELS = {

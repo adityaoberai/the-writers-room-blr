@@ -13,6 +13,7 @@ import {
 	DATABASE_ID,
 	PHOTO_BUCKET_ID,
 	SUBMISSION_IMAGE_BUCKET_ID,
+	FEEDBACK_BUCKET_ID,
 	TABLES,
 	ROLES,
 	USER_STATUSES,
@@ -21,7 +22,9 @@ import {
 	EVENT_SOURCES,
 	REWARD_ACTIONS,
 	ACTIVITY_SOURCE_TYPES,
-	BADGE_CRITERIA
+	BADGE_CRITERIA,
+	FEEDBACK_CATEGORIES,
+	FEEDBACK_STATUSES
 } from '../src/lib/constants.js';
 
 const endpoint = process.env.APPWRITE_ENDPOINT;
@@ -208,6 +211,25 @@ const SCHEMA = [
 			{ key: 'value', type: 'mediumtext' }
 		],
 		indexes: [{ key: 'idx_key', type: 'unique', columns: ['key'] }]
+	},
+	{
+		id: TABLES.feedback,
+		name: 'Feedback',
+		columns: [
+			{ key: 'user_id', type: 'varchar', size: 64, required: true },
+			{ key: 'email', type: 'email' },
+			{ key: 'category', type: 'enum', elements: FEEDBACK_CATEGORIES, default: 'other' },
+			{ key: 'message', type: 'text', required: true },
+			{ key: 'page', type: 'varchar', size: 256 },
+			{ key: 'attachment_url', type: 'varchar', size: 2048 },
+			{ key: 'status', type: 'enum', elements: FEEDBACK_STATUSES, default: 'new' },
+			{ key: 'reviewed_by', type: 'varchar', size: 64 },
+			{ key: 'reviewed_at', type: 'datetime' }
+		],
+		indexes: [
+			{ key: 'idx_user', type: 'key', columns: ['user_id'] },
+			{ key: 'idx_status', type: 'key', columns: ['status'] }
+		]
 	}
 ];
 
@@ -341,7 +363,8 @@ async function provisionDatabase() {
 
 const BUCKETS = [
 	{ id: PHOTO_BUCKET_ID, name: 'Profile Photos' },
-	{ id: SUBMISSION_IMAGE_BUCKET_ID, name: 'Submission Images' }
+	{ id: SUBMISSION_IMAGE_BUCKET_ID, name: 'Submission Images' },
+	{ id: FEEDBACK_BUCKET_ID, name: 'Feedback Uploads' }
 ];
 
 async function provisionBuckets() {

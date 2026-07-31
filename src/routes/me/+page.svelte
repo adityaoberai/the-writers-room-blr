@@ -53,6 +53,7 @@
 				<a class="btn btn-secondary btn-sm" href={`/members/${data.profile.id}`}
 					>View public profile</a
 				>
+				<a class="btn btn-secondary btn-sm" href="/feedback">Share feedback</a>
 				<a class="btn btn-primary btn-sm" href="/submit">Submit writing</a>
 			</div>
 		</header>

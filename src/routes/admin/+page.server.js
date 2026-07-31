@@ -11,6 +11,7 @@ import {
 } from '$lib/server/submissions.js';
 import { getAuthorsForUserIds } from '$lib/server/profiles.js';
 import { upsertRewardRule } from '$lib/server/rewards.js';
+import { setFeedbackStatus } from '$lib/server/feedback.js';
 import {
 	listAllEvents,
 	serializeEvent,
@@ -114,6 +115,20 @@ export const actions = {
 				adminId: locals.user.$id
 			});
 			return ok('Featured writing updated.');
+		} catch (err) {
+			return fail(400, { error: err.message });
+		}
+	},
+
+	setFeedbackStatus: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const fd = await request.formData();
+		try {
+			await setFeedbackStatus(String(fd.get('id')), {
+				status: String(fd.get('status')),
+				adminId: locals.user.$id
+			});
+			return ok('Feedback updated.');
 		} catch (err) {
 			return fail(400, { error: err.message });
 		}
