@@ -98,17 +98,6 @@ const SCHEMA = [
 		]
 	},
 	{
-		id: TABLES.directory,
-		name: 'Member Directory Entries',
-		columns: [
-			{ key: 'profile_id', type: 'varchar', size: 64, required: true },
-			{ key: 'approved_by', type: 'varchar', size: 64 },
-			{ key: 'approved_at', type: 'datetime' },
-			{ key: 'directory_tags', type: 'varchar', size: 64, array: true }
-		],
-		indexes: [{ key: 'idx_profile', type: 'unique', columns: ['profile_id'] }]
-	},
-	{
 		id: TABLES.submissions,
 		name: 'Writing Submissions',
 		columns: [

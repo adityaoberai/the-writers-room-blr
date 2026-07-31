@@ -12,7 +12,6 @@ export const FEEDBACK_BUCKET_ID = 'feedback_uploads';
 export const TABLES = {
 	users: 'users',
 	profiles: 'profiles',
-	directory: 'member_directory_entries',
 	submissions: 'writing_submissions',
 	events: 'events',
 	rewardsRules: 'rewards_rules',

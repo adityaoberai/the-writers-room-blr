@@ -130,9 +130,9 @@ section hides itself when the folder has no images.
 ## Data model
 
 Appwrite TablesDB database `main` with tables: `users`, `profiles`,
-`member_directory_entries`, `writing_submissions`, `events`, `rewards_rules`,
-`activity_logs`, `badges`, `user_badges`, `site_settings`. Profile photos live in the
-`profile_photos` storage bucket.
+`writing_submissions`, `events`, `rewards_rules`, `activity_logs`, `badges`,
+`user_badges`, `feedback`, `site_settings`. Profile photos live in the `profile_photos`
+storage bucket.
 
 ## Product decisions
 
