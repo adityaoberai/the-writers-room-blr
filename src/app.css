@@ -312,7 +312,9 @@ small {
 .sechead-left {
 	display: flex;
 	align-items: baseline;
-	gap: 1rem;
+	/* Tight row gap: a link that wraps below a long heading tucks under it
+	   instead of floating a full gap away. */
+	gap: 0.2rem 1rem;
 	border-top: 3px solid var(--rule);
 	padding-top: 0.45rem;
 	margin: 0 0 1.1rem;
@@ -325,6 +327,19 @@ small {
 	margin-left: auto;
 	font-size: 0.85rem;
 	white-space: nowrap;
+}
+/* Narrow paper: the link keeps its seat on the heading line; a long heading
+   wraps its own words rather than pushing the link below the rule. */
+@media (max-width: 640px) {
+	.sechead-left {
+		flex-wrap: nowrap;
+	}
+	.sechead-left > h2 {
+		min-width: 0;
+	}
+	.sechead-left .more {
+		flex-shrink: 0;
+	}
 }
 
 /* Rules */

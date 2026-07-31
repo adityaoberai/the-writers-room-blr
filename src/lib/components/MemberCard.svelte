@@ -8,8 +8,6 @@
 	<span class="line1">
 		<span class="nm">{member.display_name}</span>
 		{#if member.is_featured}<span class="star" title="Featured member">★</span>{/if}
-		<span class="leader"></span>
-		<span class="loc">{member.location || 'Bengaluru'}</span>
 	</span>
 	{#if genres.length}
 		<span class="line2">{genres.join(' · ')}{extra ? ` · +${extra}` : ''}</span>
@@ -61,13 +59,6 @@
 	}
 	.star {
 		font-size: 0.8rem;
-	}
-	.loc {
-		font-variant: small-caps;
-		letter-spacing: 0.04em;
-		color: var(--muted);
-		font-size: 0.9rem;
-		white-space: nowrap;
 	}
 	.line2 {
 		display: block;

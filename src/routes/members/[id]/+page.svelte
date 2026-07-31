@@ -28,7 +28,6 @@
 				</figure>
 				<div class="who">
 					<h1>{m.display_name}</h1>
-					<div class="loc">{m.location || 'Bengaluru'}</div>
 					{#if m.genres?.length}
 						<ul class="tag-list">
 							{#each m.genres as g (g)}<li class="chip">{g}</li>{/each}
@@ -75,6 +74,24 @@
 				</div>
 			</div>
 
+			<div class="writing">
+				<p class="k">Writing file</p>
+				{#if data.submissions.length}
+					{#each data.submissions as s (s.id)}
+						<a class="piece" href={`/writing/${s.id}`}>
+							<b>{s.title}</b>
+							<span class="pmeta">
+								<span class="ty">{s.content_type_label ?? s.content_type}</span>
+								<span class="leader"></span>
+								<span class="dt">{formatDate(s.created_at)}</span>
+							</span>
+						</a>
+					{/each}
+				{:else}
+					<p class="none">No published writing yet - the presses await.</p>
+				{/if}
+			</div>
+
 			{#if data.badges.length}
 				<div class="sealsec">
 					<p class="k">Seals earned</p>
@@ -85,22 +102,6 @@
 					</div>
 				</div>
 			{/if}
-
-			<div class="writing">
-				<p class="k">Writing file</p>
-				{#if data.submissions.length}
-					{#each data.submissions as s (s.id)}
-						<a class="piece" href={`/writing/${s.id}`}>
-							<b>{s.title}</b>
-							<span class="ty">{s.content_type_label ?? s.content_type}</span>
-							<span class="leader"></span>
-							<span class="dt">{formatDate(s.created_at)}</span>
-						</a>
-					{/each}
-				{:else}
-					<p class="none">No published writing yet - the presses await.</p>
-				{/if}
-			</div>
 		</div>
 	</div>
 </section>
@@ -131,12 +132,6 @@
 	.who h1 {
 		margin: 0 0 0.15rem;
 		font-size: 2rem;
-	}
-	.loc {
-		font-variant: small-caps;
-		letter-spacing: 0.04em;
-		color: var(--muted);
-		margin-bottom: 0.5rem;
 	}
 	.side {
 		display: flex;
@@ -205,19 +200,36 @@
 		align-items: center;
 		gap: 0.9rem 1.8rem;
 	}
+	/* Pressed a size up on the record so the lettering reads. */
+	.seals :global(.sealsvg) {
+		width: 104px;
+		height: 104px;
+	}
 	.writing {
 		border-top: 1px solid var(--rule);
 		padding: 1rem 1.3rem 1.2rem;
 	}
 	.piece {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		padding: 0.42rem 0;
+		display: block;
+		padding: 0.5rem 0 0.55rem;
 		border-bottom: 1px dotted var(--hairline);
 		font-size: 0.95rem;
 		color: inherit;
 		text-decoration: none;
+	}
+	/* Titles run at most two lines before the ellipsis steps in. */
+	.piece b {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		overflow: hidden;
+	}
+	.pmeta {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		margin-top: 0.2rem;
 	}
 	.piece:hover b {
 		color: var(--cta);

@@ -479,7 +479,7 @@ async function seedData() {
 		{
 			key: 'hero_subtitle',
 			value:
-				'A writing community to create, connect, and grow together, one quiet, phones-down session at a time.'
+				'For the novel in your drawer, the newsletter you keep postponing, the essay that needs one more pass.'
 		},
 		{
 			key: 'mission',

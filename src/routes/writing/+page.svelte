@@ -154,11 +154,17 @@
 								{#each ch.list as s (s.id)}
 									<li>
 										<a class="ixrow" href={`/writing/${s.id}`}>
-											<span class="t">{s.title}</span>
-											{#if s.status === 'featured'}<span class="star" title="Featured">★</span>{/if}
-											{#if s.author}<span class="by">{s.author.display_name ?? s.author}</span>{/if}
-											<span class="leader"></span>
-											<span class="dt">{formatDate(s.created_at)}</span>
+											<span class="tline">
+												<span class="t">{s.title}</span>
+												{#if s.status === 'featured'}<span class="star" title="Featured">★</span
+													>{/if}
+											</span>
+											<span class="meta">
+												{#if s.author}<span class="by">{s.author.display_name ?? s.author}</span
+													>{/if}
+												<span class="leader"></span>
+												<span class="dt">{formatDate(s.created_at)}</span>
+											</span>
 										</a>
 										{#if s.summary}<p class="sum">{s.summary}</p>{/if}
 									</li>
@@ -293,6 +299,19 @@
 		color: inherit;
 		text-decoration: none;
 	}
+	.tline {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+	/* Never shrinks below its content, so the title column absorbs tight fits. */
+	.meta {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		flex: 1 0 auto;
+	}
 	.ix li:hover .t {
 		color: var(--cta);
 		text-decoration: underline;
@@ -343,6 +362,27 @@
 	@media (max-width: 760px) {
 		.folio-mid {
 			display: none;
+		}
+		/* Entries stack: title (up to two lines), then author dotted to date,
+		   then the summary line. */
+		.ixrow {
+			flex-wrap: wrap;
+			row-gap: 0.15rem;
+		}
+		.tline,
+		.meta {
+			flex-basis: 100%;
+		}
+		.t {
+			white-space: normal;
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			-webkit-line-clamp: 2;
+			line-clamp: 2;
+			overflow: hidden;
+		}
+		.by {
+			max-width: none;
 		}
 	}
 </style>
