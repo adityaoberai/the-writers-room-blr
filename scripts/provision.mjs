@@ -405,9 +405,9 @@ async function syncEnumColumns() {
 /**
  * Remove seeds from earlier versions that no longer apply. Points were
  * retired entirely (seals now track progression directly), which removes
- * the reward rules and every points-threshold badge; earlier rounds retired
- * the attendance/referral/prompt rules and their badges. The activity_logs
- * table is left untouched as a historical record.
+ * the reward rules and the remaining points-threshold badges. Newcomer is
+ * now earned directly through profile completion. The activity_logs table
+ * is left untouched as a historical record.
  */
 async function cleanupLegacySeeds() {
 	console.log('Removing retired reward rules and badges');
@@ -423,7 +423,6 @@ async function cleanupLegacySeeds() {
 	const retiredBadges = [
 		'badge_regular_attendee',
 		'badge_profile_complete',
-		'badge_newcomer',
 		'badge_regular',
 		'badge_pillar'
 	];
@@ -451,6 +450,14 @@ async function seedData() {
 	console.log('Seeding badges and site copy');
 
 	const badges = [
+		{
+			id: 'newcomer',
+			name: 'Newcomer',
+			icon: 'seedling',
+			criteria_type: 'profile_completion',
+			criteria_value: 1,
+			description: 'Completed your member profile.'
+		},
 		{
 			id: 'first_words',
 			name: 'First Words',
@@ -625,26 +632,39 @@ async function backfillSearchText() {
 	console.log(`  ✓ backfilled search_text on ${backfilled} submission(s)`);
 }
 
+/** Mirror of the app's isProfileComplete. */
+function profileComplete(profile) {
+	if (!profile) return false;
+	return (
+		!!profile.display_name &&
+		(profile.bio ?? '').trim().length > 0 &&
+		(profile.genres ?? []).length >= 1
+	);
+}
+
 /**
- * Recompute seals for every member from their submissions, mirroring the
- * app's recomputeBadges. The app only grants at the moment a submission or
- * moderation event fires, so seals introduced by new badge definitions (or
- * by moderation that happened before the app deploy) need this catch-up.
+ * Recompute seals for every member from their profile and submissions,
+ * mirroring the app's recomputeBadges. The app grants when a profile or
+ * submission changes, so newly introduced seals and interrupted writes need
+ * this catch-up pass.
  */
 async function backfillAwards() {
 	console.log('Backfilling seals');
 	const badges = (await scanAll(TABLES.badges)).filter((b) => b.is_active);
 	const earned = await scanAll(TABLES.userBadges);
 	const subs = await scanAll(TABLES.submissions);
+	const profiles = await scanAll(TABLES.profiles);
 
 	const earnedSet = new Set(earned.map((r) => `${r.user_id}:${r.badge_id}`));
-	const users = new Set(subs.map((s) => s.user_id));
+	const profileByUser = new Map(profiles.map((p) => [p.user_id, p]));
+	const users = new Set([...subs.map((s) => s.user_id), ...profiles.map((p) => p.user_id)]);
 
 	let granted = 0;
 	for (const userId of users) {
 		const mine = subs.filter((s) => s.user_id === userId);
 		const visible = mine.filter((s) => s.status !== 'rejected');
 		const metrics = {
+			profile_completion: profileComplete(profileByUser.get(userId)) ? 1 : 0,
 			submissions: visible.length,
 			featured: mine.filter((s) => s.status === 'featured').length,
 			content_types: new Set(visible.map((s) => s.content_type).filter(Boolean)).size,
