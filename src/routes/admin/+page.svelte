@@ -34,6 +34,20 @@
 		reviewed: 'pill-gray',
 		resolved: 'pill-green'
 	};
+
+	const blankBenefit = () => ({ title: '', body: '', icon: 'pen' });
+
+	// The benefits ledger is edited as a whole list, so rows live in local state
+	// while the admin adds and removes them. `synced` re-seeds that state from the
+	// server whenever a save (or any other action) sends a fresh copy.
+	let synced = data.benefits;
+	let benefitRows = $state(data.benefits.map((b) => ({ ...blankBenefit(), ...b })));
+	$effect(() => {
+		if (data.benefits !== synced) {
+			synced = data.benefits;
+			benefitRows = data.benefits.map((b) => ({ ...blankBenefit(), ...b }));
+		}
+	});
 </script>
 
 <Seo
@@ -401,6 +415,42 @@
 					</form>
 				{/each}
 			</div>
+
+			<h3 class="benefits-head">Benefits</h3>
+			<p class="muted">
+				The ledger of what the room is and how it runs, shown on the homepage in this order.
+			</p>
+			<form method="POST" action="?/saveBenefits" use:enhance class="card stack">
+				{#each benefitRows as row, i (i)}
+					<div class="benefit">
+						<input type="hidden" name="icon" value={row.icon} />
+						<div class="field">
+							<label for={`b-title-${i}`}>Title</label>
+							<input id={`b-title-${i}`} name="title" type="text" bind:value={row.title} />
+						</div>
+						<div class="field">
+							<label for={`b-body-${i}`}>Body</label>
+							<textarea id={`b-body-${i}`} name="body" rows="2" bind:value={row.body}></textarea>
+						</div>
+						<button
+							class="btn btn-danger btn-sm"
+							type="button"
+							onclick={() => benefitRows.splice(i, 1)}>Remove</button
+						>
+					</div>
+				{/each}
+				{#if !benefitRows.length}
+					<p class="muted">No benefits yet.</p>
+				{/if}
+				<div class="btns">
+					<button
+						class="btn btn-secondary btn-sm"
+						type="button"
+						onclick={() => benefitRows.push(blankBenefit())}>Add benefit</button
+					>
+					<button class="btn btn-primary btn-sm" type="submit">Save benefits</button>
+				</div>
+			</form>
 		{/if}
 
 		<!-- EVENTS -->
@@ -673,6 +723,20 @@
 	}
 	.setting button {
 		margin-top: 0.6rem;
+	}
+	.benefits-head {
+		margin-top: 2rem;
+	}
+	.benefit {
+		border-top: 1px solid var(--border);
+		padding-top: 1rem;
+	}
+	.benefit:first-child {
+		border-top: none;
+		padding-top: 0;
+	}
+	.benefit .field:last-of-type {
+		margin-bottom: 0.6rem;
 	}
 	.event-list {
 		list-style: none;
