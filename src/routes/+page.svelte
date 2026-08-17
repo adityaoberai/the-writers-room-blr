@@ -240,9 +240,30 @@
 		flex: 1 1 14rem;
 	}
 	@media (max-width: 600px) {
-		/* In the stacked layout the 14rem basis would become a row height. */
+		/* Keep the mobile ledger compact without losing any of its four promises. */
+		.feature {
+			padding-block: 1.5rem;
+		}
+		.deck {
+			margin-bottom: 1.15rem;
+		}
+		.feature-art {
+			margin-bottom: 1rem;
+		}
 		.featmarks .wm {
 			flex-basis: auto;
+			padding: 0.6rem 1rem;
+		}
+		.featmarks .wm + .wm {
+			border-top-color: color-mix(in srgb, var(--hairline) 75%, transparent);
+		}
+		.featmarks .wm b {
+			font-size: 1.08rem;
+		}
+		.featmarks .wm span {
+			font-size: 0.82rem;
+			line-height: 1.4;
+			margin-top: 0.1rem;
 		}
 	}
 
