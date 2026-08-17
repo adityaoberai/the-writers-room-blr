@@ -7,6 +7,7 @@ import {
 	serializeProfile
 } from '$lib/server/profiles.js';
 import { requireUser } from '$lib/server/guards.js';
+import { recomputeBadges } from '$lib/server/rewards.js';
 import { jsonError, readJson } from '$lib/server/respond.js';
 
 // GET /api/members/{id} -> { profile, submissions, badges }
@@ -39,6 +40,7 @@ export async function PATCH({ params, locals, request }) {
 		const body = await readJson(request);
 		await updateProfile(locals.user.$id, body);
 		const updated = await getProfileByUserId(locals.user.$id);
+		await recomputeBadges(locals.user.$id);
 		return json({ profile: serializeProfile(updated) });
 	} catch (err) {
 		return jsonError(err);

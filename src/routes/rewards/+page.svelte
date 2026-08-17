@@ -34,7 +34,7 @@
 				<div class="big">{earnedCount}<small>of {s.badges.length} seals</small></div>
 				<div class="serial">Ticket No. {serial}</div>
 				<p class="fine">
-					Seals press themselves as you share work - {s.metrics.submissions}
+					Seals press themselves as you complete your profile and share work - {s.metrics.submissions}
 					piece{s.metrics.submissions === 1 ? '' : 's'} shared · {s.metrics.content_types}
 					format{s.metrics.content_types === 1 ? '' : 's'} · active in {s.metrics.active_months}
 					month{s.metrics.active_months === 1 ? '' : 's'}.

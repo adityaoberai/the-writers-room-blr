@@ -4,7 +4,7 @@ _A focused writing community for Bengaluru writers to create, connect, and grow 
 
 A community website where writers discover the meetup, sign up with a passwordless
 email code, build a public profile, browse a member directory, submit writing, and
-earn points and badges for taking part. Admins get a full management dashboard for
+earn progression seals for taking part. Admins get a full management dashboard for
 members, submissions, rewards, events and site content. Upcoming and past meetups
 are managed in the dashboard and shown from the events table.
 
@@ -140,9 +140,9 @@ storage bucket.
   directory once the member has shared at least one (non-rejected) submission. Admins
   can also approve a profile to list it, and feature members/pieces.
 - **Submissions:** support both on-site full text and external links.
-- **Rewards:** progression seals only, no points and no redemption. Seals unlock
-  at milestones computed from a member's submissions: pieces shared, getting
-  featured, writing across formats, and sharing in multiple months. Earned seals
+- **Rewards:** progression seals only, no points and no redemption. Newcomers earn
+  their first seal by completing their profile; further seals track pieces shared,
+  getting featured, writing across formats, and sharing in multiple months. Earned seals
   are never revoked. Event attendance, referrals and prompts are
   not rewarded because the site takes no event registrations and has no referral
   or prompt mechanics.
