@@ -167,9 +167,6 @@
 {/if}
 
 <style>
-	.fold-wrap {
-		border-bottom: 3px solid var(--rule);
-	}
 	.fold {
 		display: grid;
 		/* minmax(0, …) so the aside's 440px plate can't blow the track out
