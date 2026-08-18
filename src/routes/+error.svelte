@@ -22,7 +22,6 @@
 			</p>
 			<div class="actions">
 				<a class="btn btn-primary" href="/">Back to the front page</a>
-				<a class="btn btn-secondary" href="/directory">Browse the directory</a>
 			</div>
 		</div>
 	</div>

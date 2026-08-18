@@ -124,8 +124,8 @@
 	<section class="section" use:reveal>
 		<div class="container">
 			<div class="sechead-left">
-				<h2>Featured members</h2>
-				<a class="more" href="/directory">Browse the directory →</a>
+				<h2>Featured writers</h2>
+				<a class="more" href="/directory">View directory →</a>
 			</div>
 			<div class="people">
 				{#each featuredMembers as m (m.profile_id)}
@@ -167,9 +167,6 @@
 {/if}
 
 <style>
-	.fold-wrap {
-		border-bottom: 3px solid var(--rule);
-	}
 	.fold {
 		display: grid;
 		/* minmax(0, …) so the aside's 440px plate can't blow the track out
@@ -240,9 +237,30 @@
 		flex: 1 1 14rem;
 	}
 	@media (max-width: 600px) {
-		/* In the stacked layout the 14rem basis would become a row height. */
+		/* Keep the mobile ledger compact without losing any of its four promises. */
+		.feature {
+			padding-block: 1.5rem;
+		}
+		.deck {
+			margin-bottom: 1.15rem;
+		}
+		.feature-art {
+			margin-bottom: 1rem;
+		}
 		.featmarks .wm {
 			flex-basis: auto;
+			padding: 0.6rem 1rem;
+		}
+		.featmarks .wm + .wm {
+			border-top-color: color-mix(in srgb, var(--hairline) 75%, transparent);
+		}
+		.featmarks .wm b {
+			font-size: 1.08rem;
+		}
+		.featmarks .wm span {
+			font-size: 0.82rem;
+			line-height: 1.4;
+			margin-top: 0.1rem;
 		}
 	}
 

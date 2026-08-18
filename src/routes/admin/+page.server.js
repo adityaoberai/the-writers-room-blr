@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { requireAdmin } from '$lib/server/guards.js';
 import { getDashboardData } from '$lib/server/admin.js';
-import { getAllSettings, setSetting } from '$lib/server/settings.js';
+import { getAllSettings, setSetting, parseJson } from '$lib/server/settings.js';
 import { setProfileListed, setFeatured } from '$lib/server/profiles.js';
 import { setUserAdmin } from '$lib/server/users.js';
 import {
@@ -41,6 +41,7 @@ export async function load({ locals }) {
 		dashboard,
 		settings,
 		editableSettings: EDITABLE_SETTINGS,
+		benefits: parseJson(settings.benefits, []),
 		currentUserId: locals.user.$id,
 		events: events.map(serializeEvent),
 		approvedSubmissions: approved.map((s) =>
@@ -142,6 +143,39 @@ export const actions = {
 		try {
 			await setSetting(String(fd.get('key')), String(fd.get('value') ?? ''));
 			return ok('Site content updated.');
+		} catch (err) {
+			return fail(400, { error: err.message });
+		}
+	},
+
+	// The whole benefits ledger is saved in one go: the form posts one `title`,
+	// `body` and `icon` field per row, in display order.
+	saveBenefits: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const fd = await request.formData();
+		const bodies = fd.getAll('body');
+		const icons = fd.getAll('icon');
+		const benefits = fd
+			.getAll('title')
+			.map((title, i) => ({
+				title: String(title).trim(),
+				body: String(bodies[i] ?? '').trim(),
+				icon: String(icons[i] ?? '').trim() || 'pen'
+			}))
+			.filter((b) => b.title || b.body);
+
+		if (benefits.some((b) => !b.title)) {
+			return fail(400, { error: 'Every benefit needs a title.' });
+		}
+		// The homepage keys its ledger by title, so duplicates would break rendering.
+		const titles = new Set(benefits.map((b) => b.title.toLowerCase()));
+		if (titles.size !== benefits.length) {
+			return fail(400, { error: 'Benefit titles must be unique.' });
+		}
+
+		try {
+			await setSetting('benefits', JSON.stringify(benefits));
+			return ok('Benefits updated.');
 		} catch (err) {
 			return fail(400, { error: err.message });
 		}
