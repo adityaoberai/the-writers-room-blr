@@ -189,6 +189,15 @@
 		color: var(--muted);
 		font-style: italic;
 	}
+	/* On a phone the closing lines stack instead of reaching for opposite
+	   margins, so the colophon ends on a centred block, not a ragged row. */
+	@media (max-width: 560px) {
+		.footer-bottom {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+	}
 	@media (max-width: 720px) {
 		.footer-grid {
 			grid-template-columns: 1fr 1fr;

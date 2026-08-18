@@ -124,8 +124,8 @@
 	<section class="section" use:reveal>
 		<div class="container">
 			<div class="sechead-left">
-				<h2>Featured members</h2>
-				<a class="more" href="/directory">Browse the directory →</a>
+				<h2>Featured writers</h2>
+				<a class="more" href="/directory">View directory →</a>
 			</div>
 			<div class="people">
 				{#each featuredMembers as m (m.profile_id)}
