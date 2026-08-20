@@ -2,19 +2,20 @@
 	import Seo from '$lib/components/Seo.svelte';
 	import { develop } from '$lib/actions/develop.js';
 	import { formatDate } from '$lib/format.js';
+	import { DEFAULT_SUBMISSION_IMAGE } from '$lib/constants.js';
 
 	let { data } = $props();
 	const s = $derived(data.submission);
 	const desc = $derived(
 		(s.summary || `${s.title}, shared in The Writers' Room BLR.`).slice(0, 160)
 	);
-	const image = $derived(s.preview_image || '/og.png');
+	const image = $derived(s.preview_image || DEFAULT_SUBMISSION_IMAGE);
 	const credit = $derived(
 		s.author?.display_name ? s.author.display_name.toUpperCase() : "THE WRITERS' ROOM"
 	);
 
 	function useFallbackImage(event) {
-		event.currentTarget.src = '/og.png';
+		event.currentTarget.src = DEFAULT_SUBMISSION_IMAGE;
 	}
 </script>
 
