@@ -19,7 +19,7 @@ const RETRY_DELAY_MS = 250;
 // Node's 16KB default rejects the response headers some CDNs emit outright
 // ("Parse Error: Header overflow"), losing us the preview for the whole page.
 const MAX_HEADER_BYTES = 64 * 1024;
-const USER_AGENT = 'TheWritersRoomBLR/1.0 (+https://thewritersroomblr.com)';
+const USER_AGENT = 'TheWritersRoomBLR/1.0 (+https://thewritersroom.club)';
 
 /**
  * Statuses worth a second try: rate limits, gateway blips, and the throttled 403
