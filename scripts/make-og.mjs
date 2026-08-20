@@ -5,6 +5,8 @@
  *  - logo-mark.png        (128x128, used in the header/footer)
  *  - og.png               (1200x630 social image: a miniature newspaper
  *                          front page — nameplate, rules, columns, one ad)
+ *  - writing-placeholder.png (1200x630 fallback for a submitted piece with no
+ *                          cover of its own and no scrapable OG image)
  *
  * Run with: node scripts/make-og.mjs
  */
@@ -123,4 +125,70 @@ const og = await sharp(ogPng)
 	.toBuffer();
 writeFileSync(join(staticDir, 'og.png'), og);
 
-console.log('Wrote static/favicon.png, apple-touch-icon.png, logo-mark.png, og.png');
+// The fallback cover for a piece that has neither an uploaded image nor a
+// scrapable OG image. Deliberately quieter than og.png: no nameplate and no ad,
+// so a card using it reads as "this piece has no picture" rather than as the
+// site's own front page.
+function placeholderSvg() {
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <filter id="grain" x="0" y="0" width="1" height="1">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="${PAPER}"/>
+  <rect width="1200" height="630" filter="url(#grain)" opacity="0.05"/>
+
+  <!-- Dateline, matching og.png so the two read as one family -->
+  <text x="70" y="56" font-family="${SERIF}" font-size="19" letter-spacing="3" fill="${MUTED}">VOL. II</text>
+  <text x="600" y="56" text-anchor="middle" font-family="${SERIF}" font-size="19" letter-spacing="3" fill="${MUTED}">BENGALURU, INDIA</text>
+  <text x="1130" y="56" text-anchor="end" font-family="${SERIF}" font-size="19" letter-spacing="3" fill="${MUTED}">FREE FOR MEMBERS</text>
+  <rect x="70" y="72" width="1060" height="1.5" fill="${INK}"/>
+
+  <!-- Logo plate, framed and centered -->
+  <rect x="545" y="104" width="110" height="110" fill="${SHADE}" stroke="${INK}" stroke-width="2"/>
+
+  <!-- Kicker + display line -->
+  <text x="600" y="272" text-anchor="middle" font-family="${SERIF}" font-size="18" letter-spacing="5" fill="${MUTED}">FROM THE WRITERS&#8217; ROOM</text>
+  <text x="600" y="362" text-anchor="middle" font-family="${SERIF}" font-size="84" font-weight="700" font-style="italic" fill="${INK}">Words first.</text>
+  <rect x="470" y="396" width="260" height="1.5" fill="${INK}"/>
+
+  <!-- Greeked body copy in two columns, symmetric about the center -->
+  ${greek(330, 434, 240, 4, { gap: 20, h: 8, lastFrac: 0.78 })}
+  ${greek(630, 434, 240, 4, { gap: 20, h: 8, lastFrac: 0.5 })}
+
+  <!-- Colophon + press proof -->
+  <rect x="70" y="582" width="1060" height="1" fill="${INK}"/>
+  <text x="70" y="612" font-family="${SERIF}" font-size="16" letter-spacing="3" fill="${MUTED}">THE WRITERS&#8217; ROOM BLR &#183; BENGALURU</text>
+  <circle cx="1014" cy="604" r="7" fill="#00aeef"/>
+  <circle cx="1036" cy="604" r="7" fill="#ec008c"/>
+  <circle cx="1058" cy="604" r="7" fill="#fff200" stroke="${HAIRLINE}" stroke-width="0.5"/>
+  <circle cx="1080" cy="604" r="7" fill="${INK}"/>
+  <g stroke="${INK}" stroke-width="1" fill="none">
+    <circle cx="1112" cy="604" r="8"/>
+    <line x1="1112" y1="592" x2="1112" y2="616"/>
+    <line x1="1100" y1="604" x2="1124" y2="604"/>
+  </g>
+</svg>`;
+}
+
+const placeholderPng = new Resvg(placeholderSvg(), {
+	fitTo: { mode: 'width', value: 1200 }
+})
+	.render()
+	.asPng();
+
+// Same inset rule as og.png: the frame's 2px stroke straddles the rect edge, so
+// the plate sits 1px inside to meet its inner edge exactly.
+const smallPlate = await sharp(logoPath).resize(108, 108, { fit: 'cover' }).png().toBuffer();
+const placeholder = await sharp(placeholderPng)
+	.composite([{ input: smallPlate, top: 105, left: 546 }])
+	.png()
+	.toBuffer();
+writeFileSync(join(staticDir, 'writing-placeholder.png'), placeholder);
+
+console.log(
+	'Wrote static/favicon.png, apple-touch-icon.png, logo-mark.png, og.png, writing-placeholder.png'
+);

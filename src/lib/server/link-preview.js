@@ -1,8 +1,12 @@
 import { lookup } from 'node:dns/promises';
+import { request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
 import { TextDecoder } from 'node:util';
+import { createBrotliDecompress, createGunzip, createInflate } from 'node:zlib';
+import { DEFAULT_SUBMISSION_IMAGE } from '$lib/constants.js';
 
-export const DEFAULT_SUBMISSION_IMAGE = '/og.png';
+export { DEFAULT_SUBMISSION_IMAGE };
 
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 const CACHE_RETRY_MS = 1000 * 60 * 10;
@@ -10,17 +14,25 @@ const FETCH_TIMEOUT_MS = 4000;
 const MAX_HTML_BYTES = 160 * 1024;
 const MAX_REDIRECTS = 3;
 const CONCURRENCY = 6;
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 250;
+// Node's 16KB default rejects the response headers some CDNs emit outright
+// ("Parse Error: Header overflow"), losing us the preview for the whole page.
+const MAX_HEADER_BYTES = 64 * 1024;
+const USER_AGENT = 'TheWritersRoomBLR/1.0 (+https://thewritersroom.club)';
+
+/**
+ * Statuses worth a second try: rate limits, gateway blips, and the throttled 403
+ * some bot-protected hosts return under load.
+ */
+const RETRYABLE_STATUSES = new Set([403, 408, 425, 429, 500, 502, 503, 504]);
+
+/** Returned by an attempt that failed in a way a later attempt might survive. */
+const RETRYABLE = Symbol('retryable');
 
 const previewCache = new Map();
 
-function timeoutController(ms) {
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), ms);
-	return {
-		signal: controller.signal,
-		clear: () => clearTimeout(timeout)
-	};
-}
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function isBlockedHostname(hostname) {
 	const host = hostname
@@ -85,60 +97,129 @@ async function publicHttpUrl(input) {
 	return url;
 }
 
-async function readHtmlPrefix(response) {
-	const reader = response.body?.getReader();
-	if (!reader) return response.text();
+/** Unwrap a compressed body: hosts gzip regardless of what we ask for. */
+function decodeStream(response) {
+	const encoding = (response.headers['content-encoding'] ?? '').trim().toLowerCase();
+	if (encoding === 'gzip' || encoding === 'x-gzip') return response.pipe(createGunzip());
+	if (encoding === 'deflate') return response.pipe(createInflate());
+	if (encoding === 'br') return response.pipe(createBrotliDecompress());
+	return response;
+}
 
+/**
+ * Read at most MAX_HTML_BYTES of decoded markup. The head metadata we're after
+ * sits at the top of the document, so a prefix is enough - and capping
+ * decompressed bytes rather than wire bytes also bounds a compression bomb.
+ */
+async function readHtmlPrefix(response) {
+	const stream = decodeStream(response);
 	const decoder = new TextDecoder();
 	let html = '';
 	let bytes = 0;
 
-	while (bytes < MAX_HTML_BYTES) {
-		const { done, value } = await reader.read();
-		if (done) break;
-
-		bytes += value.byteLength;
-		html += decoder.decode(value, { stream: true });
+	try {
+		for await (const chunk of stream) {
+			bytes += chunk.byteLength;
+			html += decoder.decode(chunk, { stream: true });
+			if (bytes >= MAX_HTML_BYTES) break;
+		}
+	} finally {
+		// Stopping early leaves the socket mid-body: tear down both ends of the
+		// (possibly decompressing) pipeline so the connection is released.
+		stream.destroy();
+		response.destroy();
 	}
 
-	await reader.cancel().catch(() => {});
 	return html + decoder.decode();
 }
 
-async function fetchHtml(input, redirects = 0) {
+/**
+ * One fetch of a page's markup, over `node:http(s)` rather than the global
+ * `fetch`. That choice is load-bearing: Cloudflare-fronted hosts (*.hashnode.dev
+ * among them) reject Node's bundled undici client by fingerprint and 403 every
+ * request no matter the headers, while the same request over this transport is
+ * served normally.
+ *
+ * Redirects are followed by hand so publicHttpUrl re-validates every hop; an
+ * automatic redirect chain would let a public URL bounce us into private address
+ * space.
+ */
+async function attemptHtml(input, redirects = 0) {
 	const url = await publicHttpUrl(input);
 	if (!url || redirects > MAX_REDIRECTS) return null;
 
-	const timeout = timeoutController(FETCH_TIMEOUT_MS);
+	const send = url.protocol === 'https:' ? httpsRequest : httpRequest;
+	let timedOut = false;
+	let req;
+
+	// A hard deadline spanning headers *and* body, so a host that trickles bytes
+	// can't hold a page render open past the budget.
+	const deadline = setTimeout(() => {
+		timedOut = true;
+		req?.destroy();
+	}, FETCH_TIMEOUT_MS);
+
 	try {
-		const response = await fetch(url, {
-			redirect: 'manual',
-			signal: timeout.signal,
-			headers: {
-				accept: 'text/html,application/xhtml+xml',
-				'user-agent': 'TheWritersRoomBLR/1.0 (+https://thewritersroomblr.com)'
-			}
+		const response = await new Promise((resolve, reject) => {
+			req = send(
+				url,
+				{
+					method: 'GET',
+					maxHeaderSize: MAX_HEADER_BYTES,
+					headers: {
+						accept: 'text/html,application/xhtml+xml',
+						'accept-encoding': 'gzip, deflate, br, identity',
+						'user-agent': USER_AGENT
+					}
+				},
+				resolve
+			);
+			req.on('error', reject);
+			req.end();
 		});
 
-		if (response.status >= 300 && response.status < 400) {
-			const location = response.headers.get('location');
+		const status = response.statusCode ?? 0;
+
+		if (status >= 300 && status < 400) {
+			response.resume();
+			const location = response.headers.location;
 			if (!location) return null;
-			return fetchHtml(new URL(location, url).href, redirects + 1);
+			return attemptHtml(new URL(location, url).href, redirects + 1);
 		}
 
-		if (!response.ok) return null;
+		if (status < 200 || status >= 300) {
+			response.resume();
+			return RETRYABLE_STATUSES.has(status) ? RETRYABLE : null;
+		}
 
-		const contentType = response.headers.get('content-type') ?? '';
-		if (contentType && !/text\/html|application\/xhtml\+xml/i.test(contentType)) return null;
+		const contentType = response.headers['content-type'] ?? '';
+		if (contentType && !/text\/html|application\/xhtml\+xml/i.test(contentType)) {
+			response.destroy();
+			return null;
+		}
 
-		return {
-			html: await readHtmlPrefix(response),
-			url: url.href
-		};
+		return { html: await readHtmlPrefix(response), url: url.href };
 	} catch {
-		return null;
+		// A timeout has already spent the whole per-request budget, and retrying
+		// would multiply it on a page render; other transport errors (reset
+		// connection, truncated body) fail fast, so they're worth another attempt.
+		return timedOut ? null : RETRYABLE;
 	} finally {
-		timeout.clear();
+		clearTimeout(deadline);
+	}
+}
+
+/**
+ * Fetch a page's HTML, retrying the transient failures. Every retried case
+ * responds quickly (a throttled 403, a connection reset), so the added
+ * worst-case latency stays well under a single FETCH_TIMEOUT_MS.
+ */
+async function fetchHtml(input) {
+	for (let attempt = 1; ; attempt++) {
+		const result = await attemptHtml(input);
+		if (result !== RETRYABLE) return result;
+		if (attempt >= MAX_ATTEMPTS) return null;
+		await delay(RETRY_DELAY_MS * attempt);
 	}
 }
 
@@ -230,7 +311,10 @@ export async function resolveSubmissionPreviewImage(externalUrl) {
 	previewCache.set(key, { promise, expiresAt: Date.now() + CACHE_RETRY_MS });
 
 	const value = await promise;
-	previewCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+	// Only a real hit earns the long TTL. Caching a miss for a day would let one
+	// transient upstream block pin the fallback image for 24 hours.
+	const ttl = value === DEFAULT_SUBMISSION_IMAGE ? CACHE_RETRY_MS : CACHE_TTL_MS;
+	previewCache.set(key, { value, expiresAt: Date.now() + ttl });
 	return value;
 }
 
