@@ -100,6 +100,11 @@
 					>
 				</div>
 				<div class="card metric">
+					<span class="m-num">{d.submissionCounts.pending}</span><span class="muted"
+						>Pending writing</span
+					>
+				</div>
+				<div class="card metric">
 					<span class="m-num">{d.submissionCounts.rejected}</span><span class="muted"
 						>Unlisted writing</span
 					>
@@ -122,7 +127,8 @@
 				<div class="card">
 					<h3>At a glance</h3>
 					<ul class="bullets">
-						<li><strong>{d.queues.unlisted}</strong> members currently unlisted</li>
+						<li><strong>{d.queues.unlisted}</strong> members awaiting directory approval</li>
+						<li><strong>{d.submissionCounts.pending}</strong> submissions awaiting approval</li>
 						<li><strong>{d.submissionCounts.rejected}</strong> submissions currently unlisted</li>
 						<li><strong>{d.feedbackCounts.new}</strong> feedback notes awaiting review</li>
 					</ul>
@@ -151,8 +157,8 @@
 		{#if tab === 'members'}
 			<h2>Member moderation</h2>
 			<p class="muted">
-				Every member is listed in the directory by default. Unlist to hide someone, feature to
-				spotlight them, or grant admin access.
+				New members stay out of the directory until approved. List to approve someone, unlist to
+				hide them, feature to spotlight them, or grant admin access.
 			</p>
 			<div class="table-wrap">
 				<table class="data">
@@ -230,8 +236,8 @@
 		{#if tab === 'submissions'}
 			<h2>Submissions</h2>
 			<p class="muted">
-				New writing is listed automatically. Unlist to hide a piece from the public site, or list it
-				again.
+				New writing arrives as pending and stays off the public site until approved. Approve or
+				reject pending pieces; unlist a live piece to hide it again.
 			</p>
 			{#if d.queues.submissions.length}
 				<div class="table-wrap">
@@ -249,18 +255,29 @@
 									<td
 										><span class="pill {statusClass[s.status] ?? 'pill-gray'}">{s.status}</span></td
 									>
-									<td>
-										<form method="POST" action="?/moderateSubmission" use:enhance>
-											<input type="hidden" name="id" value={s.id} />
-											<input
-												type="hidden"
-												name="status"
-												value={isPublic ? 'rejected' : 'approved'}
-											/>
-											<button class="btn btn-secondary btn-sm" type="submit"
-												>{isPublic ? 'Unlist' : 'List'}</button
-											>
-										</form>
+									<td class="actions">
+										{#if isPublic}
+											<form method="POST" action="?/moderateSubmission" use:enhance>
+												<input type="hidden" name="id" value={s.id} />
+												<input type="hidden" name="status" value="rejected" />
+												<button class="btn btn-secondary btn-sm" type="submit">Unlist</button>
+											</form>
+										{:else}
+											<form method="POST" action="?/moderateSubmission" use:enhance>
+												<input type="hidden" name="id" value={s.id} />
+												<input type="hidden" name="status" value="approved" />
+												<button class="btn btn-secondary btn-sm" type="submit"
+													>{s.status === 'pending' ? 'Approve' : 'List'}</button
+												>
+											</form>
+											{#if s.status === 'pending'}
+												<form method="POST" action="?/moderateSubmission" use:enhance>
+													<input type="hidden" name="id" value={s.id} />
+													<input type="hidden" name="status" value="rejected" />
+													<button class="btn btn-ghost btn-sm" type="submit">Reject</button>
+												</form>
+											{/if}
+										{/if}
 									</td>
 								</tr>
 							{/each}

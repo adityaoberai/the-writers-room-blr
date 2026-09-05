@@ -14,7 +14,7 @@ export async function getHomeData() {
 			listFeaturedProfiles(3),
 			listFeaturedSubmissions(3),
 			listCurrentEvents(3),
-			countRows(TABLES.profiles, [Query.equal('is_public', true)]),
+			countRows(TABLES.profiles, [Query.equal('is_public', true), Query.equal('listed', true)]),
 			countRows(TABLES.submissions, [Query.equal('status', ['approved', 'featured'])])
 		]);
 

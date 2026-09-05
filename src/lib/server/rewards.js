@@ -15,11 +15,12 @@ import { getProfileByUserId, isProfileComplete } from './profiles.js';
 
 /**
  * Seal inputs derived from a member's profile and submissions: profile
- * completion, visible (non-rejected) count, featured count, distinct content
- * types and distinct calendar months. Rejected work never counts toward seals.
+ * completion, approved count, featured count, distinct content types and
+ * distinct calendar months. Only admin-approved work counts toward seals;
+ * pending and rejected pieces never do.
  */
 function sealMetrics(rows, profile) {
-	const visible = rows.filter((r) => r.status !== 'rejected');
+	const visible = rows.filter((r) => r.status === 'approved' || r.status === 'featured');
 	return {
 		profile_completion: isProfileComplete(profile) ? 1 : 0,
 		submissions: visible.length,

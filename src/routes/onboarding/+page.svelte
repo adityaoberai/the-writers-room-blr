@@ -19,7 +19,7 @@
 			<p class="eyebrow">Welcome</p>
 			<h1>Let's set up your profile</h1>
 			<p class="lead">
-				Tell the community about your writing. A complete profile and your first submission put you
+				Tell the community about your writing. Once an admin approves your profile, you'll appear
 				in the directory.
 			</p>
 		</header>

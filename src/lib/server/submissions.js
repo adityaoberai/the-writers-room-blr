@@ -72,7 +72,8 @@ export async function createSubmission(userId, input) {
 		title,
 		summary,
 		content_type: contentType,
-		status: 'approved',
+		// New pieces await admin review; only 'approved'/'featured' are public.
+		status: 'pending',
 		tags,
 		search_text: buildSearchText({ title, summary, tags, authorName: profile?.display_name ?? '' })
 	};
@@ -254,11 +255,11 @@ export async function listPublicSubmissionsByUser(userId) {
 	return rows;
 }
 
-/** Whether a member has at least one non-rejected submission (directory gate). */
+/** Whether a member has at least one publicly visible submission (directory gate). */
 export async function userHasVisibleSubmission(userId) {
 	const count = await countRows(TABLES.submissions, [
 		Query.equal('user_id', userId),
-		Query.notEqual('status', 'rejected')
+		Query.equal('status', PUBLIC_STATUSES)
 	]);
 	return count > 0;
 }
@@ -266,7 +267,7 @@ export async function userHasVisibleSubmission(userId) {
 export async function countVisibleSubmissionsByUser(userId) {
 	return countRows(TABLES.submissions, [
 		Query.equal('user_id', userId),
-		Query.notEqual('status', 'rejected')
+		Query.equal('status', PUBLIC_STATUSES)
 	]);
 }
 
