@@ -2,9 +2,9 @@
  * Member profiles and the public directory.
  *
  * Directory-visibility rule: a profile appears in the directory when its owner
- * has kept it public (`is_public`, member-controlled) AND an admin has not
- * unlisted it (`listed`, admin-controlled, defaults to true). Every member is
- * therefore listed by default; admins unlist/re-list from the dashboard.
+ * has kept it public (`is_public`, member-controlled) AND an admin has approved
+ * it (`listed`, admin-controlled, defaults to false). New members therefore stay
+ * hidden until an admin lists them from the dashboard.
  * Genre/keyword filtering is done in memory because Appwrite cannot index array
  * columns.
  */
@@ -35,7 +35,7 @@ export function serializeProfile(profile) {
 		location: profile.location ?? 'Bengaluru',
 		is_public: !!profile.is_public,
 		is_featured: !!profile.is_featured,
-		listed: profile.listed !== false
+		listed: profile.listed === true
 	};
 }
 
@@ -78,7 +78,8 @@ export async function ensureProfile(userId, displayName) {
 		location: 'Bengaluru',
 		is_public: true,
 		is_featured: false,
-		listed: true
+		// Hidden from the directory until an admin approves (lists) the profile.
+		listed: false
 	});
 }
 
@@ -139,8 +140,8 @@ export function isProfileComplete(profile) {
 export async function listDirectory({ search = '', genre = '', focus = '' } = {}) {
 	const profiles = await listAllRows(TABLES.profiles, [Query.equal('is_public', true)]);
 
-	// Public by default; only admin-unlisted profiles (`listed === false`) are hidden.
-	const visible = profiles.filter((p) => p.listed !== false);
+	// Only admin-approved profiles (`listed === true`) appear in the directory.
+	const visible = profiles.filter((p) => p.listed === true);
 
 	const genreSet = new Set();
 	for (const p of visible) for (const g of p.genres ?? []) genreSet.add(g);
@@ -186,7 +187,7 @@ export async function listFeaturedProfiles(limit = 3) {
 		Query.equal('is_featured', true),
 		Query.equal('is_public', true)
 	]);
-	return rows.filter((p) => p.listed !== false).slice(0, limit);
+	return rows.filter((p) => p.listed === true).slice(0, limit);
 }
 
 /** All profiles for the admin moderation table, with their listing state. */
@@ -194,7 +195,7 @@ export async function listProfilesForModeration() {
 	const profiles = await listAllRows(TABLES.profiles);
 	return profiles.map((p) => ({
 		profile: serializeProfile(p),
-		listed: p.listed !== false,
+		listed: p.listed === true,
 		complete: isProfileComplete(p),
 		raw_id: p.$id,
 		user_id: p.user_id,

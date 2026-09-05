@@ -19,14 +19,14 @@
 			<p class="eyebrow">Share your work</p>
 			<h1>Submit writing</h1>
 			<p class="lead">
-				Share a title and type. Add a link, short summary, or a cover image if you have one. Your
-				piece appears in the community writing feed right away.
+				Share a title and type. Add a link, short summary, or a cover image if you have one. An
+				admin will review your piece before it appears in the community writing feed.
 			</p>
 		</header>
 
 		<FormFeedback {form} />
 
-		<SubmissionForm types={data.types} {values} submitLabel="Publish" />
+		<SubmissionForm types={data.types} {values} submitLabel="Submit for review" />
 	</div>
 </section>
 

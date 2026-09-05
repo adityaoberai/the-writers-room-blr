@@ -35,10 +35,16 @@ export async function getDashboardData() {
 	// Admin authority is derived from the Auth `admin` label; the `users.role`
 	// column mirrors it and is enough for the dashboard display.
 	const roleByUser = new Map(allUsers.map((u) => [u.$id, u.role]));
-	const members = moderationProfiles.map((m) => ({
-		...m,
-		is_admin: roleByUser.get(m.user_id) === 'admin'
-	}));
+	// Approval queue first: unlisted profiles on top, newest first within each group.
+	const members = moderationProfiles
+		.map((m) => ({
+			...m,
+			is_admin: roleByUser.get(m.user_id) === 'admin'
+		}))
+		.sort((a, b) => {
+			if (a.listed !== b.listed) return a.listed ? 1 : -1;
+			return (b.created_at ?? '').localeCompare(a.created_at ?? '');
+		});
 	const listedCount = members.filter((m) => m.profile.is_public && m.listed).length;
 	const unlistedCount = members.filter((m) => !m.listed).length;
 

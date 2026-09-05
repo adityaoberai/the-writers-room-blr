@@ -8,14 +8,14 @@ import { getAppUser } from './users.js';
 /**
  * Returns the public view of a member, or `{ found:false }` / `{ visible:false }`.
  * Owners and admins can always view; everyone else needs the profile to be
- * public (member's choice) and listed (not unlisted by an admin).
+ * public (member's choice) and listed (approved by an admin).
  */
 export async function getMemberPublicData(profileId, { viewerId = null, isAdmin = false } = {}) {
 	const profile = await getProfileById(profileId);
 	if (!profile) return { found: false };
 
 	const isOwner = viewerId && profile.user_id === viewerId;
-	const surfaced = profile.is_public && profile.listed !== false;
+	const surfaced = profile.is_public && profile.listed === true;
 	const visible = surfaced || isOwner || isAdmin;
 	if (!visible)
 		return { found: true, visible: false, profile: { display_name: profile.display_name } };

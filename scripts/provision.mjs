@@ -88,11 +88,12 @@ const SCHEMA = [
 			{ key: 'location', type: 'varchar', size: 128, default: 'Bengaluru' },
 			{ key: 'is_public', type: 'boolean', default: true },
 			{ key: 'is_featured', type: 'boolean', default: false },
-			{ key: 'listed', type: 'boolean', default: true }
+			{ key: 'listed', type: 'boolean', default: false }
 		],
 		indexes: [
 			{ key: 'idx_user', type: 'unique', columns: ['user_id'] },
 			{ key: 'idx_public', type: 'key', columns: ['is_public'] },
+			{ key: 'idx_listed', type: 'key', columns: ['listed'] },
 			{ key: 'idx_featured', type: 'key', columns: ['is_featured'] },
 			{ key: 'idx_name_search', type: 'fulltext', columns: ['display_name'] }
 		]
@@ -105,7 +106,7 @@ const SCHEMA = [
 			{ key: 'title', type: 'varchar', size: 256, required: true },
 			{ key: 'summary', type: 'varchar', size: 1024 },
 			{ key: 'content_type', type: 'enum', elements: CONTENT_TYPES, default: 'blog' },
-			{ key: 'status', type: 'enum', elements: SUBMISSION_STATUSES },
+			{ key: 'status', type: 'enum', elements: SUBMISSION_STATUSES, default: 'pending' },
 			{ key: 'tags', type: 'varchar', size: 64, array: true },
 			{ key: 'moderated_by', type: 'varchar', size: 64 },
 			{ key: 'moderated_at', type: 'datetime' },
@@ -558,39 +559,6 @@ async function seedData() {
 	// events table, managed by admins from the dashboard.
 }
 
-/**
- * One-time data migration for the "listed/approved by default" change.
- * Existing never-reviewed submissions (`pending`) become public (`approved`);
- * `rejected` rows are left hidden so past reject decisions are preserved.
- * Profiles are backfilled to listed by the `listed` column default.
- */
-async function migrateContent() {
-	console.log('Migrating existing content');
-	let migrated = 0;
-	for (let i = 0; i < 100; i++) {
-		const res = await tablesDB.listRows({
-			databaseId: DATABASE_ID,
-			tableId: TABLES.submissions,
-			queries: [Query.equal('status', 'pending'), Query.limit(100)]
-		});
-		const rows = res.rows ?? res.documents ?? [];
-		if (!rows.length) break;
-		for (const row of rows) {
-			await tablesDB.updateRow({
-				databaseId: DATABASE_ID,
-				tableId: TABLES.submissions,
-				rowId: row.$id,
-				data: { status: 'approved' }
-			});
-			migrated++;
-		}
-		if (rows.length < 100) break;
-	}
-	console.log(`  ✓ ${migrated} pending submission(s) set to approved`);
-
-	await backfillSearchText();
-}
-
 /** Fetch every row of a table (minimal fields), paging past the 100-row ceiling. */
 async function scanAll(tableId, select) {
 	const out = [];
@@ -696,7 +664,7 @@ async function main() {
 	await syncEnumColumns();
 	await seedData();
 	await backfillAwards();
-	await migrateContent();
+	await backfillSearchText();
 	console.log('\nDone. Schema, bucket and seed data are in place.');
 }
 

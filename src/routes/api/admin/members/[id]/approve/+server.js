@@ -4,8 +4,8 @@ import { requireAdmin } from '$lib/server/guards.js';
 import { jsonError, readJson } from '$lib/server/respond.js';
 
 // POST /api/admin/members/{id}/approve { listed?: bool, approved?: bool } -> { profile_id, listed }
-// Members are listed by default; this toggles admin listing. `approved`/`listed:false`
-// unlists, anything else lists.
+// New members are unlisted until approved. Posting approves (lists) the profile
+// unless `listed: false` / `approved: false` is sent, which unlists it.
 export async function POST({ params, locals, request }) {
 	try {
 		requireAdmin(locals);

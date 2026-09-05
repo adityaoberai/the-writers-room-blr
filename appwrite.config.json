@@ -231,7 +231,7 @@
                     "type": "boolean",
                     "required": false,
                     "array": false,
-                    "default": true
+                    "default": false
                 }
             ],
             "indexes": [
@@ -250,6 +250,15 @@
                     "status": "available",
                     "columns": [
                         "is_public"
+                    ],
+                    "orders": []
+                },
+                {
+                    "key": "idx_listed",
+                    "type": "key",
+                    "status": "available",
+                    "columns": [
+                        "listed"
                     ],
                     "orders": []
                 },
@@ -331,7 +340,7 @@
                     "type": "string",
                     "required": false,
                     "array": false,
-                    "default": null,
+                    "default": "pending",
                     "format": "enum",
                     "elements": [
                         "pending",
