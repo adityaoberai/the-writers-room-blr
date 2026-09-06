@@ -1,12 +1,16 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { requireUser } from '$lib/server/guards.js';
+import { getProfileByUserId, hasDisplayName } from '$lib/server/profiles.js';
 import { createSubmission } from '$lib/server/submissions.js';
 import { uploadSubmissionImage } from '$lib/server/storage.js';
 import { recomputeBadges } from '$lib/server/rewards.js';
 import { CONTENT_TYPES, CONTENT_TYPE_LABELS } from '$lib/constants.js';
 
-export function load({ locals }) {
+export async function load({ locals }) {
 	requireUser(locals);
+	// Writing is credited to a display name, so one must exist before submitting.
+	const profile = await getProfileByUserId(locals.user.$id);
+	if (!hasDisplayName(profile)) throw redirect(303, '/onboarding');
 	return { types: CONTENT_TYPES.map((t) => ({ key: t, label: CONTENT_TYPE_LABELS[t] })) };
 }
 

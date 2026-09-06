@@ -114,15 +114,20 @@
 	onchange={markDirty}
 >
 	<div class="field">
-		<label for="display_name">Display name</label>
+		<label for="display_name">Display name <span class="req" aria-hidden="true">*</span></label>
 		<input
 			id="display_name"
 			name="display_name"
 			type="text"
+			autocomplete="name"
 			maxlength="128"
 			required
+			pattern=".*\S.*"
+			title="Enter the name you want other members to see."
+			aria-required="true"
 			value={profile.display_name ?? ''}
 		/>
+		<p class="hint">Required. This is how other members will see you.</p>
 	</div>
 
 	<div class="field">
@@ -237,6 +242,9 @@
 <style>
 	.profile-form {
 		max-width: 640px;
+	}
+	.req {
+		color: var(--cta);
 	}
 	.genre-picker {
 		display: grid;

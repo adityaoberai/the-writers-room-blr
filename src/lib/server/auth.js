@@ -85,15 +85,16 @@ export async function completeLogin(cookies, { challengeId, otp }) {
 	const { session, authUser, appUser, isAdmin } = await verifyOtp({ challengeId, otp });
 	setSessionCookie(cookies, session);
 
-	const { ensureProfile, isProfileComplete } = await import('./profiles.js');
-	const displayName = authUser.name || authUser.email?.split('@')[0] || 'New member';
-	const profile = await ensureProfile(authUser.$id, displayName);
+	const { ensureProfile, hasDisplayName, isProfileComplete } = await import('./profiles.js');
+	// Pre-fill only from the Auth account's own name (empty for email-OTP users).
+	const profile = await ensureProfile(authUser.$id, authUser.name);
 
 	return {
 		user_id: authUser.$id,
 		role: appUser?.role ?? (isAdmin ? 'admin' : 'member'),
 		isAdmin,
 		isNew: !isProfileComplete(profile),
+		hasName: hasDisplayName(profile),
 		profileComplete: isProfileComplete(profile),
 		session: { id: session.$id, expire: session.expire }
 	};
