@@ -126,9 +126,15 @@
 	.portrait {
 		margin: 0;
 	}
+	/* Grid items default to min-width: auto, so an unbreakable handle would
+	   widen this column past its track and drag the chips with it. */
+	.who {
+		min-width: 0;
+	}
 	.who h1 {
 		margin: 0 0 0.15rem;
 		font-size: 2rem;
+		overflow-wrap: anywhere;
 	}
 	.side {
 		display: flex;
@@ -248,9 +254,23 @@
 			   overhang the column. */
 			grid-template-columns: 110px 1fr;
 		}
+		/* Promote the name and chips to grid items so the name sits beside
+		   the portrait while the chips get the full card width below. */
+		.who {
+			display: contents;
+		}
+		.who h1 {
+			font-size: 1.5rem;
+			min-width: 0;
+			align-self: center;
+		}
+		.who .tag-list {
+			grid-column: 1 / -1;
+		}
 		.side {
 			grid-column: 1 / -1;
 			flex-direction: row;
+			flex-wrap: wrap;
 			align-items: center;
 		}
 		.body {
