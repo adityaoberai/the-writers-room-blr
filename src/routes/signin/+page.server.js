@@ -40,8 +40,9 @@ export const actions = {
 		const email = String(form.get('email') || '');
 		const redirectTo = String(form.get('redirect') || '');
 		try {
-			await completeLogin(cookies, { challengeId: challenge_id, otp });
-			throw redirect(303, '/');
+			const { hasName } = await completeLogin(cookies, { challengeId: challenge_id, otp });
+			// A display name is mandatory: finish profile creation before anything else.
+			throw redirect(303, hasName ? '/' : '/onboarding');
 		} catch (err) {
 			if (err?.status === 303) throw err; // re-throw the redirect
 			return fail(400, {

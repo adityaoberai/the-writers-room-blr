@@ -1,7 +1,9 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { requireUser } from '$lib/server/guards.js';
 import {
+	displayNameOf,
 	ensureProfile,
+	hasDisplayName,
 	parseLinks,
 	saveProfileFromFormData,
 	setProfilePhoto,
@@ -14,16 +16,17 @@ import { CONTENT_TYPE_LABELS } from '$lib/constants.js';
 
 export async function load({ locals }) {
 	requireUser(locals);
-	const fallbackName = locals.user.name || locals.user.email?.split('@')[0] || 'New member';
 	const [profile, submissions] = await Promise.all([
-		ensureProfile(locals.user.$id, fallbackName),
+		ensureProfile(locals.user.$id, locals.user.name),
 		listSubmissionsByUser(locals.user.$id)
 	]);
+	// Profile creation is not finished until a display name is chosen.
+	if (!hasDisplayName(profile)) throw redirect(303, '/onboarding');
 
 	return {
 		profile: {
 			id: profile.$id,
-			display_name: profile.display_name ?? '',
+			display_name: displayNameOf(profile),
 			bio: profile.bio ?? '',
 			genres: profile.genres ?? [],
 			location: profile.location ?? 'Bengaluru',

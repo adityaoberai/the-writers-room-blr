@@ -169,7 +169,7 @@
 						{#each d.queues.members as m (m.raw_id)}
 							<tr>
 								<td>
-									<a href={`/members/${m.raw_id}`}>{m.profile.display_name}</a>
+									<a href={`/members/${m.raw_id}`}>{m.profile.display_name || 'Unnamed member'}</a>
 									<div class="muted small">{m.profile.location}</div>
 								</td>
 								<td>

@@ -10,7 +10,13 @@
  */
 import { createRow, listAllRows, tryGetRow, updateRow, Query } from './data.js';
 import { TABLES } from '$lib/constants.js';
-import { cleanString, cleanTagList, cleanLinks, requireString } from './validation.js';
+import {
+	cleanString,
+	cleanTagList,
+	cleanLinks,
+	requireString,
+	ValidationError
+} from './validation.js';
 
 export function parseLinks(value) {
 	if (!value) return [];
@@ -65,13 +71,34 @@ export async function getAuthorsForUserIds(userIds) {
 	return map;
 }
 
-/** Create a profile for a freshly registered user if one does not exist yet. */
-export async function ensureProfile(userId, displayName) {
+/**
+ * Placeholder name that older code stamped on auto-created profiles. Treated as
+ * "no name yet" so those members are still asked to pick one.
+ */
+const LEGACY_PLACEHOLDER_NAME = 'New member';
+
+/** The member's chosen display name, or '' when they have not set one yet. */
+export function displayNameOf(profile) {
+	const name = cleanString(profile?.display_name, { max: 128 });
+	return name === LEGACY_PLACEHOLDER_NAME ? '' : name;
+}
+
+export function hasDisplayName(profile) {
+	return displayNameOf(profile).length > 0;
+}
+
+/**
+ * Create a profile for a freshly registered user if one does not exist yet.
+ * The display name is only pre-filled from the Auth account's own name; it is
+ * never invented, so the member must enter one before the profile counts as
+ * created/complete.
+ */
+export async function ensureProfile(userId, displayName = '') {
 	const existing = await getProfileByUserId(userId);
 	if (existing) return existing;
 	return createRow(TABLES.profiles, 'unique()', {
 		user_id: userId,
-		display_name: displayName || 'New member',
+		display_name: cleanString(displayName, { max: 128 }),
 		bio: '',
 		genres: [],
 		links: '[]',
@@ -90,6 +117,7 @@ export async function updateProfile(userId, input) {
 	const data = {};
 	if (input.display_name !== undefined)
 		data.display_name = requireString(input.display_name, 'Display name', { max: 128 });
+	else if (!hasDisplayName(profile)) throw new ValidationError('Display name is required.');
 	if (input.bio !== undefined) data.bio = cleanString(input.bio, { max: 4000, trim: false }).trim();
 	if (input.genres !== undefined) data.genres = cleanTagList(input.genres);
 	if (input.location !== undefined)
@@ -130,7 +158,7 @@ export function isProfileComplete(profile) {
 	if (!profile) return false;
 	const bio = (profile.bio ?? '').trim();
 	const genres = profile.genres ?? [];
-	return !!profile.display_name && bio.length > 0 && genres.length >= 1;
+	return hasDisplayName(profile) && bio.length > 0 && genres.length >= 1;
 }
 
 /**
@@ -176,7 +204,7 @@ export async function listDirectory({ search = '', genre = '', focus = '' } = {}
 		}))
 		.sort((a, b) => {
 			if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
-			return a.display_name.localeCompare(b.display_name);
+			return (a.display_name ?? '').localeCompare(b.display_name ?? '');
 		});
 
 	return { members, genres: [...genreSet].sort((a, b) => a.localeCompare(b)) };
