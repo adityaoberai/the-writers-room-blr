@@ -150,6 +150,8 @@ updates the key, sender and reply-to). `src/lib/server/messaging.js` owns the fl
   every non-suspended member, and lists recent deliveries straight from Messaging.
   Each member row also has an **Email** button. `GET`/`POST /api/admin/messages`
   expose the same for scripts.
+- **Submission alerts.** Every new piece (form or `POST /api/submissions`) emails the
+  organiser inbox with the title, type, author, summary and links to read and moderate it.
 - **Reply-to and CC.** The provider's reply-to is `MESSAGING_REPLY_TO`; every email
   also CCs `MESSAGING_CC`. Appwrite addresses CC by target id, so provisioning keeps
   an Auth user ("Community inbox") for that address and the app looks up its email

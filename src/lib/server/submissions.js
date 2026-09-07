@@ -14,6 +14,8 @@ import {
 } from './validation.js';
 import { DEFAULT_SUBMISSION_IMAGE, resolveSubmissionPreviewImage } from './link-preview.js';
 import { getProfileByUserId } from './profiles.js';
+import { getAppUser } from './users.js';
+import { notifyNewSubmission } from './messaging.js';
 
 const PUBLIC_STATUSES = ['approved', 'featured'];
 
@@ -81,8 +83,9 @@ export async function createSubmission(userId, input) {
 	if (externalUrl) data.external_url = externalUrl;
 	if (imageUrl) data.image_url = imageUrl;
 
+	let row;
 	try {
-		return await createRow(TABLES.submissions, 'unique()', data);
+		row = await createRow(TABLES.submissions, 'unique()', data);
 	} catch (err) {
 		// Unique index on title / external_url rejects duplicates with a 409.
 		if (err?.code === 409) {
@@ -90,6 +93,14 @@ export async function createSubmission(userId, input) {
 		}
 		throw err;
 	}
+
+	// Let the organiser know a piece is waiting for review (never throws).
+	const appUser = await getAppUser(userId).catch(() => null);
+	await notifyNewSubmission(row, {
+		authorName: profile?.display_name ?? '',
+		authorEmail: appUser?.email ?? ''
+	});
+	return row;
 }
 
 /**

@@ -18,6 +18,7 @@ import { getAllSettings } from './settings.js';
 import { displayNameOf } from './profiles.js';
 import { escapeHtml, requireString, ValidationError } from './validation.js';
 import {
+	CONTENT_TYPE_LABELS,
 	MESSAGING,
 	TABLES,
 	WELCOME_EMAIL_DEFAULTS,
@@ -136,8 +137,12 @@ function sendError(err) {
 	return Object.assign(new Error(`Email could not be sent. ${msg}${hint}`.trim()), { status: 502 });
 }
 
-async function sendEmail({ subject, text, userIds = [] }) {
-	const cc = await getCcTargetIds();
+/**
+ * Queue one email. Recipients are Auth user ids and/or target ids; the CC
+ * inbox is added unless `cc` is false (used when the inbox is itself the
+ * recipient).
+ */
+async function sendEmail({ subject, text, userIds = [], targetIds = [], cc = true }) {
 	const params = {
 		messageId: ID.unique(),
 		subject,
@@ -145,7 +150,11 @@ async function sendEmail({ subject, text, userIds = [] }) {
 		users: userIds,
 		html: true
 	};
-	if (cc.length) params.cc = cc;
+	if (targetIds.length) params.targets = targetIds;
+	if (cc) {
+		const ccIds = await getCcTargetIds();
+		if (ccIds.length) params.cc = ccIds;
+	}
 	try {
 		return await adminMessaging().createEmail(params);
 	} catch (err) {
@@ -182,6 +191,41 @@ export async function sendWelcomeEmail(authUser) {
 		return message.$id;
 	} catch (err) {
 		console.error(`[messaging] welcome email failed for ${authUser?.$id}:`, err?.message || err);
+		return null;
+	}
+}
+
+/* ---------- Submission alerts ---------- */
+
+/**
+ * Tell the organiser that a new piece is waiting for review. Delivered straight
+ * to the organiser inbox target (no CC: it is the same address). Never throws,
+ * so a mail failure cannot undo a submission.
+ */
+export async function notifyNewSubmission(row, { authorName = '', authorEmail = '' } = {}) {
+	try {
+		const targetIds = await getCcTargetIds();
+		if (!targetIds.length) throw new Error(`no email target for ${CC_EMAIL}`);
+		const origin = siteUrl();
+		const who = [authorName, authorEmail].filter(Boolean).join(', ') || 'A member';
+		const lines = [
+			`${who} just shared a new piece. It is pending review.`,
+			'',
+			`Title: ${row.title}`,
+			`Type: ${CONTENT_TYPE_LABELS[row.content_type] ?? row.content_type}`
+		];
+		if (row.summary) lines.push(`Summary: ${row.summary}`);
+		if (row.external_url) lines.push(`Link: ${row.external_url}`);
+		lines.push('', `Read it: ${origin}/writing/${row.$id}`, `Moderate: ${origin}/admin`);
+		const message = await sendEmail({
+			subject: `New writing: ${row.title}`,
+			text: lines.join('\n'),
+			targetIds,
+			cc: false
+		});
+		return message.$id;
+	} catch (err) {
+		console.error(`[messaging] submission alert failed for ${row?.$id}:`, err?.message || err);
 		return null;
 	}
 }
