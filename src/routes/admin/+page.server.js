@@ -19,6 +19,16 @@ import {
 	updateEvent,
 	deleteEvent
 } from '$lib/server/events.js';
+import {
+	listRecipients,
+	listRecentMessages,
+	getWelcomeEmailCopy,
+	sendMemberEmail,
+	validateWelcomeEmailCopy,
+	CC_EMAIL,
+	REPLY_TO_EMAIL
+} from '$lib/server/messaging.js';
+import { WELCOME_EMAIL_SETTING_KEYS } from '$lib/constants.js';
 
 const EDITABLE_SETTINGS = [
 	{ key: 'hero_title', label: 'Hero title', type: 'text' },
@@ -29,11 +39,13 @@ const EDITABLE_SETTINGS = [
 
 export async function load({ locals }) {
 	requireAdmin(locals);
-	const [dashboard, settings, events, approved] = await Promise.all([
+	const [dashboard, settings, events, approved, recipients, recentMessages] = await Promise.all([
 		getDashboardData(),
 		getAllSettings(),
 		listAllEvents(),
-		listPublicSubmissions({ limit: 100 })
+		listPublicSubmissions({ limit: 100 }),
+		listRecipients(),
+		listRecentMessages()
 	]);
 	const authors = await getAuthorsForUserIds(approved.map((s) => s.user_id));
 
@@ -46,7 +58,11 @@ export async function load({ locals }) {
 		events: events.map(serializeEvent),
 		approvedSubmissions: approved.map((s) =>
 			serializeSubmission(s, { author: authors[s.user_id] ?? null })
-		)
+		),
+		recipients,
+		recentMessages,
+		welcomeEmail: await getWelcomeEmailCopy(settings),
+		messaging: { cc: CC_EMAIL, replyTo: REPLY_TO_EMAIL }
 	};
 }
 
@@ -176,6 +192,41 @@ export const actions = {
 		try {
 			await setSetting('benefits', JSON.stringify(benefits));
 			return ok('Benefits updated.');
+		} catch (err) {
+			return fail(400, { error: err.message });
+		}
+	},
+
+	// One email to the chosen members (`user_id` repeated per recipient) or, with
+	// audience=all, to every non-suspended member. Sent through Appwrite Messaging.
+	sendMessage: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const fd = await request.formData();
+		try {
+			const result = await sendMemberEmail({
+				subject: fd.get('subject'),
+				body: fd.get('body'),
+				audience: String(fd.get('audience') || 'selected'),
+				userIds: fd.getAll('user_id').map(String)
+			});
+			const n = result.recipients;
+			return ok(`Email queued for ${n} member${n === 1 ? '' : 's'}.`);
+		} catch (err) {
+			return fail(err?.status === 502 ? 502 : 400, { error: err.message });
+		}
+	},
+
+	saveWelcomeEmail: async ({ request, locals }) => {
+		requireAdmin(locals);
+		const fd = await request.formData();
+		try {
+			const copy = validateWelcomeEmailCopy({
+				subject: fd.get('subject'),
+				body: fd.get('body')
+			});
+			await setSetting(WELCOME_EMAIL_SETTING_KEYS.subject, copy.subject);
+			await setSetting(WELCOME_EMAIL_SETTING_KEYS.body, copy.body);
+			return ok('Welcome email updated.');
 		} catch (err) {
 			return fail(400, { error: err.message });
 		}

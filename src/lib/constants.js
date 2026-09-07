@@ -96,3 +96,44 @@ export const GENRE_SUGGESTIONS = [
 	'Copywriting',
 	'Children’s Writing'
 ];
+
+/**
+ * Outbound email runs through Appwrite Messaging with the Resend adapter. The
+ * organiser's inbox is both the reply-to (set on the provider) and a CC on
+ * every email so member replies and copies land in one place. The sender is
+ * the verified Resend domain address. Override per environment with
+ * MESSAGING_FROM_EMAIL / MESSAGING_FROM_NAME / MESSAGING_REPLY_TO / MESSAGING_CC.
+ */
+export const MESSAGING = {
+	providerId: 'resend',
+	providerName: 'Resend',
+	fromName: "The Writers' Room BLR",
+	fromEmail: 'team@thewritersroom.club',
+	replyTo: 'adityaoberai1@gmail.com',
+	cc: 'adityaoberai1@gmail.com'
+};
+
+/** site_settings keys holding the admin-editable welcome email copy. */
+export const WELCOME_EMAIL_SETTING_KEYS = {
+	subject: 'welcome_email_subject',
+	body: 'welcome_email_body'
+};
+
+/** Default welcome email, seeded into site_settings and used when the setting is blank. */
+export const WELCOME_EMAIL_DEFAULTS = {
+	subject: "Welcome to The Writers' Room BLR",
+	body: `Hi there,
+
+Thank you for signing up for The Writers' Room BLR. It's good to have you in the room.
+
+Before we meet, we'd love to know a little about you. Just hit reply and tell us:
+
+1. Have you written a blog before?
+2. Have you attended a past Writers' Room event?
+3. Do you live in Bengaluru, or visit from time to time?
+
+A line or two on each is plenty. We read every reply.
+
+See you at the next session,
+The Writers' Room BLR`
+};
