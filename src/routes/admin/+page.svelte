@@ -1,9 +1,10 @@
 <script>
 	import { enhance } from '$app/forms';
+	import { SvelteSet } from 'svelte/reactivity';
 	import Seo from '$lib/components/Seo.svelte';
 	import FormFeedback from '$lib/components/FormFeedback.svelte';
 	import TableFilters from '$lib/components/TableFilters.svelte';
-	import { formatDate, toDateTimeLocal } from '$lib/format.js';
+	import { formatDate, formatDateTime, toDateTimeLocal } from '$lib/format.js';
 	import {
 		SUBMISSION_STATUSES,
 		FEEDBACK_CATEGORIES,
@@ -23,10 +24,46 @@
 		{ id: 'submissions', label: 'Submissions' },
 		{ id: 'featured', label: 'Featured' },
 		{ id: 'feedback', label: 'Feedback' },
+		{ id: 'messages', label: 'Messages' },
 		{ id: 'content', label: 'Site content' },
 		{ id: 'events', label: 'Events' }
 	];
 	let tab = $state('overview');
+
+	// Messaging: who the next email goes to. `selected` holds member ids while
+	// the audience is 'selected'; 'all' addresses every non-suspended member.
+	let audience = $state('selected');
+	const selected = new SvelteSet();
+	let recipientFilter = $state('');
+	const visibleRecipients = $derived.by(() => {
+		const term = recipientFilter.trim().toLowerCase();
+		if (!term) return data.recipients;
+		return data.recipients.filter((r) =>
+			`${r.display_name} ${r.email}`.toLowerCase().includes(term)
+		);
+	});
+	const allMembersCount = $derived(data.recipients.filter((r) => r.status !== 'suspended').length);
+	function toggleRecipient(id) {
+		if (selected.has(id)) selected.delete(id);
+		else selected.add(id);
+	}
+	function selectVisible() {
+		for (const r of visibleRecipients) selected.add(r.user_id);
+	}
+	/** Jump to the Messages tab with one member pre-selected. */
+	function emailMember(userId) {
+		selected.clear();
+		selected.add(userId);
+		audience = 'selected';
+		tab = 'messages';
+	}
+	const messageStatusClass = {
+		sent: 'pill-green',
+		processing: 'pill-amber',
+		scheduled: 'pill-amber',
+		failed: 'pill-red',
+		draft: 'pill-gray'
+	};
 
 	const statusClass = {
 		approved: 'pill-green',
@@ -306,7 +343,7 @@
 						{#each filteredMembers as m (m.raw_id)}
 							<tr>
 								<td>
-									<a href={`/members/${m.raw_id}`}>{m.profile.display_name}</a>
+									<a href={`/members/${m.raw_id}`}>{m.profile.display_name || 'Unnamed member'}</a>
 									<div class="muted small">{m.profile.location}</div>
 								</td>
 								<td>
@@ -345,6 +382,11 @@
 											>{m.profile.is_featured ? 'Unfeature' : 'Feature'}</button
 										>
 									</form>
+									<button
+										class="btn btn-ghost btn-sm"
+										type="button"
+										onclick={() => emailMember(m.user_id)}>Email</button
+									>
 									{#if m.user_id !== data.currentUserId}
 										<form method="POST" action="?/setMemberAdmin" use:enhance>
 											<input type="hidden" name="user_id" value={m.user_id} />
@@ -581,6 +623,182 @@
 				</div>
 			{:else}
 				<div class="card muted">No feedback yet.</div>
+			{/if}
+		{/if}
+
+		<!-- MESSAGES -->
+		{#if tab === 'messages'}
+			<h2>Messages</h2>
+			<p class="muted">
+				Email members through Appwrite Messaging. Replies go to {data.messaging.replyTo}, and {data
+					.messaging.cc} is copied on every email.
+			</p>
+			<div class="grid grid-2 msg-grid">
+				<form
+					method="POST"
+					action="?/sendMessage"
+					class="card stack"
+					use:enhance={({ cancel }) => {
+						if (
+							audience === 'all' &&
+							!confirm(`Send this email to all ${allMembersCount} members?`)
+						) {
+							cancel();
+							return;
+						}
+						return async ({ result, update }) => {
+							await update({ reset: result.type === 'success' });
+							if (result.type === 'success') selected.clear();
+						};
+					}}
+				>
+					<h3>Compose</h3>
+					<fieldset class="audience">
+						<legend>Send to</legend>
+						<label class="radio">
+							<input type="radio" name="audience" value="selected" bind:group={audience} />
+							Selected members ({selected.size})
+						</label>
+						<label class="radio">
+							<input type="radio" name="audience" value="all" bind:group={audience} />
+							All members ({allMembersCount})
+						</label>
+					</fieldset>
+					{#if audience === 'selected'}
+						{#each [...selected] as id (id)}
+							<input type="hidden" name="user_id" value={id} />
+						{/each}
+					{/if}
+					<div class="field">
+						<label for="msg-subject">Subject</label>
+						<input id="msg-subject" name="subject" type="text" required maxlength="200" />
+					</div>
+					<div class="field">
+						<label for="msg-body">Message</label>
+						<textarea id="msg-body" name="body" rows="8" required maxlength="10000"></textarea>
+						<p class="hint">
+							Plain text. Blank lines start a new paragraph; web addresses become links.
+						</p>
+					</div>
+					<button
+						class="btn btn-primary btn-sm"
+						type="submit"
+						disabled={audience === 'selected' && selected.size === 0}
+					>
+						{#if audience === 'all'}
+							Send to all {allMembersCount} members
+						{:else}
+							Send to {selected.size} member{selected.size === 1 ? '' : 's'}
+						{/if}
+					</button>
+				</form>
+
+				<div class="card recipients">
+					<h3>Members</h3>
+					<div class="field">
+						<label for="msg-filter">Find</label>
+						<input
+							id="msg-filter"
+							type="search"
+							placeholder="Name or email"
+							bind:value={recipientFilter}
+						/>
+					</div>
+					<div class="btns">
+						<button class="btn btn-secondary btn-sm" type="button" onclick={selectVisible}
+							>Select shown</button
+						>
+						<button class="btn btn-ghost btn-sm" type="button" onclick={() => selected.clear()}
+							>Clear</button
+						>
+					</div>
+					<ul class="recipient-list">
+						{#each visibleRecipients as r (r.user_id)}
+							<li>
+								<label class="recipient">
+									<input
+										type="checkbox"
+										checked={selected.has(r.user_id)}
+										onchange={() => toggleRecipient(r.user_id)}
+									/>
+									<span class="recipient-name">{r.display_name || 'Unnamed member'}</span>
+									<span class="muted small">{r.email}</span>
+									{#if r.status === 'suspended'}<span class="pill pill-red">Suspended</span>{/if}
+									{#if r.role === 'admin'}<span class="pill pill-amber">Admin</span>{/if}
+								</label>
+							</li>
+						{/each}
+						{#if !visibleRecipients.length}<li class="muted">No members match.</li>{/if}
+					</ul>
+				</div>
+			</div>
+
+			<h3 class="msg-section">Welcome email</h3>
+			<p class="muted">
+				Sent automatically the first time someone signs up. It asks new members to reply with a few
+				words about themselves.
+			</p>
+			<form
+				method="POST"
+				action="?/saveWelcomeEmail"
+				class="card stack"
+				use:enhance={() =>
+					async ({ update }) => {
+						await update({ reset: false });
+					}}
+			>
+				<div class="field">
+					<label for="welcome-subject">Subject</label>
+					<input
+						id="welcome-subject"
+						name="subject"
+						type="text"
+						value={data.welcomeEmail.subject}
+						required
+						maxlength="200"
+					/>
+				</div>
+				<div class="field">
+					<label for="welcome-body">Message</label>
+					<textarea id="welcome-body" name="body" rows="12" required maxlength="10000"
+						>{data.welcomeEmail.body}</textarea
+					>
+				</div>
+				<button class="btn btn-secondary btn-sm" type="submit">Save welcome email</button>
+			</form>
+
+			<h3 class="msg-section">Recent emails</h3>
+			{#if data.recentMessages.length}
+				<div class="table-wrap">
+					<table class="data">
+						<thead>
+							<tr
+								><th>Sent</th><th>Subject</th><th>Recipients</th><th>Status</th><th>Delivered</th
+								></tr
+							>
+						</thead>
+						<tbody>
+							{#each data.recentMessages as m (m.id)}
+								<tr>
+									<td class="small">{formatDateTime(m.created_at)}</td>
+									<td>{m.subject}</td>
+									<td>{m.recipients}</td>
+									<td>
+										<span class="pill {messageStatusClass[m.status] ?? 'pill-gray'}"
+											>{m.status}</span
+										>
+										{#if m.delivery_errors.length}
+											<div class="muted small msg-errors">{m.delivery_errors.join('; ')}</div>
+										{/if}
+									</td>
+									<td>{m.delivered_total}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else}
+				<div class="card muted">No emails sent yet.</div>
 			{/if}
 		{/if}
 
@@ -968,5 +1186,63 @@
 		cursor: pointer;
 		padding: 0;
 		text-decoration: underline;
+	}
+	.msg-grid {
+		align-items: start;
+	}
+	.audience {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		gap: 1.2rem;
+		flex-wrap: wrap;
+	}
+	.audience legend {
+		font-weight: 700;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		padding: 0;
+		margin-bottom: 0.4rem;
+	}
+	.radio,
+	.recipient {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		font-weight: 400;
+		font-size: 0.95rem;
+		text-transform: none;
+		letter-spacing: 0;
+		cursor: pointer;
+	}
+	.recipient {
+		flex-wrap: wrap;
+		padding: 0.4rem 0;
+		border-bottom: 1px solid var(--hairline);
+	}
+	.recipient-name {
+		font-weight: 600;
+	}
+	.recipient-list {
+		list-style: none;
+		margin: 0.6rem 0 0;
+		padding: 0;
+		max-height: 440px;
+		overflow-y: auto;
+	}
+	.recipients .btns {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+	.msg-section {
+		margin-top: 2rem;
+	}
+	.msg-errors {
+		max-width: 320px;
+		overflow-wrap: anywhere;
 	}
 </style>

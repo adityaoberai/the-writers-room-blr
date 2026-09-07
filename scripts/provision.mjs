@@ -7,7 +7,17 @@
  *
  * Run with:  node --env-file=.env scripts/provision.mjs
  */
-import { Client, TablesDB, Storage, Permission, Role, Query, ID } from 'node-appwrite';
+import {
+	Client,
+	TablesDB,
+	Storage,
+	Messaging,
+	Users,
+	Permission,
+	Role,
+	Query,
+	ID
+} from 'node-appwrite';
 import {
 	DATABASE_ID,
 	PHOTO_BUCKET_ID,
@@ -21,7 +31,10 @@ import {
 	EVENT_SOURCES,
 	BADGE_CRITERIA,
 	FEEDBACK_CATEGORIES,
-	FEEDBACK_STATUSES
+	FEEDBACK_STATUSES,
+	MESSAGING,
+	WELCOME_EMAIL_SETTING_KEYS,
+	WELCOME_EMAIL_DEFAULTS
 } from '../src/lib/constants.js';
 
 const endpoint = process.env.APPWRITE_ENDPOINT;
@@ -37,6 +50,8 @@ if (!endpoint || !project || !apiKey) {
 const client = new Client().setEndpoint(endpoint).setProject(project).setKey(apiKey);
 const tablesDB = new TablesDB(client);
 const storage = new Storage(client);
+const messaging = new Messaging(client);
+const users = new Users(client);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -549,7 +564,10 @@ async function seedData() {
 				'The Writers’ Room BLR is a calm, focused space for writers in Bengaluru. We meet for quiet co-working, each of us carrying our own writing tools, to write together, share work, and build the kind of steady community that makes the writing life less lonely.'
 		},
 		{ key: 'luma_url', value: 'https://luma.com/the-writers-room' },
-		{ key: 'benefits', value: benefits }
+		{ key: 'benefits', value: benefits },
+		// Welcome email copy; admins edit it from the dashboard, so seeds never overwrite.
+		{ key: WELCOME_EMAIL_SETTING_KEYS.subject, value: WELCOME_EMAIL_DEFAULTS.subject },
+		{ key: WELCOME_EMAIL_SETTING_KEYS.body, value: WELCOME_EMAIL_DEFAULTS.body }
 	];
 	for (const s of settings) {
 		await seedRow(TABLES.siteSettings, `setting_${s.key}`, s);
@@ -656,16 +674,82 @@ async function backfillAwards() {
 	console.log(`  ✓ ${granted} seal(s) backfilled`);
 }
 
+/**
+ * Appwrite Messaging: the Resend email provider and the CC inbox.
+ *
+ * The provider is created on the first run and updated on later runs, so a
+ * rotated RESEND_API_KEY or a changed sender/reply-to takes effect by simply
+ * re-running this script. Appwrite addresses CC recipients by target id, so the
+ * organiser's inbox is kept as an Auth user with an email target; the app
+ * looks that target up at send time.
+ */
+async function provisionMessaging() {
+	console.log('Messaging (Resend)');
+	const resendKey = process.env.RESEND_API_KEY;
+	const fromEmail = (process.env.MESSAGING_FROM_EMAIL || MESSAGING.fromEmail).trim().toLowerCase();
+	const fromName = process.env.MESSAGING_FROM_NAME || MESSAGING.fromName;
+	const replyTo = (process.env.MESSAGING_REPLY_TO || MESSAGING.replyTo).trim().toLowerCase();
+	const cc = (process.env.MESSAGING_CC || MESSAGING.cc).trim().toLowerCase();
+
+	if (!resendKey) {
+		console.log('  • skipped  Resend provider (set RESEND_API_KEY to create or update it)');
+	} else {
+		const provider = {
+			providerId: MESSAGING.providerId,
+			name: MESSAGING.providerName,
+			apiKey: resendKey,
+			fromName,
+			fromEmail,
+			replyToName: fromName,
+			replyToEmail: replyTo,
+			enabled: true
+		};
+		try {
+			await messaging.createResendProvider(provider);
+			console.log(
+				`  ✓ created provider ${MESSAGING.providerId} (${fromEmail}, reply-to ${replyTo})`
+			);
+		} catch (err) {
+			if (err?.code !== 409) throw err;
+			await messaging.updateResendProvider(provider);
+			console.log(
+				`  ✓ updated provider ${MESSAGING.providerId} (${fromEmail}, reply-to ${replyTo})`
+			);
+		}
+	}
+
+	const existing = await users.list({ queries: [Query.equal('email', cc), Query.limit(1)] });
+	let inbox = existing.users?.[0];
+	if (inbox) {
+		console.log(`  • exists  CC inbox user ${cc}`);
+	} else {
+		inbox = await users.create({ userId: ID.unique(), email: cc, name: 'Community inbox' });
+		console.log(`  ✓ created CC inbox user ${cc}`);
+	}
+	const hasEmailTarget = (inbox.targets ?? []).some((t) => t.providerType === 'email');
+	if (!hasEmailTarget) {
+		await ensure(`email target for ${cc}`, () =>
+			users.createTarget({
+				userId: inbox.$id,
+				targetId: ID.unique(),
+				providerType: 'email',
+				identifier: cc
+			})
+		);
+	}
+}
+
 async function main() {
 	console.log(`Provisioning project "${project}" at ${endpoint}\n`);
 	await provisionDatabase();
 	await provisionBuckets();
+	await provisionMessaging();
 	await cleanupLegacySeeds();
 	await syncEnumColumns();
 	await seedData();
 	await backfillAwards();
 	await backfillSearchText();
-	console.log('\nDone. Schema, bucket and seed data are in place.');
+	console.log('\nDone. Schema, buckets, messaging and seed data are in place.');
 }
 
 main().catch((err) => {

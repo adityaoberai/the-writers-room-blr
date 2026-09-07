@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { requireUser } from '$lib/server/guards.js';
 import {
+	displayNameOf,
 	ensureProfile,
 	parseLinks,
 	saveProfileFromFormData,
@@ -11,7 +12,7 @@ import { recomputeBadges } from '$lib/server/rewards.js';
 
 function formProfile(p) {
 	return {
-		display_name: p.display_name ?? '',
+		display_name: displayNameOf(p),
 		bio: p.bio ?? '',
 		genres: p.genres ?? [],
 		location: p.location ?? 'Bengaluru',
@@ -23,8 +24,7 @@ function formProfile(p) {
 
 export async function load({ locals }) {
 	requireUser(locals);
-	const fallbackName = locals.user.name || locals.user.email?.split('@')[0] || 'New member';
-	const profile = await ensureProfile(locals.user.$id, fallbackName);
+	const profile = await ensureProfile(locals.user.$id, locals.user.name);
 	return { profile: formProfile(profile), email: locals.user.email };
 }
 
