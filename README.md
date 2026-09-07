@@ -11,7 +11,7 @@ are managed in the dashboard and shown from the events table.
 ## Tech stack
 
 - **Frontend:** SvelteKit (Svelte 5, JavaScript) with SSR via `@sveltejs/adapter-node`
-- **Backend / DB / Auth:** Appwrite Cloud — Auth (email OTP), TablesDB, Storage
+- **Backend / DB / Auth:** Appwrite Cloud — Auth (email OTP), TablesDB, Storage, Messaging (Resend)
 - **Hosting target:** Appwrite Sites (SSR)
 
 The app is fully server-rendered. All Appwrite access happens server-side: a reusable
@@ -68,22 +68,31 @@ static/                    logo.jpg (source), favicon.png, apple-touch-icon.png,
    cp .env.example .env
    ```
 
-   | Variable                   | Description                                                  |
-   | -------------------------- | ------------------------------------------------------------ |
-   | `APPWRITE_ENDPOINT`        | Region endpoint, e.g. `https://sgp.cloud.appwrite.io/v1`     |
-   | `APPWRITE_PROJECT_ID`      | Appwrite project ID                                          |
-   | `APPWRITE_API_KEY`         | Server API key (sessions, users, rows, files scopes)         |
-   | `APPWRITE_DATABASE_ID`     | Database ID (`main`)                                         |
-   | `APPWRITE_PHOTO_BUCKET_ID` | Storage bucket ID (`profile_photos`)                         |
-   | `ADMIN_EMAILS`             | Comma-separated emails auto-promoted to admin on first login |
-   | `PUBLIC_SITE_URL`          | Public origin used for canonical/OG URLs and the sitemap     |
+   | Variable                   | Description                                                                       |
+   | -------------------------- | --------------------------------------------------------------------------------- |
+   | `APPWRITE_ENDPOINT`        | Region endpoint, e.g. `https://sgp.cloud.appwrite.io/v1`                          |
+   | `APPWRITE_PROJECT_ID`      | Appwrite project ID                                                               |
+   | `APPWRITE_API_KEY`         | Server API key (sessions, users, rows, files scopes)                              |
+   | `APPWRITE_DATABASE_ID`     | Database ID (`main`)                                                              |
+   | `APPWRITE_PHOTO_BUCKET_ID` | Storage bucket ID (`profile_photos`)                                              |
+   | `ADMIN_EMAILS`             | Comma-separated emails auto-promoted to admin on first login                      |
+   | `PUBLIC_SITE_URL`          | Public origin used for canonical/OG URLs and the sitemap                          |
+   | `RESEND_API_KEY`           | Resend API key; provisioning creates/updates the provider                         |
+   | `MESSAGING_FROM_EMAIL`     | Sender address on the verified Resend domain (default `team@thewritersroom.club`) |
+   | `MESSAGING_FROM_NAME`      | Sender name (default `The Writers' Room BLR`)                                     |
+   | `MESSAGING_REPLY_TO`       | Reply-to address set on the provider (default `adityaoberai1@gmail.com`)          |
+   | `MESSAGING_CC`             | Address copied on every email (default `adityaoberai1@gmail.com`)                 |
 
    Admin authority is read from the Appwrite Auth user's `admin` **label**;
    `ADMIN_EMAILS` is a bootstrap that also stamps that label on first login.
 
+   The API key needs, besides the sessions/users/rows/files scopes, the Messaging
+   scopes `messages.read`, `messages.write`, `providers.read`, `providers.write`,
+   `targets.read` and `targets.write`.
+
 3. **Provision the backend** (idempotent — safe to re-run). Creates the database,
-   tables, indexes, the photo bucket, and seeds reward rules, badges, site copy and
-   sample events:
+   tables, indexes, the storage buckets, the Resend email provider and the CC
+   inbox target, and seeds badges, site copy and the welcome email:
 
    ```sh
    node --env-file=.env scripts/provision.mjs
@@ -126,6 +135,25 @@ section hides itself when the folder has no images.
   You can recompress with `sharp`, e.g. resize to 1600px at quality 80, which takes
   a typical camera JPG from ~14MB down to ~150KB.
 - Prefix filenames with `01-`, `02-`, … to control the carousel order.
+
+## Email
+
+All email goes through **Appwrite Messaging** with the **Resend** provider
+(`scripts/provision.mjs` creates it from `RESEND_API_KEY`, and re-running the script
+updates the key, sender and reply-to). `src/lib/server/messaging.js` owns the flows:
+
+- **Welcome email.** The first successful sign-in creates the member's `users` row,
+  and that moment sends a welcome note asking three questions (blog experience, past
+  Writers' Room events, Bengaluru). The copy is editable from the dashboard's
+  Messages tab (`welcome_email_subject` / `welcome_email_body` in `site_settings`).
+- **Admin messaging.** The Messages tab composes one email to chosen members or to
+  every non-suspended member, and lists recent deliveries straight from Messaging.
+  Each member row also has an **Email** button. `GET`/`POST /api/admin/messages`
+  expose the same for scripts.
+- **Reply-to and CC.** The provider's reply-to is `MESSAGING_REPLY_TO`; every email
+  also CCs `MESSAGING_CC`. Appwrite addresses CC by target id, so provisioning keeps
+  an Auth user ("Community inbox") for that address and the app looks up its email
+  target when sending.
 
 ## Data model
 

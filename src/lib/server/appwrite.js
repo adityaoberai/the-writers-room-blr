@@ -13,6 +13,7 @@ import {
 	Users,
 	Storage,
 	Account,
+	Messaging,
 	ID,
 	Query,
 	Permission,
@@ -40,6 +41,8 @@ function adminClient() {
 export const adminTablesDB = () => new TablesDB(adminClient());
 export const adminUsers = () => new Users(adminClient());
 export const adminStorage = () => new Storage(adminClient());
+/** Messaging service (email via the Resend provider) bound to the admin client. */
+export const adminMessaging = () => new Messaging(adminClient());
 /** Account service bound to the admin client, used to mint email tokens and sessions. */
 export const adminAccount = () => new Account(adminClient());
 

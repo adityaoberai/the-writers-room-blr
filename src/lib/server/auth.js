@@ -3,7 +3,8 @@
  *
  *  1. requestOtp  -> creates an email token; Appwrite emails the 6-digit code.
  *  2. verifyOtp   -> exchanges (userId, code) for a session, then mirrors the
- *                    Auth account into the application `users` table.
+ *                    Auth account into the application `users` table. A first
+ *                    sign-in is the sign-up, and triggers the welcome email.
  *  3. resolveSession / logout -> validate or tear down a session.
  *
  * Route handlers own the httpOnly session cookie; this module only talks to
@@ -12,6 +13,7 @@
 import { dev } from '$app/environment';
 import { adminAccount, adminUsers, sessionAccount, SESSION_COOKIE, ID } from './appwrite.js';
 import { syncUserOnLogin } from './users.js';
+import { sendWelcomeEmail } from './messaging.js';
 import { isValidEmail, ValidationError } from './validation.js';
 
 /** Persist the Appwrite session secret in a secure, httpOnly cookie. */
@@ -71,9 +73,9 @@ export async function verifyOtp({ challengeId, otp }) {
 	}
 
 	const authUser = await adminUsers().get({ userId: session.userId });
-	const { user, isAdmin } = await syncUserOnLogin(authUser);
+	const { user, isAdmin, isNew } = await syncUserOnLogin(authUser);
 
-	return { session, authUser, appUser: user, isAdmin };
+	return { session, authUser, appUser: user, isAdmin, justRegistered: isNew };
 }
 
 /**
@@ -82,12 +84,18 @@ export async function verifyOtp({ challengeId, otp }) {
  * the member has a profile row.
  */
 export async function completeLogin(cookies, { challengeId, otp }) {
-	const { session, authUser, appUser, isAdmin } = await verifyOtp({ challengeId, otp });
+	const { session, authUser, appUser, isAdmin, justRegistered } = await verifyOtp({
+		challengeId,
+		otp
+	});
 	setSessionCookie(cookies, session);
 
 	const { ensureProfile, hasDisplayName, isProfileComplete } = await import('./profiles.js');
 	// Pre-fill only from the Auth account's own name (empty for email-OTP users).
 	const profile = await ensureProfile(authUser.$id, authUser.name);
+
+	// Welcome brand-new members by email. Never throws, so it cannot block login.
+	if (justRegistered) await sendWelcomeEmail(authUser);
 
 	return {
 		user_id: authUser.$id,
