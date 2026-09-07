@@ -3,7 +3,13 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import Seo from '$lib/components/Seo.svelte';
 	import FormFeedback from '$lib/components/FormFeedback.svelte';
+	import TableFilters from '$lib/components/TableFilters.svelte';
 	import { formatDate, formatDateTime, toDateTimeLocal } from '$lib/format.js';
+	import {
+		SUBMISSION_STATUSES,
+		FEEDBACK_CATEGORIES,
+		FEEDBACK_CATEGORY_LABELS
+	} from '$lib/constants.js';
 
 	let { data, form } = $props();
 	const d = $derived(data.dashboard);
@@ -71,6 +77,127 @@
 		reviewed: 'pill-gray',
 		resolved: 'pill-green'
 	};
+
+	// ---- Table filters -------------------------------------------------------
+	// Each table gets a free-text search plus a few select filters. Filtering is
+	// done client-side over the already-loaded dashboard data.
+	const matches = (term, ...fields) =>
+		!term ||
+		fields.some((f) =>
+			String(f ?? '')
+				.toLowerCase()
+				.includes(term)
+		);
+	const options = (values, labels = {}) =>
+		values.map((v) => ({ value: v, label: labels[v] ?? v.charAt(0).toUpperCase() + v.slice(1) }));
+
+	let memberSearch = $state('');
+	let memberFilters = $state({ listing: '', profile: '', role: '' });
+	const memberFields = [
+		{
+			key: 'listing',
+			label: 'Listing',
+			options: [
+				{ value: 'listed', label: 'Listed' },
+				{ value: 'unlisted', label: 'Unlisted' },
+				{ value: 'featured', label: 'Featured' }
+			]
+		},
+		{
+			key: 'profile',
+			label: 'Profile',
+			options: [
+				{ value: 'complete', label: 'Complete' },
+				{ value: 'incomplete', label: 'Incomplete' },
+				{ value: 'private', label: 'Private' }
+			]
+		},
+		{
+			key: 'role',
+			label: 'Role',
+			options: [
+				{ value: 'admin', label: 'Admins' },
+				{ value: 'member', label: 'Members' }
+			]
+		}
+	];
+	const filteredMembers = $derived.by(() => {
+		const term = memberSearch.trim().toLowerCase();
+		const { listing, profile, role } = memberFilters;
+		return d.queues.members.filter((m) => {
+			if (listing === 'listed' && !m.listed) return false;
+			if (listing === 'unlisted' && m.listed) return false;
+			if (listing === 'featured' && !m.profile.is_featured) return false;
+			if (profile === 'complete' && !m.complete) return false;
+			if (profile === 'incomplete' && m.complete) return false;
+			if (profile === 'private' && m.profile.is_public) return false;
+			if (role === 'admin' && !m.is_admin) return false;
+			if (role === 'member' && m.is_admin) return false;
+			return matches(term, m.profile.display_name, m.profile.location);
+		});
+	});
+
+	let submissionSearch = $state('');
+	let submissionFilters = $state({ status: '', type: '' });
+	const submissionTypes = $derived.by(() => {
+		const seen = {};
+		for (const s of d.queues.submissions) seen[s.content_type] = s.content_type_label;
+		return Object.entries(seen).map(([value, label]) => ({ value, label }));
+	});
+	const submissionFields = $derived([
+		{ key: 'status', label: 'Status', options: options(SUBMISSION_STATUSES) },
+		{ key: 'type', label: 'Type', options: submissionTypes }
+	]);
+	const filteredSubmissions = $derived.by(() => {
+		const term = submissionSearch.trim().toLowerCase();
+		const { status, type } = submissionFilters;
+		return d.queues.submissions.filter((s) => {
+			if (status && s.status !== status) return false;
+			if (type && s.content_type !== type) return false;
+			return matches(term, s.title, s.author?.display_name);
+		});
+	});
+
+	let featuredSearch = $state('');
+	let featuredFilters = $state({ status: '' });
+	const featuredFields = [
+		{
+			key: 'status',
+			label: 'Status',
+			options: [
+				{ value: 'featured', label: 'Featured' },
+				{ value: 'approved', label: 'Not featured' }
+			]
+		}
+	];
+	const filteredApproved = $derived.by(() => {
+		const term = featuredSearch.trim().toLowerCase();
+		const { status } = featuredFilters;
+		return data.approvedSubmissions.filter((s) => {
+			if (status && s.status !== status) return false;
+			return matches(term, s.title, s.author?.display_name);
+		});
+	});
+
+	let feedbackSearch = $state('');
+	let feedbackFilters = $state({ category: '', status: '' });
+	const feedbackFields = [
+		{
+			key: 'category',
+			label: 'About',
+			options: options(FEEDBACK_CATEGORIES, FEEDBACK_CATEGORY_LABELS)
+		},
+		{ key: 'status', label: 'Status', options: options(['new', 'reviewed', 'resolved']) }
+	];
+	const filteredFeedback = $derived.by(() => {
+		const term = feedbackSearch.trim().toLowerCase();
+		const { category, status } = feedbackFilters;
+		return d.queues.feedback.filter((f) => {
+			if (category && f.category !== category) return false;
+			if (status && f.status !== status) return false;
+			return matches(term, f.message, f.author?.display_name, f.email, f.page);
+		});
+	});
 
 	const blankBenefit = () => ({ title: '', body: '', icon: 'pen' });
 
@@ -197,13 +324,23 @@
 				New members stay out of the directory until approved. List to approve someone, unlist to
 				hide them, feature to spotlight them, or grant admin access.
 			</p>
+			<TableFilters
+				fields={memberFields}
+				bind:values={memberFilters}
+				bind:search={memberSearch}
+				searchLabel="Search members"
+				searchPlaceholder="Name or location"
+				shown={filteredMembers.length}
+				total={d.queues.members.length}
+				noun="members"
+			/>
 			<div class="table-wrap">
 				<table class="data">
 					<thead>
 						<tr><th>Member</th><th>Profile</th><th>Listed</th><th>Role</th><th>Actions</th></tr>
 					</thead>
 					<tbody>
-						{#each d.queues.members as m (m.raw_id)}
+						{#each filteredMembers as m (m.raw_id)}
 							<tr>
 								<td>
 									<a href={`/members/${m.raw_id}`}>{m.profile.display_name || 'Unnamed member'}</a>
@@ -268,6 +405,8 @@
 						{/each}
 						{#if !d.queues.members.length}
 							<tr><td colspan="5" class="muted">No members yet.</td></tr>
+						{:else if !filteredMembers.length}
+							<tr><td colspan="5" class="muted">No members match these filters.</td></tr>
 						{/if}
 					</tbody>
 				</table>
@@ -282,13 +421,23 @@
 				reject pending pieces; unlist a live piece to hide it again.
 			</p>
 			{#if d.queues.submissions.length}
+				<TableFilters
+					fields={submissionFields}
+					bind:values={submissionFilters}
+					bind:search={submissionSearch}
+					searchLabel="Search submissions"
+					searchPlaceholder="Title or author"
+					shown={filteredSubmissions.length}
+					total={d.queues.submissions.length}
+					noun="submissions"
+				/>
 				<div class="table-wrap">
 					<table class="data">
 						<thead>
 							<tr><th>Title</th><th>Author</th><th>Type</th><th>Status</th><th></th></tr>
 						</thead>
 						<tbody>
-							{#each d.queues.submissions as s (s.id)}
+							{#each filteredSubmissions as s (s.id)}
 								{@const isPublic = s.status === 'approved' || s.status === 'featured'}
 								<tr>
 									<td><a href={`/writing/${s.id}`}>{s.title}</a></td>
@@ -323,6 +472,9 @@
 									</td>
 								</tr>
 							{/each}
+							{#if !filteredSubmissions.length}
+								<tr><td colspan="5" class="muted">No submissions match these filters.</td></tr>
+							{/if}
 						</tbody>
 					</table>
 				</div>
@@ -335,11 +487,21 @@
 		{#if tab === 'featured'}
 			<h2>Featured writing</h2>
 			<p class="muted">Spotlight approved pieces on the homepage.</p>
+			<TableFilters
+				fields={featuredFields}
+				bind:values={featuredFilters}
+				bind:search={featuredSearch}
+				searchLabel="Search writing"
+				searchPlaceholder="Title or author"
+				shown={filteredApproved.length}
+				total={data.approvedSubmissions.length}
+				noun="pieces"
+			/>
 			<div class="table-wrap">
 				<table class="data">
 					<thead><tr><th>Title</th><th>Author</th><th>Status</th><th></th></tr></thead>
 					<tbody>
-						{#each data.approvedSubmissions as s (s.id)}
+						{#each filteredApproved as s (s.id)}
 							<tr>
 								<td><a href={`/writing/${s.id}`}>{s.title}</a></td>
 								<td>{s.author?.display_name ?? '-'}</td>
@@ -361,6 +523,8 @@
 						{/each}
 						{#if !data.approvedSubmissions.length}
 							<tr><td colspan="4" class="muted">No approved submissions yet.</td></tr>
+						{:else if !filteredApproved.length}
+							<tr><td colspan="4" class="muted">No writing matches these filters.</td></tr>
 						{/if}
 					</tbody>
 				</table>
@@ -379,6 +543,16 @@
 				Notes sent through the feedback form: bugs, ideas and questions from members.
 			</p>
 			{#if d.queues.feedback.length}
+				<TableFilters
+					fields={feedbackFields}
+					bind:values={feedbackFilters}
+					bind:search={feedbackSearch}
+					searchLabel="Search feedback"
+					searchPlaceholder="Note, member, email or page"
+					shown={filteredFeedback.length}
+					total={d.queues.feedback.length}
+					noun="notes"
+				/>
 				<div class="table-wrap">
 					<table class="data">
 						<thead>
@@ -388,7 +562,7 @@
 							>
 						</thead>
 						<tbody>
-							{#each d.queues.feedback as f (f.id)}
+							{#each filteredFeedback as f (f.id)}
 								<tr>
 									<td class="small">{formatDate(f.created_at)}</td>
 									<td>
@@ -441,6 +615,9 @@
 									</td>
 								</tr>
 							{/each}
+							{#if !filteredFeedback.length}
+								<tr><td colspan="6" class="muted">No feedback matches these filters.</td></tr>
+							{/if}
 						</tbody>
 					</table>
 				</div>
