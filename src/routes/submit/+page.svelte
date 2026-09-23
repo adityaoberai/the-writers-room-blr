@@ -16,7 +16,6 @@
 <section class="section">
 	<div class="container narrow">
 		<header class="page-head">
-			<p class="eyebrow">Share your work</p>
 			<h1>Submit writing</h1>
 			<p class="lead">
 				Share a title and type. Add a link, short summary, or a cover image if you have one. An

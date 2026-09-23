@@ -46,7 +46,6 @@
 	<div class="container">
 		<header class="page-head">
 			<div>
-				<p class="eyebrow">Your account</p>
 				<h1>Your profile</h1>
 			</div>
 			<div class="head-actions">

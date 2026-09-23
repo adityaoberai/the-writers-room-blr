@@ -16,7 +16,6 @@
 <section class="section">
 	<div class="container narrow">
 		<header class="page-head">
-			<p class="eyebrow">Welcome</p>
 			<h1>Let's set up your profile</h1>
 			<p class="lead">
 				Tell the community about your writing. Once an admin approves your profile, you'll appear

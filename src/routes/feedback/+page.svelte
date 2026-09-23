@@ -31,7 +31,6 @@
 <section class="section">
 	<div class="container narrow">
 		<header class="page-head">
-			<p class="eyebrow">Letters to the editor</p>
 			<h1>Share feedback</h1>
 			<p class="lead">
 				Spotted something odd? Have an idea for the room? Tell us in your own words, no technical
