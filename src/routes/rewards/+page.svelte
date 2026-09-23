@@ -21,7 +21,6 @@
 <section class="section">
 	<div class="container">
 		<header class="page-head">
-			<p class="eyebrow">Recognition</p>
 			<h1>Your seals</h1>
 		</header>
 

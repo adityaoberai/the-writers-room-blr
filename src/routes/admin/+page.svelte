@@ -224,7 +224,6 @@
 	<div class="container">
 		<header class="page-head">
 			<div>
-				<p class="eyebrow">Platform</p>
 				<h1>Admin dashboard</h1>
 			</div>
 		</header>

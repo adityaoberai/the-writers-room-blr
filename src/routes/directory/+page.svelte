@@ -59,7 +59,6 @@
 		</div>
 
 		<header class="page-head">
-			<p class="eyebrow">Community</p>
 			<h1>Member directory</h1>
 			<p class="lead">
 				Find writers with shared interests. Members appear here once an admin has approved their

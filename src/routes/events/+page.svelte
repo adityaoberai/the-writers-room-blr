@@ -26,7 +26,6 @@
 		</div>
 
 		<header class="page-head">
-			<p class="eyebrow">Meetups</p>
 			<h1>Events</h1>
 			<p class="calrow">
 				<a href={data.luma_url} target="_blank" rel="noopener noreferrer">Events calendar ↗</a>

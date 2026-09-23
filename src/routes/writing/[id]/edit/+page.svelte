@@ -13,7 +13,6 @@
 <section class="section">
 	<div class="container narrow">
 		<header class="page-head">
-			<p class="eyebrow">Edit</p>
 			<h1>Edit writing</h1>
 			<p class="lead">
 				Update the details of your piece. Changes go live immediately.
