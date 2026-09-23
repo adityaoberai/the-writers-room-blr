@@ -66,7 +66,6 @@
 <section class="section">
 	<div class="container narrow">
 		<header class="page-head">
-			<p class="eyebrow">House rules</p>
 			<h1>Code of Conduct</h1>
 			<p class="lead">
 				<strong>Welcome to The Writers&rsquo; Room!</strong> This is a space for writers of all kinds
