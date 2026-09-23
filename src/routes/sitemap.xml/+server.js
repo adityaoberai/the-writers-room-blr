@@ -4,7 +4,7 @@ import { listPublicSubmissions } from '$lib/server/submissions.js';
 
 export const prerender = false;
 
-const STATIC_ROUTES = ['/', '/directory', '/writing', '/events', '/signin'];
+const STATIC_ROUTES = ['/', '/directory', '/writing', '/events', '/signin', '/code-of-conduct'];
 
 function urlTag(loc, lastmod, priority) {
 	return `  <url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}${

@@ -26,6 +26,7 @@
 					{#if !user}
 						<li><a href="/signin">Join the room</a></li>
 					{/if}
+					<li><a href="/code-of-conduct">Code of Conduct</a></li>
 					<li>
 						<a href="https://x.com/blrwritersroom" target="_blank" rel="noopener noreferrer">
 							Follow on X
