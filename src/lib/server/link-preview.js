@@ -1,15 +1,18 @@
 import { lookup } from 'node:dns/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
-import { isIP } from 'node:net';
+import { BlockList, isIP } from 'node:net';
 import { TextDecoder } from 'node:util';
 import { createBrotliDecompress, createGunzip, createInflate } from 'node:zlib';
-import { DEFAULT_SUBMISSION_IMAGE } from '$lib/constants.js';
+import { parse } from 'parse5';
+import { CONTENT_TYPES, DEFAULT_SUBMISSION_IMAGE } from '$lib/constants.js';
+import { cleanString } from './validation.js';
 
 export { DEFAULT_SUBMISSION_IMAGE };
 
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 const CACHE_RETRY_MS = 1000 * 60 * 10;
+const MAX_CACHE_ENTRIES = 500;
 const FETCH_TIMEOUT_MS = 4000;
 const MAX_HTML_BYTES = 160 * 1024;
 const MAX_REDIRECTS = 3;
@@ -34,25 +37,21 @@ const previewCache = new Map();
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function isBlockedHostname(hostname) {
-	const host = hostname
-		.toLowerCase()
-		.replace(/^\[|\]$/g, '')
-		.replace(/\.$/, '');
-	return (
-		host === 'localhost' ||
-		host.endsWith('.localhost') ||
-		host === '0.0.0.0' ||
-		host === '::' ||
-		host === '::1'
-	);
-}
+const globalIpv6 = new BlockList();
+globalIpv6.addSubnet('2000::', 3, 'ipv6');
+const reservedIpv6 = new BlockList();
+reservedIpv6.addSubnet('2001::', 23, 'ipv6');
+reservedIpv6.addSubnet('2001:db8::', 32, 'ipv6');
+reservedIpv6.addSubnet('2002::', 16, 'ipv6');
+reservedIpv6.addSubnet('3fff::', 20, 'ipv6');
+
+const hostAddress = (url) => url.hostname.replace(/^\[|\]$/g, '');
 
 function isPrivateAddress(address) {
 	const version = isIP(address);
 
 	if (version === 4) {
-		const [a, b] = address.split('.').map(Number);
+		const [a, b, c] = address.split('.').map(Number);
 		return (
 			a === 0 ||
 			a === 10 ||
@@ -60,39 +59,34 @@ function isPrivateAddress(address) {
 			(a === 100 && b >= 64 && b <= 127) ||
 			(a === 169 && b === 254) ||
 			(a === 172 && b >= 16 && b <= 31) ||
-			(a === 192 && b === 168) ||
+			(a === 192 && (b === 168 || (b === 0 && (c === 0 || c === 2)))) ||
+			(a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) ||
+			(a === 203 && b === 0 && c === 113) ||
 			a >= 224
 		);
 	}
 
 	if (version === 6) {
-		const lower = address.toLowerCase();
-		return (
-			lower === '::' ||
-			lower === '::1' ||
-			lower.startsWith('fc') ||
-			lower.startsWith('fd') ||
-			lower.startsWith('fe80:') ||
-			lower.startsWith('::ffff:')
-		);
+		return !globalIpv6.check(address, 'ipv6') || reservedIpv6.check(address, 'ipv6');
 	}
 
 	return true;
 }
 
-async function publicHttpUrl(input) {
+function publicHttpUrl(input, base) {
+	if (!input) return null;
 	let url;
 	try {
-		url = new URL(input);
+		url = new URL(input, base);
 	} catch {
 		return null;
 	}
 
 	if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-	if (isBlockedHostname(url.hostname)) return null;
-
-	const addresses = await lookup(url.hostname, { all: true }).catch(() => []);
-	if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) return null;
+	if (url.username || url.password) return null;
+	const hostname = hostAddress(url).replace(/\.$/, '');
+	if (hostname === 'localhost' || hostname.endsWith('.localhost')) return null;
+	if (isIP(hostname) && isPrivateAddress(hostname)) return null;
 
 	return url;
 }
@@ -113,14 +107,16 @@ function decodeStream(response) {
  */
 async function readHtmlPrefix(response) {
 	const stream = decodeStream(response);
+	if (stream !== response) response.on('error', (err) => stream.destroy(err));
 	const decoder = new TextDecoder();
 	let html = '';
 	let bytes = 0;
 
 	try {
 		for await (const chunk of stream) {
-			bytes += chunk.byteLength;
-			html += decoder.decode(chunk, { stream: true });
+			const prefix = chunk.subarray(0, MAX_HTML_BYTES - bytes);
+			bytes += prefix.byteLength;
+			html += decoder.decode(prefix, { stream: true });
 			if (bytes >= MAX_HTML_BYTES) break;
 		}
 	} finally {
@@ -140,31 +136,34 @@ async function readHtmlPrefix(response) {
  * request no matter the headers, while the same request over this transport is
  * served normally.
  *
- * Redirects are followed by hand so publicHttpUrl re-validates every hop; an
- * automatic redirect chain would let a public URL bounce us into private address
- * space.
+ * Resolve and verify each redirect target, then connect using those same DNS
+ * results while keeping the original hostname for the Host header and TLS.
  */
-async function attemptHtml(input, redirects = 0) {
-	const url = await publicHttpUrl(input);
-	if (!url || redirects > MAX_REDIRECTS) return null;
+async function attemptHtml(url, signal, redirects = 0) {
+	if (!url || signal.aborted || redirects > MAX_REDIRECTS) return null;
+	const addresses = await lookup(hostAddress(url), { all: true }).catch(() => []);
+	if (
+		signal.aborted ||
+		!addresses.length ||
+		addresses.some(({ address }) => isPrivateAddress(address))
+	) {
+		return null;
+	}
 
 	const send = url.protocol === 'https:' ? httpsRequest : httpRequest;
-	let timedOut = false;
-	let req;
-
-	// A hard deadline spanning headers *and* body, so a host that trickles bytes
-	// can't hold a page render open past the budget.
-	const deadline = setTimeout(() => {
-		timedOut = true;
-		req?.destroy();
-	}, FETCH_TIMEOUT_MS);
 
 	try {
 		const response = await new Promise((resolve, reject) => {
-			req = send(
+			const req = send(
 				url,
 				{
 					method: 'GET',
+					agent: false,
+					signal,
+					lookup: (_, { all }, callback) => {
+						if (all) callback(null, addresses);
+						else callback(null, addresses[0].address, addresses[0].family);
+					},
 					maxHeaderSize: MAX_HEADER_BYTES,
 					headers: {
 						accept: 'text/html,application/xhtml+xml',
@@ -181,14 +180,12 @@ async function attemptHtml(input, redirects = 0) {
 		const status = response.statusCode ?? 0;
 
 		if (status >= 300 && status < 400) {
-			response.resume();
-			const location = response.headers.location;
-			if (!location) return null;
-			return attemptHtml(new URL(location, url).href, redirects + 1);
+			response.destroy();
+			return attemptHtml(publicHttpUrl(response.headers.location, url), signal, redirects + 1);
 		}
 
 		if (status < 200 || status >= 300) {
-			response.resume();
+			response.destroy();
 			return RETRYABLE_STATUSES.has(status) ? RETRYABLE : null;
 		}
 
@@ -200,122 +197,119 @@ async function attemptHtml(input, redirects = 0) {
 
 		return { html: await readHtmlPrefix(response), url: url.href };
 	} catch {
-		// A timeout has already spent the whole per-request budget, and retrying
-		// would multiply it on a page render; other transport errors (reset
-		// connection, truncated body) fail fast, so they're worth another attempt.
-		return timedOut ? null : RETRYABLE;
-	} finally {
-		clearTimeout(deadline);
+		return signal.aborted ? null : RETRYABLE;
 	}
 }
 
-/**
- * Fetch a page's HTML, retrying the transient failures. Every retried case
- * responds quickly (a throttled 403, a connection reset), so the added
- * worst-case latency stays well under a single FETCH_TIMEOUT_MS.
- */
-async function fetchHtml(input) {
+async function retryHtml(url, signal) {
 	for (let attempt = 1; ; attempt++) {
-		const result = await attemptHtml(input);
+		const result = await attemptHtml(url, signal);
 		if (result !== RETRYABLE) return result;
 		if (attempt >= MAX_ATTEMPTS) return null;
 		await delay(RETRY_DELAY_MS * attempt);
 	}
 }
 
-function decodeHtmlEntities(value) {
-	return value.replace(/&(#x[\da-f]+|#\d+|amp|quot|apos|lt|gt);/gi, (match, entity) => {
-		const normalized = entity.toLowerCase();
-		if (normalized === 'amp') return '&';
-		if (normalized === 'quot') return '"';
-		if (normalized === 'apos') return "'";
-		if (normalized === 'lt') return '<';
-		if (normalized === 'gt') return '>';
-
-		const codePoint = normalized.startsWith('#x')
-			? Number.parseInt(normalized.slice(2), 16)
-			: Number.parseInt(normalized.slice(1), 10);
-
-		if (!Number.isInteger(codePoint) || codePoint < 0 || codePoint > 0x10ffff) return match;
-		return String.fromCodePoint(codePoint);
+/** A single deadline covers DNS, redirects, retries and the response body. */
+async function fetchHtml(url) {
+	const controller = new AbortController();
+	let timer;
+	const deadline = new Promise((resolve) => {
+		timer = setTimeout(() => {
+			controller.abort();
+			resolve(null);
+		}, FETCH_TIMEOUT_MS);
 	});
+	try {
+		return await Promise.race([retryHtml(url, controller.signal), deadline]);
+	} finally {
+		clearTimeout(timer);
+	}
 }
 
-function attributesFor(tag) {
-	const attributes = new Map();
-	const attributeRe = /([^\s"'<>/=]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
-	let match;
+function extractPreview(html, pageUrl) {
+	const document = parse(html);
+	const root = document.childNodes.find((node) => node.tagName === 'html');
+	const head = root?.childNodes.find((node) => node.tagName === 'head');
+	const pageTitle = head?.childNodes.find((node) => node.tagName === 'title')?.childNodes[0]?.value;
+	const metadata = new Map();
 
-	while ((match = attributeRe.exec(tag))) {
-		attributes.set(
-			match[1].toLowerCase(),
-			decodeHtmlEntities(match[2] ?? match[3] ?? match[4] ?? '')
-		);
+	// Some SSR frameworks stream page metadata into the body. Visit the head
+	// first so its metadata wins when the same field appears twice.
+	const pending = [document];
+	while (pending.length) {
+		const node = pending.pop();
+		for (let i = (node.childNodes?.length ?? 0) - 1; i >= 0; i--) {
+			pending.push(node.childNodes[i]);
+		}
+		if (node.tagName !== 'meta') continue;
+		const attribute = (name) => node.attrs.find((attr) => attr.name === name)?.value.trim();
+		const key = (attribute('property') || attribute('name'))?.toLowerCase();
+		const value = attribute('content');
+		if (!key || !value) continue;
+		if (!metadata.has(key)) metadata.set(key, []);
+		metadata.get(key).push(value);
 	}
 
-	return attributes;
-}
-
-function extractPreviewImage(html, pageUrl) {
-	const metaRe = /<meta\b[^>]*>/gi;
-	const candidates = [];
-	const imageKeys = new Set([
+	const first = (...keys) => keys.map((key) => metadata.get(key)?.[0]).find(Boolean) ?? '';
+	const imageUrl = [
 		'og:image:secure_url',
 		'og:image',
+		'og:image:url',
 		'twitter:image',
 		'twitter:image:src'
-	]);
-	let match;
+	]
+		.flatMap((key) => metadata.get(key) ?? [])
+		.map((value) => publicHttpUrl(value, pageUrl))
+		.find((url) => url?.protocol === 'https:' && url.href.length <= 2048);
+	const type = first('og:type').toLowerCase();
 
-	while ((match = metaRe.exec(html))) {
-		const attributes = attributesFor(match[0]);
-		const key = (attributes.get('property') ?? attributes.get('name') ?? '').toLowerCase();
-		const content = attributes.get('content');
-
-		if (content && imageKeys.has(key)) {
-			candidates.push(content.trim());
-		}
-	}
-
-	for (const candidate of candidates) {
-		try {
-			const imageUrl = new URL(candidate, pageUrl);
-			if (imageUrl.protocol === 'https:') return imageUrl.href;
-		} catch {
-			// Ignore malformed metadata and try the next candidate.
-		}
-	}
-
-	return '';
+	return {
+		title: cleanString(
+			(first('og:title', 'twitter:title') || pageTitle || '').replace(/\s+/g, ' '),
+			{ max: 256 }
+		),
+		summary: cleanString(
+			first('og:description', 'twitter:description', 'description').replace(/\s+/g, ' '),
+			{
+				max: 1024
+			}
+		),
+		imageUrl: imageUrl?.href ?? '',
+		contentType: CONTENT_TYPES.includes(type) ? type : ''
+	};
 }
 
-async function fetchPreviewImage(externalUrl) {
-	const page = await fetchHtml(externalUrl);
-	if (!page?.html) return DEFAULT_SUBMISSION_IMAGE;
+async function fetchPreview(url) {
+	const page = await fetchHtml(url);
+	return page?.html ? extractPreview(page.html, page.url) : null;
+}
 
-	return extractPreviewImage(page.html, page.url) || DEFAULT_SUBMISSION_IMAGE;
+export async function resolveSubmissionPreview(externalUrl) {
+	const url = publicHttpUrl(externalUrl);
+	if (!url) return null;
+	url.hash = '';
+	const key = url.href;
+
+	const cached = previewCache.get(key);
+	if (cached && cached.expiresAt > Date.now()) return cached.promise;
+	previewCache.delete(key);
+	if (previewCache.size >= MAX_CACHE_ENTRIES) {
+		previewCache.delete(previewCache.keys().next().value);
+	}
+
+	const promise = fetchPreview(url).catch(() => null);
+	const entry = { promise, expiresAt: Date.now() + CACHE_RETRY_MS };
+	previewCache.set(key, entry);
+
+	const value = await promise;
+	entry.expiresAt = Date.now() + (value?.imageUrl ? CACHE_TTL_MS : CACHE_RETRY_MS);
+	return value;
 }
 
 export async function resolveSubmissionPreviewImage(externalUrl) {
-	if (!externalUrl) return DEFAULT_SUBMISSION_IMAGE;
-
-	const key = String(externalUrl).trim();
-	if (!key) return DEFAULT_SUBMISSION_IMAGE;
-
-	const cached = previewCache.get(key);
-	if (cached && cached.expiresAt > Date.now()) {
-		return cached.value ?? cached.promise;
-	}
-
-	const promise = fetchPreviewImage(key).catch(() => DEFAULT_SUBMISSION_IMAGE);
-	previewCache.set(key, { promise, expiresAt: Date.now() + CACHE_RETRY_MS });
-
-	const value = await promise;
-	// Only a real hit earns the long TTL. Caching a miss for a day would let one
-	// transient upstream block pin the fallback image for 24 hours.
-	const ttl = value === DEFAULT_SUBMISSION_IMAGE ? CACHE_RETRY_MS : CACHE_TTL_MS;
-	previewCache.set(key, { value, expiresAt: Date.now() + ttl });
-	return value;
+	const preview = await resolveSubmissionPreview(externalUrl);
+	return preview?.imageUrl || DEFAULT_SUBMISSION_IMAGE;
 }
 
 async function mapLimit(items, limit, mapper) {
